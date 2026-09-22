@@ -69,6 +69,14 @@ RSpec.describe "HR session" do
     expect(response.parsed_body.dig("user", "id")).to eq(user.id)
   end
 
+  it "returns a csrf token with the current session" do
+    user = create(:user, password: "password")
+    sign_in_as(email: user.email, password: "password")
+    get "/api/v1/session"
+
+    expect(response.parsed_body.fetch("csrf_token")).to be_present
+  end
+
   it "signs the HR manager out" do
     create(:user, email: "hr@acme.test", password: "password")
     sign_in_as(email: "hr@acme.test", password: "password")

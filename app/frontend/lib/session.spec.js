@@ -18,6 +18,18 @@ describe("loginFormErrors", () => {
       email: "Enter a valid email"
     })
   })
+
+  it("rejects a short password", () => {
+    expect(loginFormErrors({ email: "hr@acme.test", password: "short" })).toEqual({
+      password: "Password must be at least 8 characters"
+    })
+  })
+
+  it("rejects a password longer than 72 characters", () => {
+    expect(loginFormErrors({ email: "hr@acme.test", password: "p".repeat(73) })).toEqual({
+      password: "Password is too long"
+    })
+  })
 })
 
 describe("session requests", () => {
@@ -92,5 +104,19 @@ describe("session requests", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 500 })))
 
     await expect(readSession()).rejects.toThrow("Could not check the session")
+  })
+
+  it("uses a generic sign-in error when the API omits one", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 401 })))
+
+    await expect(signIn({ email: "hr@acme.test", password: "password" })).rejects.toThrow(
+      "Invalid email or password"
+    )
+  })
+
+  it("raises when sign out fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 500 })))
+
+    await expect(signOut()).rejects.toThrow("Could not sign out")
   })
 })

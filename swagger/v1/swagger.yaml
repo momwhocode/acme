@@ -1,0 +1,668 @@
+---
+openapi: 3.0.1
+info:
+  title: ACME Salary Management API
+  version: v1
+  description: |
+    JSON API for the HR manager. Cookie session after `POST /api/v1/session`.
+    Mutating requests need `X-CSRF-Token` from the session payload when CSRF is on.
+    Health and these docs are public. Everything else requires a signed-in HR session.
+servers:
+- url: http://localhost:3000
+  description: Local development
+tags:
+- name: Health
+  description: Liveness. No session.
+- name: Session
+  description: HR login, current user, logout.
+- name: Employees
+  description: Directory, onboard, and offboard.
+- name: Compensation
+  description: Effective-dated raises and promotions.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: _acme_session
+      description: Set by POST /api/v1/session. Swagger UI reuses it on the same origin.
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: csrf_token from the session response. Required when CSRF protection
+        is on.
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+    ValidationError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          example: validation failed
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    User:
+      type: object
+      required:
+      - id
+      - email
+      - first_name
+      - last_name
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+    Session:
+      type: object
+      required:
+      - user
+      - csrf_token
+      properties:
+        user:
+          "$ref": "#/components/schemas/User"
+        csrf_token:
+          type: string
+    Logout:
+      type: object
+      required:
+      - csrf_token
+      properties:
+        csrf_token:
+          type: string
+    Health:
+      type: object
+      required:
+      - status
+      - app
+      properties:
+        status:
+          type: string
+          example: ok
+        app:
+          type: string
+          example: acme
+    Employee:
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      - email
+      - country
+      - department
+      - employment_type
+      - status
+      - started_on
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: GB
+        department:
+          type: string
+          example: engineering
+        employment_type:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+        status:
+          type: string
+          enum:
+          - active
+          - left
+        level:
+          type: string
+          nullable: true
+        started_on:
+          type: string
+          format: date
+        left_on:
+          type: string
+          format: date
+          nullable: true
+    Decimal:
+      description: Rails may serialize decimals as a number or a string.
+      oneOf:
+      - type: string
+      - type: number
+    CompensationRecord:
+      type: object
+      required:
+      - id
+      - employee_id
+      - base_amount
+      - currency
+      - pay_period
+      - effective_date
+      properties:
+        id:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+          format: uuid
+        base_amount:
+          "$ref": "#/components/schemas/Decimal"
+        currency:
+          type: string
+          enum:
+          - USD
+          - EUR
+          - GBP
+          - INR
+        pay_period:
+          type: string
+          enum:
+          - hourly
+          - daily
+          - monthly
+          - annual
+        hours_per_week:
+          "$ref": "#/components/schemas/Decimal"
+          nullable: true
+        effective_date:
+          type: string
+          format: date
+        change_reason:
+          type: string
+          nullable: true
+    Pagination:
+      type: object
+      required:
+      - page
+      - pages
+      - count
+      - limit
+      properties:
+        page:
+          type: integer
+        pages:
+          type: integer
+        count:
+          type: integer
+        limit:
+          type: integer
+    DirectoryPage:
+      type: object
+      required:
+      - employees
+      - pagination
+      properties:
+        employees:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Employee"
+        pagination:
+          "$ref": "#/components/schemas/Pagination"
+    HireResponse:
+      type: object
+      required:
+      - employee
+      - compensation_record
+      properties:
+        employee:
+          "$ref": "#/components/schemas/Employee"
+        compensation_record:
+          "$ref": "#/components/schemas/CompensationRecord"
+    CompensationChangeResponse:
+      type: object
+      required:
+      - compensation_record
+      - employee
+      properties:
+        compensation_record:
+          "$ref": "#/components/schemas/CompensationRecord"
+        employee:
+          "$ref": "#/components/schemas/Employee"
+    OffboardResponse:
+      type: object
+      required:
+      - employee
+      properties:
+        employee:
+          "$ref": "#/components/schemas/Employee"
+    CompensationInput:
+      type: object
+      required:
+      - base_amount
+      - currency
+      - pay_period
+      properties:
+        base_amount:
+          type: number
+          minimum: 0
+          example: 80000
+        currency:
+          type: string
+          enum:
+          - USD
+          - EUR
+          - GBP
+          - INR
+        pay_period:
+          type: string
+          enum:
+          - hourly
+          - daily
+          - monthly
+          - annual
+        hours_per_week:
+          type: number
+          exclusiveMinimum: 0
+          maximum: 168
+        effective_date:
+          type: string
+          format: date
+        change_reason:
+          type: string
+          maxLength: 255
+    OnboardRequest:
+      type: object
+      required:
+      - first_name
+      - last_name
+      - email
+      - country
+      - department
+      - employment_type
+      - started_on
+      - compensation
+      properties:
+        first_name:
+          type: string
+          example: Ada
+        last_name:
+          type: string
+          example: Lovelace
+        email:
+          type: string
+          format: email
+          example: ada@acme.test
+        country:
+          type: string
+          example: GB
+        department:
+          type: string
+          example: engineering
+        employment_type:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+        level:
+          type: string
+          example: IC2
+        started_on:
+          type: string
+          format: date
+          example: '2024-01-01'
+        compensation:
+          "$ref": "#/components/schemas/CompensationInput"
+    CompensationChangeRequest:
+      allOf:
+      - "$ref": "#/components/schemas/CompensationInput"
+      - type: object
+        properties:
+          effective_date:
+            type: string
+            format: date
+            example: '2025-04-01'
+          change_reason:
+            type: string
+            example: promotion
+          level:
+            type: string
+            example: IC3
+    OffboardRequest:
+      type: object
+      required:
+      - left_on
+      properties:
+        left_on:
+          type: string
+          format: date
+          example: '2025-06-01'
+    LoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: hr@acme.test
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 72
+paths:
+  "/api/v1/employees/{employee_id}/compensation_records":
+    parameters:
+    - name: employee_id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    post:
+      summary: Record a raise or promotion
+      tags:
+      - Compensation
+      description: Appends an effective-dated pay row. Optional level updates the
+        employee. Rejected for leavers.
+      parameters: []
+      responses:
+        '201':
+          description: pay change recorded
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompensationChangeResponse"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '404':
+          description: unknown employee
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: invalid pay change
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CompensationChangeRequest"
+  "/api/v1/employees":
+    get:
+      summary: List the directory
+      tags:
+      - Employees
+      description: Server-paginated. Filters use the directory index. `q` is trigram
+        search on name and email.
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: country
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+      - name: department
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+      - name: employment_type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - active
+          - left
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: page of employees
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DirectoryPage"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: invalid filter
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    post:
+      summary: Onboard an employee
+      tags:
+      - Employees
+      description: Creates an active employee and the first compensation row in one
+        transaction.
+      parameters: []
+      responses:
+        '201':
+          description: hired
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HireResponse"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: invalid hire
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OnboardRequest"
+  "/api/v1/employees/{id}/offboard":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    patch:
+      summary: Mark a leaver
+      tags:
+      - Employees
+      description: Sets status to left. left_on must be ISO-8601 and cover every compensation
+        date.
+      parameters: []
+      responses:
+        '200':
+          description: marked left
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OffboardResponse"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '404':
+          description: unknown employee
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: cannot offboard
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OffboardRequest"
+  "/api/v1/health":
+    get:
+      summary: Liveness check
+      tags:
+      - Health
+      description: Public. Used by the signed-in home page and load balancers.
+      responses:
+        '200':
+          description: service is up
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Health"
+  "/api/v1/session":
+    post:
+      summary: Sign in
+      tags:
+      - Session
+      description: Creates a cookie session and returns a CSRF token. Email is matched
+        case-insensitively.
+      parameters: []
+      responses:
+        '201':
+          description: signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Session"
+        '401':
+          description: invalid credentials
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: CSRF token missing
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+    get:
+      summary: Current HR user
+      tags:
+      - Session
+      description: Requires a session cookie.
+      responses:
+        '200':
+          description: signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Session"
+        '401':
+          description: no session
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      summary: Sign out
+      tags:
+      - Session
+      description: Always succeeds. Clears the session when one exists.
+      responses:
+        '200':
+          description: signed out
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Logout"

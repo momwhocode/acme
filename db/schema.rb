@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_22_193000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_22_194500) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
@@ -41,6 +42,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_22_193000) do
     t.datetime "updated_at", null: false
     t.date "started_on", null: false
     t.date "left_on"
+    t.index "((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops", name: "index_employees_on_directory_search", using: :gin
     t.index "lower((email)::text)", name: "index_employees_on_lower_email", unique: true
     t.index ["department", "country", "employment_type", "status"], name: "index_employees_on_directory_filters"
   end

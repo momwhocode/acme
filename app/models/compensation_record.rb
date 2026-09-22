@@ -23,6 +23,7 @@
 #
 class CompensationRecord < ApplicationRecord
   PAY_PERIODS = %w[hourly daily monthly annual].freeze
+  ATTR_KEYS = %i[base_amount currency pay_period hours_per_week effective_date change_reason].freeze
 
   belongs_to :employee, inverse_of: :compensation_records
 
@@ -38,6 +39,15 @@ class CompensationRecord < ApplicationRecord
   validates :hours_per_week, numericality: { greater_than: 0, less_than_or_equal_to: 168 }, allow_nil: true
   validates :change_reason, length: { maximum: 255 }, allow_nil: true
   validate :effective_date_within_employment
+
+  API_JSON_KEYS = %i[
+    id employee_id base_amount currency pay_period
+    hours_per_week effective_date change_reason
+  ].freeze
+
+  def as_api_json
+    API_JSON_KEYS.index_with { |key| public_send(key) }
+  end
 
   private
 

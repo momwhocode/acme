@@ -19,6 +19,30 @@ AllCops:
 
 RSpec/ExampleLength:
   Max: 20
+  Exclude:
+    - spec/requests/swagger/**/*
 
 RSpec/MultipleExpectations:
   Max: 2
+  Exclude:
+    - spec/requests/swagger/**/*
+
+RSpec/EmptyExampleGroup:
+  Exclude:
+    - spec/requests/swagger/**/*
+
+RSpec/ScatteredSetup:
+  Exclude:
+    - spec/requests/swagger/**/*
+
+RSpec/EmptyLineAfterFinalLet:
+  Exclude:
+    - spec/requests/swagger/**/*
+
+RSpec/MultipleMemoizedHelpers:
+  Exclude:
+    - spec/requests/swagger/**/*
+
+RSpec/InstanceVariable:
+  Exclude:
+    - spec/requests/swagger/**/*

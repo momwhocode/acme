@@ -19,6 +19,7 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
+#  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #
 class Employee < ApplicationRecord
@@ -40,6 +41,15 @@ class Employee < ApplicationRecord
   validate :left_on_not_before_started_on
   validate :left_on_present_for_leavers
   validate :employment_dates_cover_compensation
+
+  DIRECTORY_JSON_KEYS = %i[
+    id first_name last_name email country department
+    employment_type status level started_on left_on
+  ].freeze
+
+  def as_directory_json
+    DIRECTORY_JSON_KEYS.index_with { |key| public_send(key) }
+  end
 
   private
 

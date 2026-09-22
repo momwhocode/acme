@@ -7,7 +7,11 @@ export function loginFormErrors({ email, password }) {
   const trimmedEmail = String(email || "").trim()
   if (!trimmedEmail) errors.email = "Enter your email"
   else if (!EMAIL_PATTERN.test(trimmedEmail)) errors.email = "Enter a valid email"
-  if (!String(password || "")) errors.password = "Enter your password"
+
+  const passwordValue = String(password || "")
+  if (!passwordValue) errors.password = "Enter your password"
+  else if (passwordValue.length < 8) errors.password = "Password must be at least 8 characters"
+  else if (passwordValue.length > 72) errors.password = "Password is too long"
   return errors
 }
 

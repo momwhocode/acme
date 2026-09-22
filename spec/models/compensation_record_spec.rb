@@ -191,4 +191,17 @@ RSpec.describe CompensationRecord do
       expect(record.employee).to eq(employee)
     end
   end
+
+  describe "#as_api_json" do
+    it "returns the persisted pay fields" do
+      record = create(:compensation_record, change_reason: "hire")
+
+      expect(record.as_api_json).to include(
+        id: record.id,
+        employee_id: record.employee_id,
+        change_reason: "hire",
+        currency: "USD"
+      )
+    end
+  end
 end

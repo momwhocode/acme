@@ -19,6 +19,7 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
+#  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #
 require "rails_helper"
@@ -235,6 +236,19 @@ RSpec.describe Employee do
       record = create(:compensation_record, employee: employee)
 
       expect(employee.compensation_records).to contain_exactly(record)
+    end
+  end
+
+  describe "#as_directory_json" do
+    it "returns the list fields" do
+      employee = create(:employee, first_name: "Ada", last_name: "Lovelace")
+
+      expect(employee.as_directory_json).to include(
+        id: employee.id,
+        first_name: "Ada",
+        last_name: "Lovelace",
+        email: employee.email
+      )
     end
   end
 end

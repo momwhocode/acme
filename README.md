@@ -40,7 +40,9 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Layer | Choice |
 | --- | --- |
 | Backend | Ruby on Rails 7.2 (unified app: HTML + `/api/v1` JSON) |
-| Database | PostgreSQL |
+| API docs | OpenAPI 3 + Swagger UI (`/api-docs`, rswag) |
+| Database | PostgreSQL (`pg_trgm` for directory search) |
+| Pagination | Pagy (server-side, counted) |
 | Frontend | React via Vite (`vite_rails`) |
 | Components | April System, documented in Storybook |
 | Testing | RSpec + FactoryBot |
@@ -66,6 +68,11 @@ CSV columns: `first_name,last_name,email,country,department,employment_type,stat
 
 - App: http://localhost:3000 — sign in as `hr@acme.test` / `whiteaeroplane`
 - API: http://localhost:3000/api/v1/health
+- Swagger: http://localhost:3000/api-docs — OpenAPI for every `/api/v1` path and response. Refresh with `bin/rails rswag`. Use the session endpoint first so Try it out can reuse the cookie.
+- Directory: `GET /api/v1/employees?page=1&per_page=25&country=GB&department=engineering&type=full-time&status=active&q=ada` (HR session)
+- Onboard: `POST /api/v1/employees` with nested `compensation`
+- Raise / promotion: `POST /api/v1/employees/:id/compensation_records` (optional `level`)
+- Offboard: `PATCH /api/v1/employees/:id/offboard` with `left_on`
 - Storybook: `npm run storybook` → http://localhost:6006
 
 Production must set `HR_PASSWORD` (and optionally `HR_EMAIL`) before the first seed. The default password is development/test only.

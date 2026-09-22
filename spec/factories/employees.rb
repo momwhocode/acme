@@ -19,6 +19,7 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
+#  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #
 FactoryBot.define do

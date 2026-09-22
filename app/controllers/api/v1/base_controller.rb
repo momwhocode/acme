@@ -12,7 +12,16 @@ module Api
         render json: { error: "unauthorized" }, status: :unprocessable_entity
       end
 
+      rescue_from ActiveRecord::RecordNotFound do
+        render json: { error: "not found" }, status: :not_found
+      end
+
       private
+
+      def render_validation(record)
+        render json: { error: "validation failed", errors: record.errors.messages },
+               status: :unprocessable_content
+      end
 
       def current_user
         return @current_user if defined?(@current_user)
