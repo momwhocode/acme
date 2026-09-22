@@ -83,4 +83,10 @@ RSpec.describe DirectoryQuery do
   it "uses limit when per_page is absent" do
     expect(described_class.new(limit: 10).limit).to eq(10)
   end
+
+  it "rejects a search that is too long" do
+    expect { described_class.new(q: "a" * (described_class::MAX_QUERY + 1)).relation }.to raise_error(
+      described_class::Error, "q is too long"
+    )
+  end
 end

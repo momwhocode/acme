@@ -1,5 +1,5 @@
 class EmployeeOffboarder
-  class Error < StandardError; end
+  class Error < AppError; end
 
   def self.call(employee:, left_on:)
     raise Error, "already left" if employee.status == "left"

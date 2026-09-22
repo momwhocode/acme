@@ -1,5 +1,5 @@
 class EmployeeOnboarder
-  class Error < StandardError; end
+  class Error < AppError; end
 
   EMPLOYEE_KEYS = %i[
     first_name last_name email country department employment_type level started_on

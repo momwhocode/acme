@@ -14,6 +14,9 @@ Rails.application.routes.draw do
         member { patch :offboard }
       end
     end
+
+    match "/", to: "v1/errors#show", via: :all
+    match "*unmatched", to: "v1/errors#show", via: :all
   end
 
   root "pages#home"

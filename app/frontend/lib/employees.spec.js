@@ -22,6 +22,10 @@ describe("directoryFilterErrors", () => {
       status: "unknown status"
     })
   })
+
+  it("rejects a search that is too long", () => {
+    expect(directoryFilterErrors({ q: "a".repeat(256) })).toEqual({ q: "q is too long" })
+  })
 })
 
 describe("onboardErrors", () => {
@@ -99,6 +103,14 @@ describe("employee requests", () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it("does not call the API when q is too long", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(listEmployees({ q: "a".repeat(256) })).rejects.toThrow("q is too long")
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it("onboards an employee", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ employee: { email: "ada@acme.test" } }), { status: 201 })
@@ -146,6 +158,17 @@ describe("employee requests", () => {
       "/api/v1/employees/emp-1/offboard",
       expect.objectContaining({ method: "PATCH", body: JSON.stringify({ left_on: "2025-06-01" }) })
     )
+  })
+
+  it("raises an internal error message", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { code: "internal_error", message: "internal error" } }), { status: 500 })
+      )
+    )
+
+    await expect(listEmployees()).rejects.toThrow("internal error")
   })
 
   it("raises the API error payload", async () => {

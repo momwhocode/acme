@@ -93,4 +93,16 @@ describe("api envelope", () => {
   it("reads a structured error message", () => {
     expect(apiErrorMessage({ error: { code: "invalid_request", message: "already left" } })).toBe("already left")
   })
+
+  it("reads an internal error message", () => {
+    expect(apiErrorMessage({ error: { code: "internal_error", message: "internal error" } })).toBe("internal error")
+  })
+
+  it("falls back when the message is missing", () => {
+    expect(apiErrorMessage({ error: { code: "internal_error" } }, "unavailable")).toBe("unavailable")
+  })
+
+  it("uses the fallback for an empty payload", () => {
+    expect(apiErrorMessage({}, "unavailable")).toBe("unavailable")
+  })
 })

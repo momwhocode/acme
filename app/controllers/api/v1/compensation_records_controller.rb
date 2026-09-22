@@ -13,10 +13,6 @@ module Api
           },
           status: :created
         )
-      rescue CompensationAppender::Error => e
-        render_request_error(e.message)
-      rescue ActiveRecord::RecordInvalid => e
-        render_validation(e.record)
       end
 
       private

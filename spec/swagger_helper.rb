@@ -23,7 +23,11 @@ RSpec.configure do |config|
         { name: "Health", description: "Liveness. No session." },
         { name: "Session", description: "HR login, current user, logout." },
         { name: "Employees", description: "Directory, onboard, and offboard." },
-        { name: "Compensation", description: "Effective-dated raises and promotions." }
+        { name: "Compensation", description: "Effective-dated raises and promotions." },
+        {
+          name: "Errors",
+          description: "Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400 invalid_request. Unexpected failures are 500 internal_error and never leak the exception."
+        }
       ],
       components: {
         securitySchemes: {

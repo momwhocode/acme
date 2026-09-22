@@ -12,13 +12,16 @@ function present(value) {
   return String(value ?? "").trim()
 }
 
-export function directoryFilterErrors({ country, type, employment_type: employmentType, status } = {}) {
+export const MAX_QUERY = 255
+
+export function directoryFilterErrors({ country, type, employment_type: employmentType, status, q } = {}) {
   const errors = {}
   if (country && !COUNTRY_PATTERN.test(present(country))) errors.country = "unknown country"
   const resolvedType = present(type || employmentType).toLowerCase()
   if (resolvedType && !EMPLOYMENT_TYPES.includes(resolvedType)) errors.type = "unknown type"
   const resolvedStatus = present(status).toLowerCase()
   if (resolvedStatus && !STATUSES.includes(resolvedStatus)) errors.status = "unknown status"
+  if (present(q).length > MAX_QUERY) errors.q = "q is too long"
   return errors
 }
 

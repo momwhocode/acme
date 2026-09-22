@@ -20,6 +20,10 @@ tags:
   description: Directory, onboard, and offboard.
 - name: Compensation
   description: Effective-dated raises and promotions.
+- name: Errors
+  description: Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400
+    invalid_request. Unexpected failures are 500 internal_error and never leak the
+    exception.
 components:
   securitySchemes:
     cookieAuth:
@@ -537,6 +541,7 @@ paths:
         required: false
         schema:
           type: string
+          maxLength: 255
       responses:
         '200':
           description: page of employees
@@ -552,6 +557,12 @@ paths:
                 "$ref": "#/components/schemas/Error"
         '422':
           description: invalid filter
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '500':
+          description: internal error
           content:
             application/json:
               schema:
@@ -632,6 +643,25 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/OffboardRequest"
+  "/api/v1/{unmatched}":
+    parameters:
+    - name: unmatched
+      in: path
+      schema:
+        type: string
+      required: true
+    get:
+      summary: Unknown API route
+      tags:
+      - Errors
+      description: Any unmatched `/api` path returns the shared error envelope.
+      responses:
+        '404':
+          description: route not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/health":
     get:
       summary: Liveness check

@@ -93,4 +93,12 @@ RSpec.describe "GET /api/v1/employees" do
 
     expect(api_data.fetch("employees").pluck("id")).to eq([ match.id ])
   end
+
+  it "rejects a search that is too long" do
+    sign_in_hr
+    get "/api/v1/employees", params: { q: "a" * (DirectoryQuery::MAX_QUERY + 1) }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(api_error).to include("code" => "invalid_request", "message" => "q is too long")
+  end
 end

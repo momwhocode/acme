@@ -34,7 +34,7 @@ RSpec.describe "Employees", type: :request do
       parameter name: :employment_type, in: :query, required: false, schema: { type: :string, enum: Employee::EMPLOYMENT_TYPES }
       parameter name: :status, in: :query, required: false, getter: :employment_status,
                 schema: { type: :string, enum: Employee::STATUSES }
-      parameter name: :q, in: :query, required: false, schema: { type: :string }
+      parameter name: :q, in: :query, required: false, schema: { type: :string, maxLength: 255 }
 
       response "200", "page of employees" do
         schema "$ref" => "#/components/schemas/DirectoryPage"
@@ -133,6 +133,26 @@ RSpec.describe "Employees", type: :request do
           run_test! do |response|
             expect(api_error).to include("message" => "unknown country")
           end
+        end
+
+        context "when q is too long" do
+          let(:q) { "a" * (DirectoryQuery::MAX_QUERY + 1) }
+
+          run_test! do |response|
+            expect(api_error).to include("message" => "q is too long")
+          end
+        end
+      end
+
+      response "500", "internal error" do
+        schema "$ref" => "#/components/schemas/Error"
+        before do
+          sign_in_hr
+          allow(DirectoryQuery).to receive(:new).and_raise(RuntimeError, "secret failure")
+        end
+
+        run_test! do |response|
+          expect(api_error).to include("code" => "internal_error", "message" => "internal error")
         end
       end
     end

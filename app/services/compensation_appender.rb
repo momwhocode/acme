@@ -1,5 +1,5 @@
 class CompensationAppender
-  class Error < StandardError; end
+  class Error < AppError; end
 
   def self.call(...)
     new(...).call

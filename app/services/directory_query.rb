@@ -1,8 +1,9 @@
 class DirectoryQuery
-  class Error < StandardError; end
+  class Error < AppError; end
 
   DEFAULT_LIMIT = 25
   MAX_LIMIT = 100
+  MAX_QUERY = 255
   SEARCH_SQL = "(first_name || ' ' || last_name || ' ' || email) ILIKE :q"
 
   def initialize(params)
@@ -37,6 +38,7 @@ class DirectoryQuery
   def apply_search(scope)
     term = @params[:q].to_s.strip
     return scope if term.blank?
+    raise Error, "q is too long" if term.length > MAX_QUERY
 
     scope.where(SEARCH_SQL, q: "%#{Employee.sanitize_sql_like(term)}%")
   end
