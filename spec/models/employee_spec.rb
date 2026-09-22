@@ -19,7 +19,7 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
-#  index_employees_on_email              (email) UNIQUE
+#  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #
 require "rails_helper"
 
@@ -87,14 +87,84 @@ RSpec.describe Employee do
       expect(build(:employee, status: "left", left_on: nil)).not_to be_valid
     end
 
-    it "rejects left_on when status is active" do
-      expect(build(:employee, left_on: Date.new(2025, 1, 1))).not_to be_valid
+    it "accepts a future left_on while active" do
+      expect(build(:employee, left_on: Date.new(2025, 1, 1))).to be_valid
     end
 
     it "rejects left_on before started_on" do
       expect(
         build(:employee, :left, started_on: Date.new(2024, 6, 1), left_on: Date.new(2024, 1, 1))
       ).not_to be_valid
+    end
+
+    it "accepts left_on on the start date" do
+      expect(
+        build(:employee, :left, started_on: Date.new(2024, 6, 1), left_on: Date.new(2024, 6, 1))
+      ).to be_valid
+    end
+
+    it "rejects a blank first_name" do
+      expect(build(:employee, first_name: "  ")).not_to be_valid
+    end
+
+    it "rejects a first_name longer than 255 characters" do
+      expect(build(:employee, first_name: "A" * 256)).not_to be_valid
+    end
+
+    it "rejects a last_name longer than 255 characters" do
+      expect(build(:employee, last_name: "A" * 256)).not_to be_valid
+    end
+
+    it "rejects a country longer than 255 characters" do
+      expect(build(:employee, country: "A" * 256)).not_to be_valid
+    end
+
+    it "rejects a department longer than 255 characters" do
+      expect(build(:employee, department: "A" * 256)).not_to be_valid
+    end
+
+    it "rejects an email longer than 255 characters" do
+      expect(build(:employee, email: "#{"a" * 251}@x.io")).not_to be_valid
+    end
+
+    it "rejects a level longer than 50 characters" do
+      expect(build(:employee, level: "L" * 51)).not_to be_valid
+    end
+
+    it "accepts an optional level" do
+      expect(build(:employee, level: "IC4")).to be_valid
+    end
+
+    it "requires employment_type" do
+      expect(build(:employee, employment_type: nil)).not_to be_valid
+    end
+
+    it "requires status" do
+      expect(build(:employee, status: nil)).not_to be_valid
+    end
+
+    it "allows the same record to keep its email" do
+      employee = create(:employee, email: "hr@acme.test")
+      employee.last_name = "Byron"
+
+      expect(employee).to be_valid
+    end
+
+    it "rejects moving started_on after existing compensation" do
+      employee = create(:employee, started_on: Date.new(2024, 1, 1))
+      create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1))
+      employee.started_on = Date.new(2024, 6, 1)
+
+      expect(employee).not_to be_valid
+    end
+
+    it "rejects a leave date before existing compensation" do
+      employee = create(:employee, started_on: Date.new(2024, 1, 1))
+      create(:compensation_record, employee: employee, effective_date: Date.new(2024, 6, 1))
+      employee.status = "left"
+      employee.left_on = Date.new(2024, 3, 1)
+
+      expect(employee).not_to be_valid
     end
   end
 
@@ -120,14 +190,43 @@ RSpec.describe Employee do
 
       expect(employee.level).to be_nil
     end
+
+    it "strips names" do
+      employee = build(:employee, first_name: " Ada ", last_name: " Lovelace ")
+      employee.validate
+
+      expect(employee.first_name).to eq("Ada")
+      expect(employee.last_name).to eq("Lovelace")
+    end
+
+    it "upcases country and downcases department" do
+      employee = build(:employee, country: " gb ", department: "  Engineering  ")
+      employee.validate
+
+      expect(employee.country).to eq("GB")
+      expect(employee.department).to eq("engineering")
+    end
   end
 
   describe "associations" do
-    it "destroys compensation records with the employee" do
+    it "does not destroy an employee who has compensation records" do
       employee = create(:employee)
       create(:compensation_record, employee: employee)
 
-      expect { employee.destroy! }.to change(CompensationRecord, :count).by(-1)
+      expect(employee.destroy).to be(false)
+    end
+
+    it "destroys an employee with no compensation records" do
+      employee = create(:employee)
+
+      expect { employee.destroy! }.to change(described_class, :count).by(-1)
+    end
+
+    it "exposes compensation_records" do
+      employee = create(:employee)
+      record = create(:compensation_record, employee: employee)
+
+      expect(employee.compensation_records).to contain_exactly(record)
     end
   end
 end

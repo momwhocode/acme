@@ -71,6 +71,26 @@ RSpec.describe ExchangeRate do
 
       expect(duplicate).not_to be_valid
     end
+
+    it "rejects a non-letter from_currency" do
+      expect(build_rate(from_currency: "12A")).not_to be_valid
+    end
+
+    it "rejects a non-letter to_currency" do
+      expect(build_rate(to_currency: "US1")).not_to be_valid
+    end
+
+    it "rejects a blank from_currency" do
+      expect(build_rate(from_currency: "  ")).not_to be_valid
+    end
+
+    it "accepts the USD identity quote" do
+      expect(build_rate(from_currency: "USD", to_currency: "USD", rate: "1.0")).to be_valid
+    end
+
+    it "rejects a non-numeric rate" do
+      expect(build_rate(rate: "n/a")).not_to be_valid
+    end
   end
 
   describe "normalize_currencies" do

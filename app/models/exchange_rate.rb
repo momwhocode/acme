@@ -17,6 +17,10 @@
 class ExchangeRate < ApplicationRecord
   QUOTE_CURRENCIES = %w[EUR GBP INR].freeze
 
+  def self.supported_currencies
+    ([ "USD" ] + QUOTE_CURRENCIES).freeze
+  end
+
   # Current snapshot for first-time seed. Live updates append new dated rows — do not edit these rates.
   SEED_RATES = [
     { from_currency: "USD", to_currency: "USD", rate: "1.0" },
@@ -25,7 +29,7 @@ class ExchangeRate < ApplicationRecord
     { from_currency: "INR", to_currency: "USD", rate: "0.012" }
   ].freeze
 
-  validates :from_currency, :to_currency, presence: true, length: { is: 3 }
+  validates :from_currency, :to_currency, presence: true, format: { with: /\A[A-Z]{3}\z/ }
   validates :rate, presence: true, numericality: { greater_than: 0 }
   validates :effective_date, presence: true
   validates :from_currency, uniqueness: { scope: %i[to_currency effective_date] }

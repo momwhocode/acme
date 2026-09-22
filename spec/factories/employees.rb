@@ -19,7 +19,7 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
-#  index_employees_on_email              (email) UNIQUE
+#  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #
 FactoryBot.define do
   factory :employee do

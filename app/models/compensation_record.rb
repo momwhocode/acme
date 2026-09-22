@@ -22,17 +22,22 @@
 #  fk_rails_...  (employee_id => employees.id)
 #
 class CompensationRecord < ApplicationRecord
+  PAY_PERIODS = %w[hourly daily monthly annual].freeze
+
   belongs_to :employee, inverse_of: :compensation_records
 
   before_validation :normalize_attributes
 
   validates :base_amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :currency, presence: true, length: { is: 3 }
-  validates :pay_period, presence: true, inclusion: { in: CurrencyNormalizer::PAY_PERIODS }
+  validates :currency, presence: true, format: { with: /\A[A-Z]{3}\z/ },
+                       inclusion: { in: ->(_) { ExchangeRate.supported_currencies } }
+  validates :pay_period, presence: true, inclusion: { in: PAY_PERIODS }
   validates :effective_date, presence: true
   validates :effective_date, uniqueness: { scope: :employee_id }
   validates :hours_per_week, presence: true, if: :hourly?
-  validates :hours_per_week, numericality: { greater_than: 0 }, allow_nil: true
+  validates :hours_per_week, numericality: { greater_than: 0, less_than_or_equal_to: 168 }, allow_nil: true
+  validates :change_reason, length: { maximum: 255 }, allow_nil: true
+  validate :effective_date_within_employment
 
   private
 
@@ -44,5 +49,15 @@ class CompensationRecord < ApplicationRecord
 
   def hourly?
     pay_period == "hourly"
+  end
+
+  def effective_date_within_employment
+    return if employee.blank? || effective_date.blank?
+
+    if effective_date < employee.started_on
+      errors.add(:effective_date, "must be on or after the employee start date")
+    elsif employee.left_on.present? && effective_date > employee.left_on
+      errors.add(:effective_date, "must be on or before the employee leave date")
+    end
   end
 end

@@ -1,6 +1,6 @@
 class CurrencyNormalizer
   BASE_CURRENCY = "USD"
-  PAY_PERIODS = %w[hourly daily monthly annual].freeze
+  PAY_PERIODS = CompensationRecord::PAY_PERIODS
   WEEKS_PER_YEAR = 52
   MONTHS_PER_YEAR = 12
   # 5-day week, 52 weeks. Product rule for daily contractor/freelancer rates.
@@ -41,7 +41,7 @@ class CurrencyNormalizer
 
   def annualise(amount, pay_period, hours_per_week)
     period = pay_period.to_s.strip.downcase
-    raise UnknownPayPeriodError, "Unknown pay period: #{pay_period.inspect}." unless PAY_PERIODS.include?(period)
+    raise UnknownPayPeriodError, "Unknown pay period: #{pay_period.inspect}." unless CompensationRecord::PAY_PERIODS.include?(period)
 
     case period
     when "annual" then amount
