@@ -7,7 +7,7 @@ gem "sprockets-rails"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 # json 3.x dropped quirks_mode, which Rails 7.2 still passes.
-gem "json", "~> 2.10"
+gem "json", "~> 3.0"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use Redis adapter to run Action Cable in production
