@@ -1,0 +1,1987 @@
+.april-input,
+.april-textarea,
+.april-select {
+  width: 100%;
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  color: var(--color-foreground-form-text-input-value);
+  font-family: var(--april-font-family);
+  font-size: var(--typography-text-sm-regular-font-size);
+  line-height: var(--typography-text-sm-regular-line-height);
+  padding: var(--spacing-spacing-sm) var(--spacing-spacing-md);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.april-input::placeholder,
+.april-textarea::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-input:hover,
+.april-textarea:hover,
+.april-select:hover {
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-input:focus,
+.april-textarea:focus,
+.april-select:focus {
+  outline: none;
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-input:disabled,
+.april-textarea:disabled,
+.april-select:disabled {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-input--error,
+.april-textarea--error,
+.april-select--error {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.april-checkbox,
+.april-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+  cursor: pointer;
+  font-size: var(--typography-text-sm-regular-font-size);
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-checkbox__box {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-border-form-checkbox-default);
+  border-radius: var(--radius-radius-xs);
+  background: var(--color-background-form-checkbox-default);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.april-checkbox input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.april-checkbox input:checked + .april-checkbox__box,
+.april-checkbox input:indeterminate + .april-checkbox__box {
+  background: var(--color-background-form-checkbox-checked);
+  border-color: var(--color-border-form-checkbox-checked);
+  color: var(--color-foreground-icon-icon-primary);
+}
+
+.april-checkbox input:disabled + .april-checkbox__box {
+  background: var(--color-background-form-checkbox-disabled);
+  border-color: var(--color-border-form-checkbox-disabled);
+}
+
+.april-switch__track {
+  width: 36px;
+  height: 20px;
+  border-radius: var(--radius-radius-4xl);
+  background: var(--color-background-form-switch-default-off);
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.april-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--white-white-950);
+  transition: transform 0.15s ease;
+}
+
+.april-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.april-switch input:checked + .april-switch__track {
+  background: var(--color-background-form-switch-default-on);
+}
+
+.april-switch input:checked + .april-switch__track .april-switch__thumb {
+  transform: translateX(16px);
+}
+
+.april-switch input:disabled + .april-switch__track {
+  background: var(--color-background-form-switch-disabled-off);
+  cursor: not-allowed;
+}
+
+.april-switch input:disabled:checked + .april-switch__track {
+  background: var(--color-background-form-switch-disabled-on);
+}
+
+.april-selector {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-spacing-sm);
+  max-width: 320px;
+  cursor: pointer;
+  font-family: var(--april-font-family);
+  box-sizing: border-box;
+}
+
+.april-selector--control-only {
+  align-items: center;
+  gap: 0;
+  max-width: none;
+  cursor: default;
+}
+
+.april-selector--control-only.april-selector--interactive {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
+}
+
+.april-selector--control-only.april-selector--interactive:disabled {
+  cursor: not-allowed;
+}
+
+button.april-selector--control-only.april-selector--interactive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.april-selector__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.april-selector__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.april-selector__label {
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-selector__description {
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-selector__box,
+.april-selector__radio {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-form-checkbox-default);
+  background: var(--color-background-form-checkbox-default);
+  box-sizing: border-box;
+}
+
+.april-selector--control-only .april-selector__box,
+.april-selector--control-only .april-selector__radio,
+.april-selector--control-only .april-selector__track {
+  margin-top: 0;
+}
+
+.april-selector__box {
+  border-radius: var(--radius-radius-xs);
+  color: var(--color-foreground-icon-icon-primary);
+}
+
+.april-selector__check-icon,
+.april-selector__indeterminate-icon {
+  display: block;
+  width: 9px;
+  height: 7px;
+  flex-shrink: 0;
+}
+
+.april-selector__radio {
+  border-radius: 50%;
+}
+
+.april-selector__radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-foreground-icon-icon-primary);
+}
+
+.april-selector__track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  border-radius: var(--radius-radius-4xl);
+  background: var(--color-background-form-switch-default-off);
+  transition: background-color 0.15s ease;
+}
+
+.april-selector__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-background-form-checkbox-default);
+  transition: transform 0.15s ease;
+}
+
+/* Checkbox — unchecked */
+
+.april-selector--checkbox:not(.april-selector--checked):not(.april-selector--indeterminate)
+  .april-selector__box {
+  background: var(--color-background-form-checkbox-default);
+  border-color: var(--color-border-form-checkbox-default);
+}
+
+.april-selector--checkbox.april-selector--hover:not(.april-selector--checked):not(
+    .april-selector--indeterminate
+  )
+  .april-selector__box,
+.april-selector--checkbox.april-selector--active:not(.april-selector--checked):not(
+    .april-selector--indeterminate
+  )
+  .april-selector__box {
+  background: var(--color-background-form-checkbox-hover);
+  border-color: var(--color-border-form-checkbox-hover);
+}
+
+.april-selector--checkbox.april-selector--focused:not(.april-selector--checked):not(
+    .april-selector--indeterminate
+  )
+  .april-selector__box {
+  background: var(--color-background-form-checkbox-focused);
+  border-color: var(--color-border-form-checkbox-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Checkbox — checked / indeterminate */
+
+.april-selector--checkbox.april-selector--checked .april-selector__box,
+.april-selector--checkbox.april-selector--indeterminate .april-selector__box {
+  background: var(--color-background-form-checkbox-checked);
+  border-color: var(--color-border-form-checkbox-checked);
+  color: var(--color-foreground-icon-icon-primary);
+}
+
+.april-selector--checkbox.april-selector--hover.april-selector--checked .april-selector__box,
+.april-selector--checkbox.april-selector--active.april-selector--checked .april-selector__box,
+.april-selector--checkbox.april-selector--hover.april-selector--indeterminate .april-selector__box,
+.april-selector--checkbox.april-selector--active.april-selector--indeterminate .april-selector__box {
+  background: var(--color-background-form-checkbox-hover);
+  border-color: var(--color-border-form-checkbox-hover);
+}
+
+.april-selector--checkbox.april-selector--focused.april-selector--checked .april-selector__box,
+.april-selector--checkbox.april-selector--focused.april-selector--indeterminate .april-selector__box {
+  background: var(--color-background-form-checkbox-focused);
+  border-color: var(--color-border-form-checkbox-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Radio — unchecked */
+
+.april-selector--radio:not(.april-selector--checked) .april-selector__radio {
+  background: var(--color-background-form-checkbox-default);
+  border-color: var(--color-border-form-checkbox-default);
+}
+
+.april-selector--radio.april-selector--hover:not(.april-selector--checked) .april-selector__radio,
+.april-selector--radio.april-selector--active:not(.april-selector--checked) .april-selector__radio {
+  background: var(--color-background-form-checkbox-hover);
+  border-color: var(--color-border-form-checkbox-hover);
+}
+
+.april-selector--radio.april-selector--focused:not(.april-selector--checked) .april-selector__radio {
+  background: var(--color-background-form-checkbox-focused);
+  border-color: var(--color-border-form-checkbox-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Radio — checked */
+
+.april-selector--radio.april-selector--checked .april-selector__radio {
+  background: var(--color-background-form-checkbox-checked);
+  border-color: var(--color-border-form-checkbox-checked);
+}
+
+.april-selector--radio.april-selector--hover.april-selector--checked .april-selector__radio,
+.april-selector--radio.april-selector--active.april-selector--checked .april-selector__radio {
+  background: var(--color-background-form-checkbox-hover);
+  border-color: var(--color-border-form-checkbox-hover);
+}
+
+.april-selector--radio.april-selector--focused.april-selector--checked .april-selector__radio {
+  background: var(--color-background-form-checkbox-focused);
+  border-color: var(--color-border-form-checkbox-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Switch — off */
+
+.april-selector--switch:not(.april-selector--checked) .april-selector__track {
+  background: var(--color-background-form-switch-default-off);
+}
+
+.april-selector--switch.april-selector--hover:not(.april-selector--checked) .april-selector__track,
+.april-selector--switch.april-selector--active:not(.april-selector--checked) .april-selector__track {
+  background: var(--color-background-form-switch-hover-off);
+}
+
+.april-selector--switch.april-selector--focused:not(.april-selector--checked) .april-selector__track {
+  background: var(--color-background-form-switch-focused-off);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Switch — on */
+
+.april-selector--switch.april-selector--checked .april-selector__track {
+  background: var(--color-background-form-switch-default-on);
+}
+
+.april-selector--switch.april-selector--checked .april-selector__thumb {
+  transform: translateX(16px);
+}
+
+.april-selector--switch.april-selector--hover.april-selector--checked .april-selector__track,
+.april-selector--switch.april-selector--active.april-selector--checked .april-selector__track {
+  background: var(--color-background-form-switch-hover-on);
+}
+
+.april-selector--switch.april-selector--focused.april-selector--checked .april-selector__track {
+  background: var(--color-background-form-switch-focused-on);
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Disabled */
+
+.april-selector--disabled {
+  cursor: not-allowed;
+}
+
+.april-selector--disabled .april-selector__label,
+.april-selector--disabled .april-selector__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-selector--disabled .april-selector__box,
+.april-selector--disabled .april-selector__radio {
+  background: var(--color-background-form-checkbox-disabled);
+  border-color: var(--color-border-form-checkbox-disabled);
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-selector--disabled .april-selector__radio-dot {
+  background: var(--color-foreground-form-icon-disabled);
+}
+
+.april-selector--disabled.april-selector--switch .april-selector__track {
+  background: var(--color-background-form-switch-disabled-off);
+}
+
+.april-selector--disabled.april-selector--switch.april-selector--checked .april-selector__track {
+  background: var(--color-background-form-switch-disabled-on);
+}
+
+.april-selector--disabled.april-selector--checked .april-selector__box,
+.april-selector--disabled.april-selector--indeterminate .april-selector__box,
+.april-selector--disabled.april-selector--checked .april-selector__radio {
+  background: var(--color-background-form-checkbox-disabled);
+  border-color: var(--color-border-form-checkbox-disabled);
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-selector:focus-within:not(.april-selector--disabled) .april-selector__box,
+.april-selector:focus-within:not(.april-selector--disabled) .april-selector__radio,
+.april-selector:focus-within:not(.april-selector--disabled) .april-selector__track {
+  box-shadow: var(--april-focus-ring);
+}
+
+/* Storybook — selector playground */
+
+.april-selector-playground {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Selector field (composes base control + label + secondary text) */
+
+.april-selector-field {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-spacing-sm);
+  max-width: 320px;
+  cursor: pointer;
+  font-family: var(--april-font-family);
+  box-sizing: border-box;
+}
+
+.april-selector-field__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.april-selector-field__control {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 1px;
+  cursor: inherit;
+}
+
+.april-selector-field__control.april-selector--control-only {
+  margin-top: 1px;
+}
+
+.april-selector-field--switch .april-selector-field__control {
+  margin-top: 1px;
+}
+
+.april-selector-field__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.april-selector-field__label {
+  color: var(--color-foreground-text-text-default);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-selector-field__secondary {
+  color: var(--color-foreground-text-text-muted);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-selector-field--disabled {
+  cursor: not-allowed;
+}
+
+.april-selector-field--disabled .april-selector-field__label,
+.april-selector-field--disabled .april-selector-field__secondary {
+  color: var(--color-foreground-text-text-muted);
+}
+
+.april-selector-field:focus-within:not(.april-selector-field--disabled)
+  .april-selector-field__control
+  .april-selector__box,
+.april-selector-field:focus-within:not(.april-selector-field--disabled)
+  .april-selector-field__control
+  .april-selector__radio,
+.april-selector-field:focus-within:not(.april-selector-field--disabled)
+  .april-selector-field__control
+  .april-selector__track {
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-otp-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: min(256px, 100%);
+  font-family: var(--april-font-family);
+}
+
+.april-otp-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-otp-input__cells {
+  display: flex;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+}
+
+.april-otp-input__cell {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: 56px;
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  color: var(--color-foreground-form-text-input-placeholder);
+  font-family: var(--typography-text-lg-semibold-font-family);
+  font-size: var(--typography-text-lg-semibold-font-size);
+  font-weight: var(--typography-text-lg-semibold-font-weight);
+  line-height: var(--typography-text-lg-semibold-line-height);
+  text-align: center;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.april-otp-input__cell:focus-visible {
+  outline: none;
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-otp-input--entered .april-otp-input__cell {
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-otp-input__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-otp-input--disabled .april-otp-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* States */
+.april-otp-input--hover .april-otp-input__cell {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-otp-input--active .april-otp-input__cell--current {
+  background: var(--color-background-form-input-pressed-active);
+  border-color: var(--color-border-form-input-pressed);
+}
+
+.april-otp-input--focused .april-otp-input__cell--current {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-otp-input--error .april-otp-input__cell {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-otp-input--error .april-otp-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-otp-input--disabled .april-otp-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-otp-input--disabled .april-otp-input__cell {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-text-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--april-font-family);
+}
+
+.april-text-input--full-width {
+  max-width: none;
+}
+
+.april-text-input__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-text-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-text-input__required {
+  margin-left: 0.2em;
+  color: var(--color-foreground-text-text-destructive, #b42318);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-text-input__control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+  padding: 0 var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+}
+
+.april-text-input--md .april-text-input__control {
+  height: 40px;
+}
+
+.april-text-input--lg .april-text-input__control {
+  height: 48px;
+}
+
+.april-text-input--xl .april-text-input__control {
+  height: 56px;
+}
+
+.april-text-input__field {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-text-input-placeholder);
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  outline: none;
+}
+
+.april-text-input__field::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-text-input--entered .april-text-input__field {
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-text-input__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-foreground-form-icon-default);
+}
+
+.april-text-input__clear {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-icon-default);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.april-text-input__clear:hover {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-text-input__clear:focus-visible {
+  outline: 2px solid var(--color-border-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-radius-xs);
+}
+
+.april-text-input__spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.april-text-input__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-text-input__meta,
+.april-textarea-input__meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-spacing-sm, 8px);
+}
+
+.april-character-count {
+  margin: 0 0 0 auto;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+  white-space: nowrap;
+}
+
+.april-text-input--disabled .april-text-input__description,
+.april-text-input--loading .april-text-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* States */
+.april-text-input--hover .april-text-input__control {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-text-input--hover .april-text-input__icon {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-text-input--active .april-text-input__control {
+  background: var(--color-background-form-input-pressed-active);
+  border-color: var(--color-border-form-input-pressed);
+}
+
+.april-text-input--active .april-text-input__icon {
+  color: var(--color-foreground-form-icon-pressed);
+}
+
+.april-text-input--focused .april-text-input__control {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-text-input--focused .april-text-input__icon {
+  color: var(--color-foreground-form-icon-focused);
+}
+
+.april-text-input--error .april-text-input__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-text-input--error .april-text-input__icon {
+  color: var(--color-foreground-form-icon-error);
+}
+
+.april-text-input--error .april-text-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-text-input--disabled .april-text-input__label,
+.april-text-input--loading .april-text-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-text-input--disabled .april-text-input__control,
+.april-text-input--loading .april-text-input__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+}
+
+.april-text-input--loading .april-text-input__control {
+  background: var(--color-background-form-input-loading);
+  border-color: var(--color-border-form-input-loading);
+}
+
+.april-text-input--disabled .april-text-input__field,
+.april-text-input--loading .april-text-input__field {
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-text-input--disabled .april-text-input__icon {
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-text-input--loading .april-text-input__icon {
+  color: var(--color-foreground-form-icon-loading);
+}
+
+.april-select-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--april-font-family);
+}
+
+.april-select-input--full-width {
+  max-width: none;
+}
+
+.april-select-input__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-select-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-select-input__required {
+  margin-left: 0.2em;
+  color: var(--color-foreground-text-text-destructive, #b42318);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-select-input__control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+}
+
+.april-select-input--md .april-select-input__control {
+  height: 40px;
+}
+
+.april-select-input--lg .april-select-input__control {
+  height: 48px;
+}
+
+.april-select-input--xl .april-select-input__control {
+  height: 56px;
+}
+
+.april-select-input__trigger {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  cursor: pointer;
+  outline: none;
+}
+
+.april-select-input__value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-select-input--entered .april-select-input__value {
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-select-input__icon,
+.april-select-input__caret {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-foreground-form-icon-default);
+}
+
+.april-select-input__spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.april-select-input__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-select-input--disabled .april-select-input__description,
+.april-select-input--loading .april-select-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* States */
+.april-select-input--hover .april-select-input__control {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-select-input--hover .april-select-input__icon,
+.april-select-input--hover .april-select-input__caret {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-select-input--active .april-select-input__control {
+  background: var(--color-background-form-input-pressed-active);
+  border-color: var(--color-border-form-input-pressed);
+}
+
+.april-select-input--active .april-select-input__icon,
+.april-select-input--active .april-select-input__caret {
+  color: var(--color-foreground-form-icon-pressed);
+}
+
+.april-select-input--focused .april-select-input__control {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-select-input--focused .april-select-input__icon,
+.april-select-input--focused .april-select-input__caret {
+  color: var(--color-foreground-form-icon-focused);
+}
+
+.april-select-input--error .april-select-input__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-select-input--error .april-select-input__icon,
+.april-select-input--error .april-select-input__caret {
+  color: var(--color-foreground-form-icon-error);
+}
+
+.april-select-input--error .april-select-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-select-input--disabled .april-select-input__label,
+.april-select-input--loading .april-select-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-select-input--disabled .april-select-input__control,
+.april-select-input--loading .april-select-input__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+}
+
+.april-select-input--loading .april-select-input__control {
+  background: var(--color-background-form-input-loading);
+  border-color: var(--color-border-form-input-loading);
+}
+
+.april-select-input--disabled .april-select-input__trigger,
+.april-select-input--loading .april-select-input__trigger {
+  cursor: not-allowed;
+}
+
+.april-select-input--disabled .april-select-input__value,
+.april-select-input--loading .april-select-input__value {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-select-input--disabled .april-select-input__icon,
+.april-select-input--disabled .april-select-input__caret {
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-select-input--loading .april-select-input__icon {
+  color: var(--color-foreground-form-icon-loading);
+}
+
+/* Storybook playground (Figma node 39:5749) */
+
+.april-select-input-playground {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-select-input-playground__frame {
+  width: min(100%, 360px);
+}
+
+.april-textarea-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--april-font-family);
+}
+
+.april-textarea-input--full-width {
+  max-width: none;
+}
+
+.april-textarea-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-textarea-input__required {
+  margin-left: 0.2em;
+  color: var(--color-foreground-text-text-destructive, #b42318);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-textarea-input__control {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-spacing-sm);
+  min-height: 120px;
+  padding: var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+}
+
+.april-textarea-input__field {
+  flex: 1;
+  min-width: 0;
+  min-height: 96px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  resize: vertical;
+  color: var(--color-foreground-form-text-input-placeholder);
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  outline: none;
+}
+
+.april-textarea-input__field::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-textarea-input--entered .april-textarea-input__field {
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-textarea-input__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-foreground-form-icon-default);
+}
+
+.april-textarea-input__spinner {
+  position: absolute;
+  top: var(--spacing-spacing-md);
+  right: var(--spacing-spacing-md);
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.april-textarea-input--loading .april-textarea-input__field {
+  padding-right: calc(var(--icon-size-icon-20) + var(--spacing-spacing-sm));
+}
+
+.april-textarea-input__description {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-textarea-input--disabled .april-textarea-input__description,
+.april-textarea-input--loading .april-textarea-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* States */
+.april-textarea-input--hover .april-textarea-input__control {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-textarea-input--hover .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-textarea-input--active .april-textarea-input__control {
+  background: var(--color-background-form-input-pressed-active);
+  border-color: var(--color-border-form-input-pressed);
+}
+
+.april-textarea-input--active .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-pressed);
+}
+
+.april-textarea-input--focused .april-textarea-input__control {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-textarea-input--focused .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-focused);
+}
+
+.april-textarea-input--error .april-textarea-input__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-textarea-input--error .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-error);
+}
+
+.april-textarea-input--error .april-textarea-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-textarea-input--disabled .april-textarea-input__label,
+.april-textarea-input--loading .april-textarea-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-textarea-input--disabled .april-textarea-input__control,
+.april-textarea-input--loading .april-textarea-input__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+}
+
+.april-textarea-input--loading .april-textarea-input__control {
+  background: var(--color-background-form-input-loading);
+  border-color: var(--color-border-form-input-loading);
+}
+
+.april-textarea-input--disabled .april-textarea-input__field,
+.april-textarea-input--loading .april-textarea-input__field {
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-textarea-input--disabled .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-textarea-input--loading .april-textarea-input__icon {
+  color: var(--color-foreground-form-icon-loading);
+}
+
+/* Tag input — Figma 1193:3629 */
+.april-tag-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--april-font-family);
+}
+
+.april-tag-input--full-width {
+  max-width: none;
+}
+
+.april-tag-input__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-tag-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-tag-input__required {
+  margin-left: 0.2em;
+  color: var(--color-foreground-text-text-destructive, #b42318);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-tag-input__control {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-spacing-sm);
+  min-height: 120px;
+  padding: var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.april-tag-input__stack {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: var(--spacing-spacing-sm);
+  min-width: 0;
+}
+
+.april-tag-input__field {
+  flex: 1 1 120px;
+  min-width: 120px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-text-input-value);
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  outline: none;
+}
+
+.april-tag-input__field::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-tag-input__placeholder {
+  flex: 1 1 120px;
+  min-width: 120px;
+  color: var(--color-foreground-form-text-input-placeholder);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-tag-input__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-foreground-form-icon-default);
+}
+
+.april-tag-input__spinner {
+  position: absolute;
+  top: var(--spacing-spacing-md);
+  right: var(--spacing-spacing-md);
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.april-tag-input--loading .april-tag-input__stack {
+  padding-right: calc(var(--icon-size-icon-16) + var(--spacing-spacing-sm));
+}
+
+.april-tag-input__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-tag-input--disabled .april-tag-input__description,
+.april-tag-input--loading .april-tag-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-tag-input--hover .april-tag-input__control {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-tag-input--hover .april-tag-input__icon {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-tag-input--active .april-tag-input__control {
+  background: var(--color-background-form-input-pressed-active);
+  border-color: var(--color-border-form-input-pressed);
+}
+
+.april-tag-input--active .april-tag-input__icon {
+  color: var(--color-foreground-form-icon-pressed);
+}
+
+.april-tag-input--focused .april-tag-input__control {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-tag-input--focused .april-tag-input__icon {
+  color: var(--color-foreground-form-icon-focused);
+}
+
+.april-tag-input--error .april-tag-input__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-tag-input--error .april-tag-input__icon {
+  color: var(--color-foreground-form-icon-error);
+}
+
+.april-tag-input--error .april-tag-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-tag-input--disabled .april-tag-input__label,
+.april-tag-input--loading .april-tag-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-tag-input--disabled .april-tag-input__control,
+.april-tag-input--loading .april-tag-input__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-tag-input--loading .april-tag-input__control {
+  background: var(--color-background-form-input-loading);
+  border-color: var(--color-border-form-input-loading);
+}
+
+.april-tag-input--disabled .april-tag-input__field,
+.april-tag-input--loading .april-tag-input__field {
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-tag-input--disabled .april-tag-input__icon,
+.april-tag-input--loading .april-tag-input__icon {
+  color: var(--color-foreground-form-icon-disabled);
+}
+
+.april-tag-input-playground {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-tag-input-playground__frame {
+  width: min(100%, 320px);
+}
+
+.april-tag-input-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-spacing-2xl);
+  padding: var(--spacing-spacing-2xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-tag-input-gallery__title {
+  margin: 0 0 var(--spacing-spacing-sm);
+  font-size: var(--typography-text-xs-semibold-font-size);
+  font-weight: var(--typography-text-xs-semibold-font-weight);
+  line-height: var(--typography-text-xs-semibold-line-height);
+  color: var(--color-foreground-text-text-secondary);
+}
+
+/* Domain slug field — Figma 769:14958 */
+.april-domain-field {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 480px;
+  font-family: var(--april-font-family);
+}
+
+.april-domain-field__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-domain-field__control {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+}
+
+.april-domain-field__field {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-text-input-value);
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  outline: none;
+}
+
+.april-domain-field__field::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-domain-field__suffix {
+  flex-shrink: 0;
+  color: var(--color-foreground-text-text-secondary);
+  white-space: nowrap;
+}
+
+.april-domain-field__warning {
+  max-width: 100%;
+}
+
+.april-domain-field__warning .april-alert__title {
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+}
+
+.april-domain-field__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-domain-field--hover .april-domain-field__control {
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-domain-field--focused .april-domain-field__control {
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: 0 0 0 1px var(--color-border-form-input-focused);
+}
+
+.april-domain-field--error .april-domain-field__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-domain-field--error .april-domain-field__description,
+.april-domain-field__description[data-error="true"] {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-domain-field--disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.april-domain-field--disabled .april-domain-field__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-domain-field--disabled .april-domain-field__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+}
+
+.april-domain-field--disabled .april-domain-field__field {
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-domain-field--disabled .april-domain-field__suffix {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-domain-field--disabled .april-domain-field__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* form-date-picker-input (Figma 39:6150) — shares form-input tokens with text input */
+
+.april-date-picker-input {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--april-font-family);
+}
+
+.april-date-picker-input--full-width {
+  max-width: none;
+}
+
+.april-date-picker-input__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-date-picker-input__label {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-label);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-date-picker-input__required {
+  margin-left: 0.2em;
+  color: var(--color-foreground-text-text-destructive, #b42318);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight, 500);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-date-picker-input__field-wrapper {
+  position: relative;
+  z-index: 0;
+}
+
+.april-date-picker-input--open .april-date-picker-input__field-wrapper,
+.april-date-picker-input--calendar-opened .april-date-picker-input__field-wrapper {
+  z-index: 40;
+}
+
+.april-date-picker-input__control {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+  min-width: 0;
+  overflow: hidden;
+  height: 40px;
+  padding: 0 var(--spacing-spacing-md);
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+  box-sizing: border-box;
+}
+
+.april-date-picker-input__field {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-text-input-placeholder);
+  font-family: inherit;
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+  outline: none;
+}
+
+.april-date-picker-input__field::placeholder {
+  color: var(--color-foreground-form-text-input-placeholder);
+}
+
+.april-date-picker-input--entered .april-date-picker-input__field {
+  color: var(--color-foreground-form-text-input-value);
+}
+
+.april-date-picker-input__trigger {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-foreground-form-icon-default);
+  cursor: pointer;
+}
+
+.april-date-picker-input__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--april-focus-ring);
+  border-radius: var(--radius-radius-xs);
+}
+
+.april-date-picker-input__spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.april-date-picker-input__description {
+  margin: 0;
+  color: var(--color-foreground-form-text-input-description);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-date-picker-input__popover {
+  position: absolute;
+  top: calc(100% + var(--spacing-spacing-sm));
+  right: 0;
+  left: auto;
+  z-index: 40;
+}
+
+.april-date-picker-input__popover--portal {
+  position: fixed;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  z-index: 1200;
+}
+
+.april-form-select-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.april-form-select-field__menu {
+  position: absolute;
+  top: calc(100% + var(--spacing-spacing-xs));
+  left: 0;
+  right: 0;
+  z-index: 40;
+}
+
+.april-form-select-field__menu--portal {
+  position: fixed;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  z-index: 1200;
+}
+
+/* Long lists (e.g. Indian states) — scroll inside the menu, don't clip to ~5 rows. */
+.april-form-select-field__menu .april-select-dropdown {
+  width: 100%;
+  max-width: none;
+  max-height: min(320px, 50vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.april-date-picker-input__popover .april-calendar-popover {
+  margin: 0;
+}
+
+/* States */
+.april-date-picker-input--hover .april-date-picker-input__control {
+  background: var(--color-background-form-input-hover);
+  border-color: var(--color-border-form-input-hover);
+}
+
+.april-date-picker-input--hover .april-date-picker-input__trigger {
+  color: var(--color-foreground-form-icon-hover);
+}
+
+.april-date-picker-input--focused .april-date-picker-input__control,
+.april-date-picker-input--calendar-opened .april-date-picker-input__control {
+  background: var(--color-background-form-input-focused);
+  border-color: var(--color-border-form-input-focused);
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-date-picker-input--focused .april-date-picker-input__trigger,
+.april-date-picker-input--calendar-opened .april-date-picker-input__trigger {
+  color: var(--color-foreground-form-icon-focused);
+}
+
+.april-date-picker-input--error .april-date-picker-input__control {
+  background: var(--color-background-form-input-error);
+  border-color: var(--color-border-form-input-error);
+}
+
+.april-date-picker-input--error .april-date-picker-input__trigger {
+  color: var(--color-foreground-form-icon-error);
+}
+
+.april-date-picker-input--error .april-date-picker-input__description {
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-date-picker-input--disabled .april-date-picker-input__label,
+.april-date-picker-input--loading .april-date-picker-input__label {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+.april-date-picker-input--disabled .april-date-picker-input__control,
+.april-date-picker-input--loading .april-date-picker-input__control {
+  background: var(--color-background-form-input-disabled);
+  border-color: var(--color-border-form-input-disabled);
+}
+
+.april-date-picker-input--loading .april-date-picker-input__control {
+  background: var(--color-background-form-input-loading);
+  border-color: var(--color-border-form-input-loading);
+}
+
+.april-date-picker-input--disabled .april-date-picker-input__field,
+.april-date-picker-input--loading .april-date-picker-input__field {
+  color: var(--color-foreground-form-text-input-disabled);
+  cursor: not-allowed;
+}
+
+.april-date-picker-input--disabled .april-date-picker-input__trigger,
+.april-date-picker-input--loading .april-date-picker-input__trigger {
+  color: var(--color-foreground-form-icon-disabled);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.april-date-picker-input--disabled .april-date-picker-input__description,
+.april-date-picker-input--loading .april-date-picker-input__description {
+  color: var(--color-foreground-form-text-input-disabled);
+}
+
+/* Storybook — date picker input (Figma 39:6150) */
+
+.april-date-picker-input-playground {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-date-picker-input-playground__frame {
+  width: min(100%, 360px);
+}
+
+.april-date-picker-input-playground--calendar-opened {
+  align-items: start;
+  padding-top: var(--spacing-spacing-2xl);
+  min-height: min(85vh, 640px);
+}
+
+/* Time picker popover — calendar-sized grid, same surface as date picker */
+
+.april-time-picker.april-calendar-popover--single-date {
+  gap: var(--spacing-spacing-md);
+}
+
+.april-time-picker__header {
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-time-picker__period {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-form-input-default);
+}
+
+.april-time-picker__period-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 28px;
+  margin: 0;
+  padding: 0 var(--spacing-spacing-sm);
+  border: none;
+  border-radius: calc(var(--radius-radius-sm) - 2px);
+  background: transparent;
+  color: var(--color-foreground-text-text-secondary);
+  font-family: inherit;
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+  cursor: pointer;
+}
+
+.april-time-picker__period-btn--active {
+  background: var(--color-background-button-primary-default);
+  color: var(--color-foreground-text-text-on-accent);
+}
+
+.april-time-picker__period-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-time-picker__section {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-time-picker__section-label {
+  margin: 0;
+  color: var(--color-foreground-text-text-secondary);
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+}
+
+.april-time-picker__grid {
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.april-time-picker__grid--minutes:has(:nth-child(5)) {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.april-time-picker__cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Google Places Autocomplete attaches .pac-container to document.body */
+.pac-container {
+  z-index: 2000;
+  margin-top: 4px;
+  border: 1px solid var(--color-border-form-input-default);
+  border-radius: var(--radius-radius-sm);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+  font-family: var(--april-font-family);
+}
+
+.pac-item {
+  padding: 8px 12px;
+  font-size: var(--typography-text-sm-regular-font-size);
+  line-height: var(--typography-text-sm-regular-line-height);
+  cursor: pointer;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: var(--color-background-form-input-default);
+}
+
+.pac-item-query {
+  color: var(--color-foreground-form-text-input-value);
+  font-size: inherit;
+}
+
+.april-form-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+  gap: var(--spacing-spacing-md);
+  align-items: start;
+}
+
+.april-form-row__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-form-row__label-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-form-row__label-leading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-form-row__label-required {
+  color: var(--color-foreground-text-text-error, #d92d20);
+}
+
+.april-form-row__label-hint {
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-md);
+}
+
+.april-form-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-form-section__description {
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-form-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-lg);
+}

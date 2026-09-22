@@ -1,0 +1,404 @@
+/* April System — alert (Figma node 34:4245) */
+
+.april-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-spacing-sm);
+  padding: var(--spacing-spacing-lg) var(--spacing-spacing-lg) var(--spacing-spacing-md);
+  border: 1px solid;
+  border-radius: 10px;
+  font-family: var(--april-font-family);
+  font-size: var(--typography-text-sm-regular-font-size);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-alert--inline {
+  padding-top: var(--spacing-spacing-md);
+  padding-bottom: var(--spacing-spacing-md);
+  align-items: center;
+}
+
+.april-alert--toast {
+  box-shadow: var(--april-shadow-sm);
+  max-width: 24rem;
+}
+
+.april-page-toast {
+  position: fixed;
+  bottom: var(--spacing-spacing-4xl);
+  left: 50%;
+  z-index: 100;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 2 * var(--spacing-spacing-lg)));
+  transform: translateX(-50%);
+}
+
+.april-alert__icon {
+  flex-shrink: 0;
+  color: inherit;
+  margin-top: 1px;
+}
+
+.april-alert--inline .april-alert__icon {
+  margin-top: 0;
+}
+
+.april-alert__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-alert--inline .april-alert__content {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-alert__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-xs);
+  min-width: 0;
+}
+
+.april-alert__stack--inline {
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-alert__title {
+  margin: 0;
+  font-size: var(--typography-text-sm-semibold-font-size);
+  font-weight: var(--typography-text-sm-semibold-font-weight);
+  line-height: var(--typography-text-sm-semibold-line-height);
+}
+
+.april-alert__description {
+  margin: 0;
+  color: inherit;
+  font-weight: var(--typography-text-sm-regular-font-weight);
+}
+
+.april-alert__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-spacing-md);
+}
+
+/* Alert actions — link-neutral variant, flush left with title/description */
+.april-alert__actions .april-btn.april-btn--link-neutral {
+  min-height: auto;
+  padding: 0;
+  color: var(--color-foreground-button-link-neutral-default);
+}
+
+.april-alert__actions .april-btn.april-btn--link-neutral:hover:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-neutral-hover);
+}
+
+.april-alert__actions .april-btn.april-btn--link-neutral:active:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-neutral-pressed);
+}
+
+.april-alert__actions .april-btn.april-btn--link-neutral:focus-visible,
+.april-alert__actions .april-btn.april-btn--link-neutral[data-state="focused"] {
+  color: var(--color-foreground-button-link-neutral-focused);
+}
+
+.april-alert__stack .april-alert__actions {
+  margin-top: var(--spacing-spacing-xs);
+}
+
+.april-alert--inline .april-alert__actions {
+  margin-left: auto;
+  margin-top: 0;
+}
+
+/* Dismiss uses link-neutral icon-button; inherits alert foreground */
+.april-alert > .april-icon-btn.april-btn--link-neutral {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.april-alert > .april-icon-btn.april-btn--link-neutral:hover:not(:disabled):not([aria-disabled="true"]) {
+  color: inherit;
+  opacity: 0.75;
+}
+
+/* Figma color variants */
+.april-alert--gray {
+  background: var(--color-background-alert-neutral);
+  border-color: var(--color-border-alert-neutral);
+  color: var(--color-foreground-alert-neutral);
+}
+
+.april-alert--green {
+  background: var(--color-background-alert-success);
+  border-color: var(--color-border-alert-success);
+  color: var(--color-foreground-alert-success);
+}
+
+.april-alert--blue {
+  background: var(--color-background-alert-info);
+  border-color: var(--color-border-alert-info);
+  color: var(--color-foreground-alert-info);
+}
+
+.april-alert--yellow {
+  background: var(--color-background-alert-warning);
+  border-color: var(--color-border-alert-warning);
+  color: var(--color-foreground-alert-warning);
+}
+
+.april-alert--red {
+  background: var(--color-background-alert-danger);
+  border-color: var(--color-border-alert-danger);
+  color: var(--color-foreground-alert-danger);
+}
+
+/* April System — badge (Figma node 469:1975) */
+
+.april-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--april-font-family);
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+  border-radius: var(--radius-radius-4xl);
+  flex-shrink: 0;
+}
+
+.april-badge--dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  padding: 0;
+}
+
+.april-badge--single-digit,
+.april-badge--double-digit,
+.april-badge--overflow {
+  height: 24px;
+  min-height: 24px;
+  padding: 0 var(--spacing-spacing-sm);
+}
+
+.april-badge--single-digit,
+.april-badge--double-digit {
+  min-width: 24px;
+}
+
+.april-badge--overflow {
+  min-width: 40px;
+}
+
+.april-badge--gray-light {
+  background-color: var(--color-background-badge-gray-light);
+  color: var(--color-foreground-badge-gray-light);
+}
+.april-badge--gray-dark {
+  background-color: var(--color-background-badge-gray-dark);
+  color: var(--color-foreground-badge-gray-dark);
+}
+.april-badge--primary-light {
+  background-color: var(--color-background-badge-primary-light);
+  color: var(--color-foreground-badge-primary-light);
+}
+.april-badge--primary-dark {
+  background-color: var(--color-background-badge-primary-dark);
+  color: var(--color-foreground-badge-primary-dark);
+}
+.april-badge--green-light {
+  background-color: var(--color-background-badge-green-light);
+  color: var(--color-foreground-badge-green-light);
+}
+.april-badge--green-dark {
+  background-color: var(--color-background-badge-green-dark);
+  color: var(--color-foreground-badge-green-dark);
+}
+.april-badge--orange-light {
+  background-color: var(--color-background-badge-orange-light);
+  color: var(--color-foreground-badge-orange-light);
+}
+.april-badge--orange-dark {
+  background-color: var(--color-background-badge-orange-dark);
+  color: var(--color-foreground-badge-orange-dark);
+}
+.april-badge--blue-light {
+  background-color: var(--color-background-badge-blue-light);
+  color: var(--color-foreground-badge-blue-light);
+}
+.april-badge--blue-dark {
+  background-color: var(--color-background-badge-blue-dark);
+  color: var(--color-foreground-badge-blue-dark);
+}
+.april-badge--violet-light {
+  background-color: var(--color-background-badge-violet-light);
+  color: var(--color-foreground-badge-violet-light);
+}
+.april-badge--violet-dark {
+  background-color: var(--color-background-badge-violet-dark);
+  color: var(--color-foreground-badge-violet-dark);
+}
+.april-badge--pink-light {
+  background-color: var(--color-background-badge-pink-light);
+  color: var(--color-foreground-badge-pink-light);
+}
+.april-badge--pink-dark {
+  background-color: var(--color-background-badge-pink-dark);
+  color: var(--color-foreground-badge-pink-dark);
+}
+.april-badge--teal-light {
+  background-color: var(--color-background-badge-teal-light);
+  color: var(--color-foreground-badge-teal-light);
+}
+.april-badge--teal-dark {
+  background-color: var(--color-background-badge-teal-dark);
+  color: var(--color-foreground-badge-teal-dark);
+}
+.april-badge--cyan-light {
+  background-color: var(--color-background-badge-cyan-light);
+  color: var(--color-foreground-badge-cyan-light);
+}
+.april-badge--cyan-dark {
+  background-color: var(--color-background-badge-cyan-dark);
+  color: var(--color-foreground-badge-cyan-dark);
+}
+
+/* April System — tags (Figma node 120:8514) */
+
+.april-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-xs);
+  height: 24px;
+  padding: 0 var(--spacing-spacing-sm);
+  border: 1px solid;
+  border-radius: var(--radius-radius-sm);
+  font-family: var(--april-font-family);
+  font-size: var(--typography-text-xs-semibold-font-size);
+  font-weight: var(--typography-text-xs-semibold-font-weight);
+  line-height: var(--typography-text-xs-semibold-line-height);
+  box-sizing: border-box;
+}
+
+.april-tag__icon,
+.april-tag__trailing-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: inherit;
+  line-height: 0;
+}
+
+.april-tag__label {
+  white-space: nowrap;
+}
+
+.april-tag__icon .material-symbols-outlined,
+.april-tag__trailing-icon .material-symbols-outlined {
+  font-size: var(--icon-size-icon-12);
+}
+
+.april-tag__remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.april-tag__remove:focus-visible {
+  outline: 2px solid var(--color-border-form-input-focused);
+  outline-offset: 1px;
+  border-radius: var(--radius-radius-xs);
+}
+
+.april-tag--default {
+  background: var(--color-background-tags-default);
+  border-color: var(--color-border-tags-default);
+  color: var(--color-foreground-tags-default);
+}
+.april-tag--primary {
+  background: var(--color-background-tags-primary);
+  border-color: var(--color-border-tags-primary);
+  color: var(--color-foreground-tags-primary);
+}
+.april-tag--success {
+  background: var(--color-background-tags-success);
+  border-color: var(--color-border-tags-success);
+  color: var(--color-foreground-tags-success);
+}
+.april-tag--warning {
+  background: var(--color-background-tags-warning);
+  border-color: var(--color-border-tags-warning);
+  color: var(--color-foreground-tags-warning);
+}
+.april-tag--error {
+  background: var(--color-background-tags-error);
+  border-color: var(--color-border-tags-error);
+  color: var(--color-foreground-tags-error);
+}
+.april-tag--info {
+  background: var(--color-background-tags-info);
+  border-color: var(--color-border-tags-info);
+  color: var(--color-foreground-tags-info);
+}
+.april-tag--outlined {
+  background: var(--color-background-tags-outlined);
+  border-color: var(--color-border-tags-outlined);
+  color: var(--color-foreground-tags-outlined);
+}
+.april-tag--purple {
+  background: var(--color-background-tags-purple);
+  border-color: var(--color-border-tags-purple);
+  color: var(--color-foreground-tags-purple);
+}
+.april-tag--ghost {
+  background: var(--color-background-tags-ghost);
+  border-color: var(--color-border-tags-ghost);
+  color: var(--color-foreground-tags-ghost);
+}
+
+.april-spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.april-spinner--12 .app-loader-mark {
+  --app-loader-size: 12px;
+}
+
+.april-spinner--16 .app-loader-mark {
+  --app-loader-size: 16px;
+}
+
+.april-spinner--20 .app-loader-mark {
+  --app-loader-size: 20px;
+}
+
+.april-spinner--24 .app-loader-mark {
+  --app-loader-size: 24px;
+}
+
+.april-spinner--32 .app-loader-mark {
+  --app-loader-size: 32px;
+}

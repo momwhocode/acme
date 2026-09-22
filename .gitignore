@@ -4,43 +4,71 @@
 # belong in git's global ignore instead:
 # `$XDG_CONFIG_HOME/git/ignore` or `~/.config/git/ignore`
 
-# Ignore bundler config.
+# Bundler
 /.bundle
+/vendor/bundle
+/vendor/cache
 
-# Ignore all environment files (except templates).
+# Environment and secrets
 /.env*
 !/.env*.erb
+/config/master.key
+/config/credentials/*.key
+*.pem
+*.p12
 
-# Ignore all logfiles and tempfiles.
+# Logs and tempfiles
 /log/*
 /tmp/*
 !/log/.keep
 !/tmp/.keep
+*.log
+*.pid
 
-# Ignore pidfiles, but keep the directory.
+# Pidfiles, but keep the directory
 /tmp/pids/*
 !/tmp/pids/
 !/tmp/pids/.keep
 
-# Ignore storage (uploaded files in development and any SQLite databases).
+# Uploaded files and local SQLite
 /storage/*
 !/storage/.keep
 /tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
+/db/*.sqlite3
+/db/*.sqlite3-*
 
+# Compiled and generated frontend
 /public/assets
-
-# Ignore master key for decrypting credentials and more.
-/config/master.key
-
-# Vite Ruby
 /public/vite*
-node_modules
-# Vite uses dotenv and suggests to ignore local-only env files. See
-# https://vite.dev/guide/env-and-mode.html#env-files
+/storybook-static
+/coverage
+/node_modules
 *.local
+*.tsbuildinfo
 
-# RSpec example status persistence
+# Vite / npm local caches
+.vite
+.cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Test and debug leftovers
 /spec/examples.txt
+.rspec_status
+.byebug_history
+.ruby-lsp
 
+# OS and editor
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

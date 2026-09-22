@@ -1,0 +1,469 @@
+/* April System text style utilities — Figma 122:3246 */
+
+/*
+ * Typography scale tokens (Figma font/size + font/line-height).
+ * Use --font-size-* and --font-line-height-* for labels, button labels, and all UI text.
+ * Never use raw px for font-size or line-height in component CSS.
+ */
+
+.april-text-style {
+  margin: 0;
+  font-family: var(--april-font-family);
+  color: var(--color-foreground-text-text-default, #101828);
+}
+
+.april-text-style--display-2xl-regular {
+  font-family: var(--typography-display-2xl-regular-font-family);
+  font-size: var(--typography-display-2xl-regular-font-size);
+  font-weight: var(--typography-display-2xl-regular-font-weight);
+  line-height: var(--typography-display-2xl-regular-line-height);
+  letter-spacing: var(--typography-display-2xl-regular-letter-spacing);
+}
+
+.april-text-style--display-2xl-medium {
+  font-family: var(--typography-display-2xl-medium-font-family);
+  font-size: var(--typography-display-2xl-medium-font-size);
+  font-weight: var(--typography-display-2xl-medium-font-weight);
+  line-height: var(--typography-display-2xl-medium-line-height);
+  letter-spacing: var(--typography-display-2xl-medium-letter-spacing);
+}
+
+.april-text-style--display-2xl-semibold {
+  font-family: var(--typography-display-2xl-semibold-font-family);
+  font-size: var(--typography-display-2xl-semibold-font-size);
+  font-weight: var(--typography-display-2xl-semibold-font-weight);
+  line-height: var(--typography-display-2xl-semibold-line-height);
+  letter-spacing: var(--typography-display-2xl-semibold-letter-spacing);
+}
+
+.april-text-style--display-2xl-bold {
+  font-family: var(--typography-display-2xl-bold-font-family);
+  font-size: var(--typography-display-2xl-bold-font-size);
+  font-weight: var(--typography-display-2xl-bold-font-weight);
+  line-height: var(--typography-display-2xl-bold-line-height);
+  letter-spacing: var(--typography-display-2xl-bold-letter-spacing);
+}
+
+.april-text-style--display-xl-regular {
+  font-family: var(--typography-display-xl-regular-font-family);
+  font-size: var(--typography-display-xl-regular-font-size);
+  font-weight: var(--typography-display-xl-regular-font-weight);
+  line-height: var(--typography-display-xl-regular-line-height);
+  letter-spacing: var(--typography-display-xl-regular-letter-spacing);
+}
+
+.april-text-style--display-xl-medium {
+  font-family: var(--typography-display-xl-medium-font-family);
+  font-size: var(--typography-display-xl-medium-font-size);
+  font-weight: var(--typography-display-xl-medium-font-weight);
+  line-height: var(--typography-display-xl-medium-line-height);
+  letter-spacing: var(--typography-display-xl-medium-letter-spacing);
+}
+
+.april-text-style--display-xl-semibold {
+  font-family: var(--typography-display-xl-semibold-font-family);
+  font-size: var(--typography-display-xl-semibold-font-size);
+  font-weight: var(--typography-display-xl-semibold-font-weight);
+  line-height: var(--typography-display-xl-semibold-line-height);
+  letter-spacing: var(--typography-display-xl-semibold-letter-spacing);
+}
+
+.april-text-style--display-xl-bold {
+  font-family: var(--typography-display-xl-bold-font-family);
+  font-size: var(--typography-display-xl-bold-font-size);
+  font-weight: var(--typography-display-xl-bold-font-weight);
+  line-height: var(--typography-display-xl-bold-line-height);
+  letter-spacing: var(--typography-display-xl-bold-letter-spacing);
+}
+
+.april-text-style--display-lg-regular {
+  font-family: var(--typography-display-lg-regular-font-family);
+  font-size: var(--typography-display-lg-regular-font-size);
+  font-weight: var(--typography-display-lg-regular-font-weight);
+  line-height: var(--typography-display-lg-regular-line-height);
+  letter-spacing: var(--typography-display-lg-regular-letter-spacing);
+}
+
+.april-text-style--display-lg-medium {
+  font-family: var(--typography-display-lg-medium-font-family);
+  font-size: var(--typography-display-lg-medium-font-size);
+  font-weight: var(--typography-display-lg-medium-font-weight);
+  line-height: var(--typography-display-lg-medium-line-height);
+  letter-spacing: var(--typography-display-lg-medium-letter-spacing);
+}
+
+.april-text-style--display-lg-semibold {
+  font-family: var(--typography-display-lg-semibold-font-family);
+  font-size: var(--typography-display-lg-semibold-font-size);
+  font-weight: var(--typography-display-lg-semibold-font-weight);
+  line-height: var(--typography-display-lg-semibold-line-height);
+  letter-spacing: var(--typography-display-lg-semibold-letter-spacing);
+}
+
+.april-text-style--display-lg-bold {
+  font-family: var(--typography-display-lg-bold-font-family);
+  font-size: var(--typography-display-lg-bold-font-size);
+  font-weight: var(--typography-display-lg-bold-font-weight);
+  line-height: var(--typography-display-lg-bold-line-height);
+  letter-spacing: var(--typography-display-lg-bold-letter-spacing);
+}
+
+.april-text-style--display-md-regular {
+  font-family: var(--typography-display-md-regular-font-family);
+  font-size: var(--typography-display-md-regular-font-size);
+  font-weight: var(--typography-display-md-regular-font-weight);
+  line-height: var(--typography-display-md-regular-line-height);
+  letter-spacing: var(--typography-display-md-regular-letter-spacing);
+}
+
+.april-text-style--display-md-medium {
+  font-family: var(--typography-display-md-medium-font-family);
+  font-size: var(--typography-display-md-medium-font-size);
+  font-weight: var(--typography-display-md-medium-font-weight);
+  line-height: var(--typography-display-md-medium-line-height);
+  letter-spacing: var(--typography-display-md-medium-letter-spacing);
+}
+
+.april-text-style--display-md-semibold {
+  font-family: var(--typography-display-md-semibold-font-family);
+  font-size: var(--typography-display-md-semibold-font-size);
+  font-weight: var(--typography-display-md-semibold-font-weight);
+  line-height: var(--typography-display-md-semibold-line-height);
+  letter-spacing: var(--typography-display-md-semibold-letter-spacing);
+}
+
+.april-text-style--display-md-bold {
+  font-family: var(--typography-display-md-bold-font-family);
+  font-size: var(--typography-display-md-bold-font-size);
+  font-weight: var(--typography-display-md-bold-font-weight);
+  line-height: var(--typography-display-md-bold-line-height);
+  letter-spacing: var(--typography-display-md-bold-letter-spacing);
+}
+
+.april-text-style--display-sm-regular {
+  font-family: var(--typography-display-sm-regular-font-family);
+  font-size: var(--typography-display-sm-regular-font-size);
+  font-weight: var(--typography-display-sm-regular-font-weight);
+  line-height: var(--typography-display-sm-regular-line-height);
+}
+
+.april-text-style--display-sm-medium {
+  font-family: var(--typography-display-sm-medium-font-family);
+  font-size: var(--typography-display-sm-medium-font-size);
+  font-weight: var(--typography-display-sm-medium-font-weight);
+  line-height: var(--typography-display-sm-medium-line-height);
+}
+
+.april-text-style--display-sm-semibold {
+  font-family: var(--typography-display-sm-semibold-font-family);
+  font-size: var(--typography-display-sm-semibold-font-size);
+  font-weight: var(--typography-display-sm-semibold-font-weight);
+  line-height: var(--typography-display-sm-semibold-line-height);
+}
+
+.april-text-style--display-sm-bold {
+  font-family: var(--typography-display-sm-bold-font-family);
+  font-size: var(--typography-display-sm-bold-font-size);
+  font-weight: var(--typography-display-sm-bold-font-weight);
+  line-height: var(--typography-display-sm-bold-line-height);
+}
+
+.april-text-style--display-xs-regular {
+  font-family: var(--typography-display-xs-regular-font-family);
+  font-size: var(--typography-display-xs-regular-font-size);
+  font-weight: var(--typography-display-xs-regular-font-weight);
+  line-height: var(--typography-display-xs-regular-line-height);
+}
+
+.april-text-style--display-xs-medium {
+  font-family: var(--typography-display-xs-medium-font-family);
+  font-size: var(--typography-display-xs-medium-font-size);
+  font-weight: var(--typography-display-xs-medium-font-weight);
+  line-height: var(--typography-display-xs-medium-line-height);
+}
+
+.april-text-style--display-xs-semibold {
+  font-family: var(--typography-display-xs-semibold-font-family);
+  font-size: var(--typography-display-xs-semibold-font-size);
+  font-weight: var(--typography-display-xs-semibold-font-weight);
+  line-height: var(--typography-display-xs-semibold-line-height);
+}
+
+.april-text-style--display-xs-bold {
+  font-family: var(--typography-display-xs-bold-font-family);
+  font-size: var(--typography-display-xs-bold-font-size);
+  font-weight: var(--typography-display-xs-bold-font-weight);
+  line-height: var(--typography-display-xs-bold-line-height);
+}
+
+.april-text-style--display-heading-xs-regular {
+  font-family: var(--typography-display-heading-xs-regular-font-family);
+  font-size: var(--typography-display-heading-xs-regular-font-size);
+  font-weight: var(--typography-display-heading-xs-regular-font-weight);
+  line-height: var(--typography-display-heading-xs-regular-line-height);
+}
+
+.april-text-style--display-heading-xs-semibold {
+  font-family: var(--typography-display-heading-xs-semibold-font-family);
+  font-size: var(--typography-display-heading-xs-semibold-font-size);
+  font-weight: var(--typography-display-heading-xs-semibold-font-weight);
+  line-height: var(--typography-display-heading-xs-semibold-line-height);
+}
+
+.april-text-style--text-xl-regular {
+  font-family: var(--typography-text-xl-regular-font-family);
+  font-size: var(--typography-text-xl-regular-font-size);
+  font-weight: var(--typography-text-xl-regular-font-weight);
+  line-height: var(--typography-text-xl-regular-line-height);
+}
+
+.april-text-style--text-xl-medium {
+  font-family: var(--typography-text-xl-medium-font-family);
+  font-size: var(--typography-text-xl-medium-font-size);
+  font-weight: var(--typography-text-xl-medium-font-weight);
+  line-height: var(--typography-text-xl-medium-line-height);
+}
+
+.april-text-style--text-xl-semibold {
+  font-family: var(--typography-text-xl-semibold-font-family);
+  font-size: var(--typography-text-xl-semibold-font-size);
+  font-weight: var(--typography-text-xl-semibold-font-weight);
+  line-height: var(--typography-text-xl-semibold-line-height);
+}
+
+.april-text-style--text-xl-bold {
+  font-family: var(--typography-text-xl-bold-font-family);
+  font-size: var(--typography-text-xl-bold-font-size);
+  font-weight: var(--typography-text-xl-bold-font-weight);
+  line-height: var(--typography-text-xl-bold-line-height);
+}
+
+.april-text-style--text-lg-regular {
+  font-family: var(--typography-text-lg-regular-font-family);
+  font-size: var(--typography-text-lg-regular-font-size);
+  font-weight: var(--typography-text-lg-regular-font-weight);
+  line-height: var(--typography-text-lg-regular-line-height);
+}
+
+.april-text-style--text-lg-medium {
+  font-family: var(--typography-text-lg-medium-font-family);
+  font-size: var(--typography-text-lg-medium-font-size);
+  font-weight: var(--typography-text-lg-medium-font-weight);
+  line-height: var(--typography-text-lg-medium-line-height);
+}
+
+.april-text-style--text-lg-semibold {
+  font-family: var(--typography-text-lg-semibold-font-family);
+  font-size: var(--typography-text-lg-semibold-font-size);
+  font-weight: var(--typography-text-lg-semibold-font-weight);
+  line-height: var(--typography-text-lg-semibold-line-height);
+}
+
+.april-text-style--text-lg-bold {
+  font-family: var(--typography-text-lg-bold-font-family);
+  font-size: var(--typography-text-lg-bold-font-size);
+  font-weight: var(--typography-text-lg-bold-font-weight);
+  line-height: var(--typography-text-lg-bold-line-height);
+}
+
+.april-text-style--text-md-regular {
+  font-family: var(--typography-text-md-regular-font-family);
+  font-size: var(--typography-text-md-regular-font-size);
+  font-weight: var(--typography-text-md-regular-font-weight);
+  line-height: var(--typography-text-md-regular-line-height);
+}
+
+.april-text-style--text-md-medium {
+  font-family: var(--typography-text-md-medium-font-family);
+  font-size: var(--typography-text-md-medium-font-size);
+  font-weight: var(--typography-text-md-medium-font-weight);
+  line-height: var(--typography-text-md-medium-line-height);
+}
+
+.april-text-style--text-md-semibold {
+  font-family: var(--typography-text-md-semibold-font-family);
+  font-size: var(--typography-text-md-semibold-font-size);
+  font-weight: var(--typography-text-md-semibold-font-weight);
+  line-height: var(--typography-text-md-semibold-line-height);
+}
+
+.april-text-style--text-md-bold {
+  font-family: var(--typography-text-md-bold-font-family);
+  font-size: var(--typography-text-md-bold-font-size);
+  font-weight: var(--typography-text-md-bold-font-weight);
+  line-height: var(--typography-text-md-bold-line-height);
+}
+
+.april-text-style--text-sm-regular {
+  font-family: var(--typography-text-sm-regular-font-family);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-text-style--text-sm-medium {
+  font-family: var(--typography-text-sm-medium-font-family);
+  font-size: var(--typography-text-sm-medium-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight);
+  line-height: var(--typography-text-sm-medium-line-height);
+}
+
+.april-text-style--text-sm-semibold {
+  font-family: var(--typography-text-sm-semibold-font-family);
+  font-size: var(--typography-text-sm-semibold-font-size);
+  font-weight: var(--typography-text-sm-semibold-font-weight);
+  line-height: var(--typography-text-sm-semibold-line-height);
+}
+
+.april-text-style--text-sm-bold {
+  font-family: var(--typography-text-sm-bold-font-family);
+  font-size: var(--typography-text-sm-bold-font-size);
+  font-weight: var(--typography-text-sm-bold-font-weight);
+  line-height: var(--typography-text-sm-bold-line-height);
+}
+
+.april-text-style--text-xs-regular {
+  font-family: var(--typography-text-xs-regular-font-family);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-text-style--text-xs-medium {
+  font-family: var(--typography-text-xs-medium-font-family);
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+}
+
+.april-text-style--text-xs-semibold {
+  font-family: var(--typography-text-xs-semibold-font-family);
+  font-size: var(--typography-text-xs-semibold-font-size);
+  font-weight: var(--typography-text-xs-semibold-font-weight);
+  line-height: var(--typography-text-xs-semibold-line-height);
+}
+
+.april-text-style--text-xs-bold {
+  font-family: var(--typography-text-xs-bold-font-family);
+  font-size: var(--typography-text-xs-bold-font-size);
+  font-weight: var(--typography-text-xs-bold-font-weight);
+  line-height: var(--typography-text-xs-bold-line-height);
+}
+
+.april-text-style--text-xxs-regular {
+  font-family: var(--typography-text-xxs-regular-font-family);
+  font-size: var(--typography-text-xxs-regular-font-size);
+  font-weight: var(--typography-text-xxs-regular-font-weight);
+  line-height: var(--typography-text-xxs-regular-line-height);
+}
+
+.april-text-style--text-xxs-medium {
+  font-family: var(--typography-text-xxs-medium-font-family);
+  font-size: var(--typography-text-xxs-medium-font-size);
+  font-weight: var(--typography-text-xxs-medium-font-weight);
+  line-height: var(--typography-text-xxs-medium-line-height);
+}
+
+.april-text-style--text-xxs-semibold {
+  font-family: var(--typography-text-xxs-semibold-font-family);
+  font-size: var(--typography-text-xxs-semibold-font-size);
+  font-weight: var(--typography-text-xxs-semibold-font-weight);
+  line-height: var(--typography-text-xxs-semibold-line-height);
+}
+
+.april-text-style--text-xxs-bold {
+  font-family: var(--typography-text-xxs-bold-font-family);
+  font-size: var(--typography-text-xxs-bold-font-size);
+  font-weight: var(--typography-text-xxs-bold-font-weight);
+  line-height: var(--typography-text-xxs-bold-line-height);
+}
+
+/* Text Styles documentation table (Figma) */
+.april-text-styles {
+  font-family: var(--april-font-family);
+  color: #1c2024;
+}
+
+.april-text-styles__header,
+.april-text-styles__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.april-text-styles__header {
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.april-text-styles__header-cell {
+  padding: 12px 16px;
+  font-size: var(--font-size-text-sm);
+  font-weight: 500;
+  line-height: var(--font-line-height-text-sm);
+  letter-spacing: 0.07px;
+  color: #6b6b6b;
+}
+
+.april-text-styles__group-label {
+  padding: 16px 16px 8px;
+  font-size: var(--font-size-text-sm);
+  font-weight: 500;
+  line-height: var(--font-line-height-text-sm);
+  color: #1c2024;
+}
+
+.april-text-styles__row {
+  border-top: 1px solid #e6e6e6;
+}
+
+.april-text-styles__name,
+.april-text-styles__value,
+.april-text-styles__preview {
+  padding: 16px;
+  min-height: 100%;
+}
+
+.april-text-styles__name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--font-size-text-sm);
+  line-height: var(--font-line-height-text-sm);
+  font-weight: 500;
+  color: #6b6b6b;
+}
+
+.april-text-styles__value {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  color: #6b6b6b;
+}
+
+.april-text-styles__value-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+}
+
+.april-text-styles__value-label {
+  color: #6b6b6b;
+}
+
+.april-text-styles__value-token {
+  color: #1c2024;
+  word-break: break-word;
+}
+
+.april-text-styles__preview {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.april-text-styles__preview-text {
+  margin: 0;
+  white-space: nowrap;
+}

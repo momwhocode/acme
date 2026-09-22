@@ -1,0 +1,594 @@
+/* April System — button / default (april-ds.md, Figma node 34:4358) */
+
+.april-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-spacing-sm);
+  border: 0;
+  border-radius: var(--radius-radius-sm);
+  font-family: var(--april-font-family);
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.april-btn--full-width {
+  display: flex;
+  width: 100%;
+  max-width: none;
+}
+
+.april-btn:focus {
+  outline: none;
+}
+
+.april-btn:focus:not(:focus-visible),
+.april-btn[data-state="focused"]:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.april-btn:focus-visible,
+.april-btn[data-state="focused"]:focus-visible {
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-btn:disabled,
+.april-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.april-btn__label {
+  white-space: nowrap;
+}
+
+.april-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Icon button (Figma node 34:5800) */
+.april-btn--xs {
+  gap: var(--spacing-spacing-xs);
+  min-height: 24px;
+  padding: var(--spacing-spacing-xs);
+  border-radius: var(--spacing-spacing-xs);
+  font-family: var(--typography-text-xxs-semibold-font-family);
+  font-size: var(--typography-text-xxs-semibold-font-size);
+  font-weight: var(--typography-text-xxs-semibold-font-weight);
+  line-height: var(--typography-text-xxs-semibold-line-height);
+}
+
+.april-btn--xs .april-btn__icon {
+  font-size: var(--icon-size-icon-12);
+}
+
+.april-btn--sm {
+  gap: var(--spacing-spacing-xs);
+  min-height: 32px;
+  padding: var(--spacing-spacing-sm);
+  font-family: var(--typography-text-xs-semibold-font-family);
+  font-size: var(--typography-text-xs-semibold-font-size);
+  font-weight: var(--typography-text-xs-semibold-font-weight);
+  line-height: var(--typography-text-xs-semibold-line-height);
+}
+
+.april-btn--sm .april-btn__icon {
+  font-size: var(--icon-size-icon-16);
+}
+
+.april-btn--md {
+  gap: var(--spacing-spacing-sm);
+  min-height: 40px;
+  padding: var(--spacing-spacing-sm) var(--spacing-spacing-md);
+  font-family: var(--typography-text-sm-semibold-font-family);
+  font-size: var(--typography-text-sm-semibold-font-size);
+  font-weight: var(--typography-text-sm-semibold-font-weight);
+  line-height: var(--typography-text-sm-semibold-line-height);
+}
+
+.april-btn--md .april-btn__icon {
+  font-size: var(--icon-size-icon-20);
+}
+
+.april-btn--lg {
+  gap: var(--spacing-spacing-sm);
+  min-height: 48px;
+  padding: var(--spacing-spacing-sm) var(--spacing-spacing-md);
+  font-family: var(--typography-text-md-semibold-font-family);
+  font-size: var(--typography-text-md-semibold-font-size);
+  font-weight: var(--typography-text-md-semibold-font-weight);
+  line-height: var(--typography-text-md-semibold-line-height);
+}
+
+.april-btn--lg .april-btn__icon {
+  font-size: var(--icon-size-icon-24);
+}
+
+.april-btn--xl {
+  gap: var(--spacing-spacing-sm);
+  min-height: 56px;
+  padding: var(--spacing-spacing-sm) var(--spacing-spacing-md);
+  font-family: var(--typography-text-lg-semibold-font-family);
+  font-size: var(--typography-text-lg-semibold-font-size);
+  font-weight: var(--typography-text-lg-semibold-font-weight);
+  line-height: var(--typography-text-lg-semibold-line-height);
+}
+
+.april-btn--xl .april-btn__icon {
+  font-size: var(--icon-size-icon-32);
+}
+
+/* Primary */
+.april-btn--primary {
+  background: var(--color-background-button-primary-default);
+  color: var(--color-foreground-button-primary-default);
+}
+
+.april-btn--primary:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--primary[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-primary-hover);
+  color: var(--color-foreground-button-primary-hover);
+}
+
+.april-btn--primary:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--primary[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-primary-pressed);
+  color: var(--color-foreground-button-primary-pressed);
+}
+
+.april-btn--primary:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--primary[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-primary-focused);
+  color: var(--color-foreground-button-primary-focused);
+}
+
+.april-btn--primary:disabled,
+.april-btn--primary[aria-disabled="true"] {
+  background: var(--color-background-button-primary-disabled);
+  color: var(--color-foreground-button-primary-disabled);
+}
+
+.april-btn--primary.april-btn--loading,
+.april-btn--primary[aria-busy="true"] {
+  background: var(--color-background-button-primary-loading);
+  color: var(--color-foreground-button-primary-loading);
+}
+
+/* Secondary */
+.april-btn--secondary {
+  background: var(--color-background-button-secondary-default);
+  color: var(--color-foreground-button-secondary-default);
+}
+
+.april-btn--secondary:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--secondary[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-secondary-hover);
+  color: var(--color-foreground-button-secondary-hover);
+}
+
+.april-btn--secondary:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--secondary[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-secondary-pressed);
+  color: var(--color-foreground-button-secondary-pressed);
+}
+
+.april-btn--secondary:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--secondary[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-secondary-focused);
+  color: var(--color-foreground-button-secondary-focused);
+}
+
+.april-btn--secondary:disabled,
+.april-btn--secondary[aria-disabled="true"] {
+  background: var(--color-background-button-secondary-disabled);
+  color: var(--color-foreground-button-secondary-disabled);
+}
+
+.april-btn--secondary.april-btn--loading,
+.april-btn--secondary[aria-busy="true"] {
+  background: var(--color-background-button-secondary-loading);
+  color: var(--color-foreground-button-secondary-loading);
+}
+
+/* Outlined — only variant with a border */
+.april-btn--outlined {
+  border: 1px solid;
+  background: var(--color-background-button-outlined-default);
+  border-color: var(--color-border-button-outlined-default);
+  color: var(--color-foreground-button-outlined-default);
+}
+
+.april-btn--outlined:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--outlined[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-outlined-hover);
+  border-color: var(--color-border-button-outlined-hover);
+  color: var(--color-foreground-button-outlined-hover);
+}
+
+.april-btn--outlined:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--outlined[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-outlined-pressed);
+  border-color: var(--color-border-button-outlined-pressed);
+  color: var(--color-foreground-button-outlined-pressed);
+}
+
+.april-btn--outlined:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--outlined[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-outlined-focused);
+  border-color: var(--color-border-button-outlined-focused);
+  color: var(--color-foreground-button-outlined-focused);
+}
+
+.april-btn--outlined:disabled,
+.april-btn--outlined[aria-disabled="true"] {
+  background: var(--color-background-button-outlined-disabled);
+  border-color: var(--color-border-button-outlined-disabled);
+  color: var(--color-foreground-button-outlined-disabled);
+}
+
+.april-btn--outlined.april-btn--loading,
+.april-btn--outlined[aria-busy="true"] {
+  background: var(--color-background-button-outlined-loading);
+  border-color: var(--color-border-button-outlined-loading);
+  color: var(--color-foreground-button-outlined-loading);
+}
+
+/* Ghost — no background at rest; hover/pressed/focused use semantic fill tokens */
+.april-btn--ghost {
+  background: transparent;
+  color: var(--color-foreground-button-ghost-default);
+}
+
+.april-btn--ghost:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--ghost[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-ghost-focused);
+  color: var(--color-foreground-button-ghost-focused);
+}
+
+.april-btn--ghost:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--ghost[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-ghost-hover);
+  color: var(--color-foreground-button-ghost-hover);
+}
+
+.april-btn--ghost:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--ghost[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-ghost-pressed);
+  color: var(--color-foreground-button-ghost-pressed);
+}
+
+.april-btn--ghost:disabled,
+.april-btn--ghost[aria-disabled="true"] {
+  background: transparent;
+  color: var(--color-foreground-button-ghost-disabled);
+}
+
+.april-btn--ghost.april-btn--loading,
+.april-btn--ghost[aria-busy="true"] {
+  background: transparent;
+  color: var(--color-foreground-button-ghost-loading);
+}
+
+/* Destructive */
+.april-btn--destructive {
+  background: var(--color-background-button-destructive-default);
+  color: var(--color-foreground-button-destructive-default);
+}
+
+.april-btn--destructive:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--destructive[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-destructive-hover);
+  color: var(--color-foreground-button-destructive-hover);
+}
+
+.april-btn--destructive:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--destructive[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-destructive-pressed);
+  color: var(--color-foreground-button-destructive-pressed);
+}
+
+.april-btn--destructive:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--destructive[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-background-button-destructive-focused);
+  color: var(--color-foreground-button-destructive-focused);
+}
+
+.april-btn--destructive:disabled,
+.april-btn--destructive[aria-disabled="true"] {
+  background: var(--color-background-button-destructive-disabled);
+  color: var(--color-foreground-button-destructive-disabled);
+}
+
+.april-btn--destructive.april-btn--loading,
+.april-btn--destructive[aria-busy="true"] {
+  background: var(--color-background-button-destructive-loading);
+  color: var(--color-foreground-button-destructive-loading);
+}
+
+/* Link variants — no background at rest; size classes control typography and dimensions */
+.april-btn--link,
+.april-btn--link-neutral {
+  background: transparent;
+}
+
+.april-btn--link {
+  color: var(--color-foreground-button-link-default);
+}
+
+.april-btn--link:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-hover);
+}
+
+.april-btn--link:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-pressed);
+}
+
+.april-btn--link:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-focused);
+}
+
+.april-btn--link:disabled,
+.april-btn--link[aria-disabled="true"] {
+  color: var(--color-foreground-button-link-disabled);
+}
+
+.april-btn--link.april-btn--loading,
+.april-btn--link[aria-busy="true"] {
+  color: var(--color-foreground-button-link-loading);
+}
+
+.april-btn--link-neutral {
+  color: var(--color-foreground-button-link-neutral-default);
+}
+
+.april-btn--link-neutral:hover:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link-neutral[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-neutral-hover);
+}
+
+.april-btn--link-neutral:active:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link-neutral[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-neutral-pressed);
+}
+
+.april-btn--link-neutral:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-btn--link-neutral[data-state="focused"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-neutral-focused);
+}
+
+.april-btn--link-neutral:disabled,
+.april-btn--link-neutral[aria-disabled="true"] {
+  color: var(--color-foreground-button-link-neutral-disabled);
+}
+
+.april-btn--link-neutral.april-btn--loading,
+.april-btn--link-neutral[aria-busy="true"] {
+  color: var(--color-foreground-button-link-neutral-loading);
+}
+
+/* Icon button (Figma node 34:5800) */
+.april-icon-btn {
+  gap: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.april-icon-btn .april-icon,
+.april-icon-btn .april-spinner,
+.april-icon-btn .material-symbols-outlined {
+  display: block;
+}
+
+.april-icon-btn--xs .april-icon,
+.april-icon-btn--xs .material-symbols-outlined {
+  font-size: var(--icon-size-icon-12);
+}
+
+.april-icon-btn--sm .april-icon,
+.april-icon-btn--sm .material-symbols-outlined {
+  font-size: var(--icon-size-icon-16);
+}
+
+.april-icon-btn--md .april-icon,
+.april-icon-btn--md .material-symbols-outlined {
+  font-size: var(--icon-size-icon-20);
+}
+
+.april-icon-btn--lg .april-icon,
+.april-icon-btn--lg .material-symbols-outlined {
+  font-size: var(--icon-size-icon-24);
+}
+
+.april-icon-btn--xl .april-icon,
+.april-icon-btn--xl .material-symbols-outlined {
+  font-size: var(--icon-size-icon-32);
+}
+
+.april-icon-btn--xs {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.april-icon-btn--sm {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.april-icon-btn--md {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.april-icon-btn--lg {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.april-icon-btn--xl {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+}
+
+.april-icon-btn.april-btn--link,
+.april-icon-btn.april-btn--link-neutral {
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+}
+
+.april-icon-btn.april-btn--link.april-icon-btn--xs,
+.april-icon-btn.april-btn--link-neutral.april-icon-btn--xs {
+  width: 12px;
+  height: 12px;
+}
+
+.april-icon-btn.april-btn--link.april-icon-btn--sm,
+.april-icon-btn.april-btn--link-neutral.april-icon-btn--sm {
+  width: 16px;
+  height: 16px;
+}
+
+.april-icon-btn.april-btn--link.april-icon-btn--md,
+.april-icon-btn.april-btn--link-neutral.april-icon-btn--md {
+  width: 20px;
+  height: 20px;
+}
+
+.april-icon-btn.april-btn--link.april-icon-btn--lg,
+.april-icon-btn.april-btn--link-neutral.april-icon-btn--lg {
+  width: 24px;
+  height: 24px;
+}
+
+.april-icon-btn.april-btn--link.april-icon-btn--xl,
+.april-icon-btn.april-btn--link-neutral.april-icon-btn--xl {
+  width: 32px;
+  height: 32px;
+}
+
+.april-icon-btn.april-btn--loading .april-spinner,
+.april-icon-btn[aria-busy="true"] .april-spinner {
+  flex-shrink: 0;
+}
+
+/* Menu button (Figma node 34:5079) — .april-menu-btn shares .april-btn colour tokens */
+
+/* Storybook — Figma variant matrix (node 34:4358) */
+
+.april-button-figma-matrix {
+  display: grid;
+  gap: var(--spacing-spacing-lg);
+  padding: var(--spacing-spacing-lg);
+  font-family: var(--april-font-family);
+  color: var(--color-foreground-text-text-default);
+}
+
+.april-button-figma-matrix__header {
+  display: grid;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-button-figma-matrix__title {
+  margin: 0;
+  font-size: var(--font-size-text-lg);
+  line-height: var(--font-line-height-text-lg);
+  font-weight: 600;
+}
+
+.april-button-figma-matrix__description {
+  margin: 0;
+  font-size: var(--font-size-text-sm);
+  line-height: var(--font-line-height-text-sm);
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-button-figma-matrix__scroll {
+  overflow-x: auto;
+}
+
+.april-button-figma-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.april-button-figma-matrix__table th,
+.april-button-figma-matrix__table td {
+  padding: var(--spacing-spacing-sm);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.april-button-figma-matrix__table thead th {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  font-weight: 600;
+  color: var(--color-foreground-text-text-secondary);
+  white-space: nowrap;
+}
+
+.april-button-figma-matrix__variant-label th {
+  padding-top: var(--spacing-spacing-lg);
+  font-size: var(--font-size-text-sm);
+  line-height: var(--font-line-height-text-sm);
+  font-weight: 600;
+  text-align: left;
+  text-transform: capitalize;
+  color: var(--color-foreground-text-text-default);
+  border-top: 1px solid var(--color-border-border-gray-light);
+}
+
+.april-button-figma-matrix__size {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  font-weight: 500;
+  color: var(--color-foreground-text-text-muted);
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.april-button-figma-matrix__cell {
+  min-width: 9rem;
+}
+
+/* Storybook playground canvas (Figma component playground) */
+
+.april-button-playground {
+  display: grid;
+  place-items: center;
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}

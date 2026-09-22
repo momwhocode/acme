@@ -1,0 +1,324 @@
+/* April System — calendar popover (Figma 456:3034) */
+
+.april-calendar-popover,
+.april-calendar {
+  --april-calendar-day-grid-width: calc(7 * 24px + 6 * var(--spacing-spacing-sm));
+  --april-calendar-period-col-width: calc(
+    (var(--april-calendar-day-grid-width) - 3 * var(--spacing-spacing-sm)) / 4
+  );
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-md);
+  box-sizing: border-box;
+  padding: var(--spacing-spacing-md);
+  background: var(--color-background-surface-default);
+  border-radius: var(--radius-radius-md);
+  box-shadow:
+    0 5px 17px 0 rgb(12 12 12 / 14%),
+    0 0 0 1px #d8dee4;
+  font-family: var(--april-font-family);
+}
+
+.april-calendar-popover--single-date,
+.april-calendar-popover--month,
+.april-calendar-popover--year,
+.april-calendar--single-date,
+.april-calendar--month,
+.april-calendar--year {
+  width: calc(var(--april-calendar-day-grid-width) + 2 * var(--spacing-spacing-md));
+}
+
+.april-calendar-popover--range,
+.april-calendar--range {
+  gap: 0;
+  width: calc(
+    2 * var(--april-calendar-day-grid-width) + var(--spacing-spacing-md) + 2 * var(--spacing-spacing-md)
+  );
+}
+
+.april-calendar-popover--range > .april-calendar-popover__header--range {
+  margin-bottom: var(--spacing-spacing-sm);
+}
+
+.april-calendar-popover--range > .april-calendar-popover__panels {
+  margin-bottom: var(--spacing-spacing-md);
+}
+
+.april-calendar-popover__header,
+.april-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-spacing-md);
+  min-height: 24px;
+}
+
+.april-calendar-popover__nav,
+.april-calendar__nav {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-calendar-popover__nav .april-icon-btn {
+  flex-shrink: 0;
+}
+
+.april-calendar-popover__header--range,
+.april-calendar__header--range {
+  align-items: flex-start;
+}
+
+.april-calendar-popover__range-titles {
+  display: flex;
+  flex: 1;
+  gap: var(--spacing-spacing-md);
+  min-width: 0;
+}
+
+.april-calendar-popover__range-title {
+  width: var(--april-calendar-day-grid-width);
+  flex-shrink: 0;
+}
+
+.april-calendar-popover__nav--range {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.april-calendar-popover__panels,
+.april-calendar__panels {
+  display: flex;
+  gap: var(--spacing-spacing-md);
+}
+
+.april-calendar-popover__panel,
+.april-calendar__panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+}
+
+.april-calendar-popover__panel--range,
+.april-calendar__panel--range {
+  flex: 0 0 var(--april-calendar-day-grid-width);
+  width: var(--april-calendar-day-grid-width);
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-calendar-popover__weekdays,
+.april-calendar-popover__dates,
+.april-calendar__weekdays,
+.april-calendar__dates {
+  display: grid;
+  width: var(--april-calendar-day-grid-width);
+  grid-template-columns: repeat(7, 24px);
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-calendar-popover__weekday,
+.april-calendar__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  color: var(--color-foreground-text-text-default);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+  text-align: center;
+}
+
+/* Base calendar date (Figma) — compose in popover only */
+
+.april-base-calendar-date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-radius-sm);
+  background: transparent;
+  color: var(--color-foreground-text-text-default);
+  font-family: inherit;
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+  cursor: pointer;
+}
+
+.april-base-calendar-date--empty {
+  pointer-events: none;
+}
+
+.april-base-calendar-date--hover,
+.april-base-calendar-date[data-state="hover"] {
+  background: var(--color-background-button-secondary-hover);
+}
+
+.april-base-calendar-date--active,
+.april-base-calendar-date--range-start,
+.april-base-calendar-date--range-end {
+  background: var(--color-background-button-primary-default);
+  color: var(--color-foreground-text-text-on-accent);
+}
+
+.april-base-calendar-date--range {
+  border-radius: var(--radius-radius-xs);
+  background: var(--color-background-button-secondary-hover);
+  color: var(--color-foreground-text-text-default);
+}
+
+.april-base-calendar-date--disabled,
+.april-base-calendar-date:disabled {
+  color: var(--color-foreground-text-text-muted);
+  cursor: not-allowed;
+}
+
+.april-base-calendar-date:focus {
+  outline: none;
+}
+
+.april-base-calendar-date:focus-visible {
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-base-calendar-date--active:focus-visible,
+.april-base-calendar-date--range-start:focus-visible,
+.april-base-calendar-date--range-end:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--color-background-surface-default),
+    0 0 0 4px var(--color-border-border-primary-light),
+    var(--april-focus-ring);
+}
+
+.april-base-calendar-date-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-spacing-lg);
+  padding: var(--spacing-spacing-2xl);
+}
+
+.april-base-calendar-date-gallery__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-spacing-xs);
+}
+
+.april-base-calendar-date-gallery__label {
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+  color: var(--color-foreground-text-text-secondary);
+  text-transform: capitalize;
+}
+
+.april-base-calendar-date-playground,
+.april-calendar-popover-playground {
+  min-height: min(70vh, 560px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-base-calendar-date-playground__frame,
+.april-calendar-popover-playground__frame {
+  display: grid;
+  place-items: center;
+}
+
+/* Month / year period cells */
+
+.april-calendar-popover__period,
+.april-calendar__period {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-radius-sm);
+  background: transparent;
+  color: var(--color-foreground-text-text-default);
+  font-family: inherit;
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+  cursor: pointer;
+}
+
+.april-calendar-popover__periods,
+.april-calendar__periods {
+  display: grid;
+  width: var(--april-calendar-day-grid-width);
+  grid-template-columns: repeat(4, var(--april-calendar-period-col-width));
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-calendar-popover__period--hover,
+.april-calendar-popover__period[data-state="hover"],
+.april-calendar__period--hover {
+  background: var(--color-background-button-secondary-hover);
+}
+
+.april-calendar-popover__period--active,
+.april-calendar__period--active {
+  background: var(--color-background-button-primary-default);
+  color: var(--color-foreground-text-text-on-accent);
+}
+
+.april-calendar-popover__footer,
+.april-calendar__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-spacing-md);
+  min-height: 32px;
+  margin-top: var(--spacing-spacing-md);
+  margin-inline: calc(-1 * var(--spacing-spacing-md));
+  margin-bottom: calc(-1 * var(--spacing-spacing-md));
+  padding: var(--spacing-spacing-md);
+  padding-top: var(--spacing-spacing-md);
+  border-top: 1px solid var(--color-border-border-gray-dark);
+  box-sizing: border-box;
+}
+
+.april-calendar-popover--range > .april-calendar-popover__footer {
+  margin-top: 0;
+}
+
+.april-calendar-popover__footer-actions,
+.april-calendar__footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-calendar-popover__period:focus-visible,
+.april-calendar__period:focus-visible,
+.april-calendar-popover__header .april-btn:focus-visible,
+.april-calendar__header .april-btn:focus-visible,
+.april-calendar-popover__header .april-icon-btn:focus-visible,
+.april-calendar__header .april-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--april-focus-ring);
+}
+
+.april-calendar-popover__period:disabled,
+.april-calendar__period:disabled {
+  cursor: not-allowed;
+}

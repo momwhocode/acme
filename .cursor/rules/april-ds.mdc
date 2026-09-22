@@ -1,0 +1,25 @@
+---
+description: April System design system — canonical tokens, components, and rules
+globs: app/frontend/**/*.{jsx,js,css},april-ds.md,.storybook/**/*
+alwaysApply: false
+---
+
+# April System (april-ds.md)
+
+**Read `april-ds.md` at the repo root before implementing any UI.** It is the complete visual specification.
+
+## Rules
+1. **Colours** — Component backgrounds, text, borders, and icons must use semantic tokens: `var(--color-background-*)`, `var(--color-foreground-*)`, or `var(--color-border-*)`. Never use primitive vars or raw hex in components.
+2. **Typography** — Inter only. Never use raw `px` for `font-size` or `line-height`. Use `--font-size-*` and `--font-line-height-*`, or `.april-text-style--{scale}-{weight}`.
+3. **Spacing / radius** — Use `--spacing-*` and `--radius-*` tokens only.
+4. **Icons** — Material Symbols Outlined only (`icon-size-icon-12` through `32`).
+5. **Buttons** — Use `Button` / `IconButton` from `app/frontend/april/components`. Variants: `primary | secondary | outlined | ghost | destructive | link | link-neutral`. Sizes: `xs | sm | md | lg | xl`.
+6. **Forms** — Use April form components (`TextInput`, `TextareaInput`, `SelectInput`, `OtpInput`, date pickers). Never raw `<input>` / `<select>` / `<textarea>` in product UI.
+7. **Import path** — Prefer components from `app/frontend/april/components`. Do not reimplement April primitives.
+
+## Acme implementation
+- Spec: `april-ds.md`
+- Tokens: `app/frontend/styles/april/tokens.css` (`npm run generate:tokens`)
+- Components: `app/frontend/april/components/`
+- Styles: `app/frontend/styles/april.css`
+- Storybook: `app/frontend/stories/` (`npm run storybook`)

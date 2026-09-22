@@ -1,0 +1,196 @@
+/* April app shell — flush layout (no browser default body margin) */
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+.app-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.app-loader:not(.app-loader--sm) {
+  width: 100%;
+}
+
+.app-loader-mark,
+[aria-busy="true"]:empty::before {
+  --app-loader-size: 40px;
+  --app-loader-color: var(--color-background-button-primary-default, var(--primary-primary-800, #631240));
+  content: "";
+  display: block;
+  width: var(--app-loader-size);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  background: var(--app-loader-color);
+  animation: app-loader-flip 1s infinite;
+}
+
+.app-loader--sm .app-loader-mark {
+  --app-loader-size: 20px;
+}
+
+.app-loader--lg .app-loader-mark {
+  --app-loader-size: 48px;
+}
+
+@keyframes app-loader-flip {
+  0% {
+    transform: perspective(150px) rotateX(0deg);
+  }
+  100% {
+    transform: perspective(150px) rotateX(180deg);
+  }
+}
+
+.page-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-height: 12rem;
+  padding: var(--spacing-spacing-lg, 24px);
+  box-sizing: border-box;
+  background: var(--color-background-surface-default, #ffffff);
+}
+
+.page-loader .app-loader {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.page-loader--full {
+  min-height: 100dvh;
+}
+
+#root > .page-loader--full {
+  flex: 1 1 auto;
+}
+
+/*
+  Empty aria-busy shells show the branded loader.
+  Page-sized placeholders fill the remaining column so the mark sits in the pane center.
+*/
+[aria-busy="true"]:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 10rem;
+}
+
+[aria-busy="true"]:empty::before {
+  --app-loader-size: 20px;
+}
+
+.april-form-page[aria-busy="true"]:empty,
+.april-form-page__form[aria-busy="true"]:empty {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Canvas must match main panel white — grey `surface-raised` on body/html
+   was showing through create/edit forms (overscroll + layout gaps). Sidebar
+   paints its own raised grey. */
+html {
+  background: var(--color-background-surface-default);
+  scrollbar-gutter: stable;
+}
+
+/*
+  App shells own scrolling. Lock via html[data-app-chrome].
+*/
+html[data-app-chrome="shell"],
+html[data-app-chrome="shell"] body,
+html[data-app-chrome="shell"] #root {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+  max-height: 100%;
+  max-height: 100dvh;
+}
+
+html[data-app-chrome="shell"] body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
+
+:root {
+  /* Metric-matched fallback cuts Inter swap reflow. */
+  --april-font-family: "Inter", "Inter Fallback", system-ui, -apple-system, sans-serif;
+}
+
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+  size-adjust: 107.2%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+body {
+  font-family: var(--april-font-family);
+  background: var(--color-background-surface-default);
+  color: var(--color-foreground-text-text-default);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--icon-size-icon-20);
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+.april-icon--12 {
+  font-size: var(--icon-size-icon-12);
+}
+.april-icon--16 {
+  font-size: var(--icon-size-icon-16);
+}
+.april-icon--20 {
+  font-size: var(--icon-size-icon-20);
+}
+.april-icon--24 {
+  font-size: var(--icon-size-icon-24);
+}
+.april-icon--32 {
+  font-size: var(--icon-size-icon-32);
+}
+
+/* Focus ring — apply via box-shadow on :focus-visible / [data-state="focused"] */
+.april-focus-ring:focus-visible,
+.april-focus-ring[data-state="focused"] {
+  outline: none;
+  box-shadow: var(--april-focus-ring);
+}

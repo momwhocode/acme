@@ -1,0 +1,801 @@
+/* April System — avatar (Figma node 410:825) */
+
+.april-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-radius-xs);
+  font-family: var(--april-font-family);
+  color: var(--color-foreground-text-text-on-accent);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.april-avatar--md {
+  width: 20px;
+  height: 20px;
+  font-size: var(--typography-text-xxs-medium-font-size);
+  font-weight: var(--typography-text-xxs-medium-font-weight);
+  line-height: var(--typography-text-xxs-medium-line-height);
+}
+
+.april-avatar--xl {
+  width: 24px;
+  height: 24px;
+  font-size: var(--typography-text-xs-medium-font-size);
+  font-weight: var(--typography-text-xs-medium-font-weight);
+  line-height: var(--typography-text-xs-medium-line-height);
+}
+
+.april-avatar--2xl {
+  width: 32px;
+  height: 32px;
+  font-size: var(--typography-text-sm-medium-font-size);
+  font-weight: var(--typography-text-sm-medium-font-weight);
+  line-height: var(--typography-text-sm-medium-line-height);
+}
+
+.april-avatar__initials {
+  user-select: none;
+}
+
+.april-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.april-avatar--orange {
+  background: var(--orange-orange-500);
+}
+.april-avatar--green {
+  background: var(--green-green-600);
+}
+.april-avatar--pink {
+  background: var(--pink-pink-600);
+}
+.april-avatar--gray {
+  background: var(--gray-gray-500);
+}
+.april-avatar--teal {
+  background: var(--teal-teal-600);
+}
+.april-avatar--blue {
+  background: var(--blue-blue-600);
+}
+.april-avatar--red {
+  background: var(--red-red-600);
+}
+
+/* April System — table (Figma 864:6561 leads table) */
+
+.april-table-shell {
+  border: 1px solid var(--color-border-border-gray-light);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-table-cell-default);
+  overflow: hidden;
+}
+
+.april-table-shell--empty {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+}
+
+.april-table-shell__scroll {
+  position: relative;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.april-table-shell__scroll--overflow {
+  overflow-x: auto;
+}
+
+.april-table__cell--scroll-divider-start,
+.april-table__cell--scroll-divider-end {
+  isolation: isolate;
+}
+
+/* Scroll-zone edge dividers — only while horizontally scrolling */
+.april-table--overflow .april-table__cell--scroll-divider-start::after,
+.april-table--overflow .april-table__cell--scroll-divider-end::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--color-border-border-gray-dark);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.april-table--overflow .april-table__cell--scroll-divider-start::after {
+  right: 0;
+}
+
+.april-table--overflow .april-table__cell--scroll-divider-end::before {
+  left: 0;
+}
+
+.april-table__cell--sticky-start.april-table__cell--lead {
+  left: 0;
+}
+
+.april-table:has(.april-table__cell--select) .april-table__cell--sticky-start.april-table__cell--lead {
+  left: 40px;
+}
+
+.april-table {
+  border-collapse: collapse;
+  table-layout: auto;
+  font-family: var(--april-font-family);
+  font-size: var(--typography-text-sm-regular-font-size);
+  line-height: var(--typography-text-sm-regular-line-height);
+  --april-table-column-duration: 220ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .april-table {
+    --april-table-column-duration: 0ms;
+  }
+}
+
+.april-table--column-animating col {
+  transition:
+    width var(--april-table-column-duration) ease,
+    min-width var(--april-table-column-duration) ease,
+    max-width var(--april-table-column-duration) ease;
+}
+
+.april-table--column-animating .april-table__cell--column-exiting,
+.april-table--column-animating .april-table__cell--column-entering,
+.april-table--column-animating .april-table__cell--scroll-zone {
+  transition:
+    opacity var(--april-table-column-duration) ease,
+    padding var(--april-table-column-duration) ease,
+    max-width var(--april-table-column-duration) ease;
+}
+
+.april-table__col--column-exiting,
+.april-table__col--column-entering {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+}
+
+.april-table__cell--column-exiting,
+.april-table__cell--column-entering {
+  opacity: 0;
+  width: 0 !important;
+  max-width: 0 !important;
+  min-width: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-left-width: 0 !important;
+  border-right-width: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Non-overflow: fixed layout; JS distributes leftover width across lead + data cols */
+.april-table:has(.april-table__cell--scroll-zone):not(.april-table--overflow) {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.april-table:has(.april-table__cell--scroll-zone):not(.april-table--overflow)
+  .april-table__cell--scroll-zone {
+  width: auto;
+  min-width: 0;
+}
+
+.april-table__col--select {
+  width: 40px;
+}
+
+.april-table__col--flex {
+  width: auto;
+}
+
+.april-table__col--actions {
+  width: auto;
+}
+
+.april-table--overflow {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+/* Only sticky columns — hug content, no forced full width */
+.april-table:not(:has(.april-table__cell--scroll-zone)) {
+  width: max-content;
+}
+
+.april-table__cell {
+  box-sizing: border-box;
+  width: auto;
+  padding: 0 var(--spacing-spacing-md);
+  height: 48px;
+  max-height: 48px;
+  min-height: 48px;
+  vertical-align: middle;
+  text-align: left;
+  border-bottom: 2px solid var(--color-border-border-gray-light);
+  color: var(--color-foreground-text-text-default);
+  white-space: nowrap;
+}
+
+.april-table thead .april-table__cell {
+  background: var(--color-background-table-cell-header-default);
+}
+
+.april-table__cell--header .april-btn.april-btn--link-neutral {
+  padding: 0;
+}
+
+/* Sort headers + row buttons — focus ring on keyboard only, not after mouse click */
+.april-table .april-btn:focus:not(:focus-visible),
+.april-table .april-btn[data-state="focused"]:not(:focus-visible),
+.april-table .april-icon-btn:focus:not(:focus-visible),
+.april-table .april-icon-btn[data-state="focused"]:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.april-table__cell-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.april-overdue-date {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm, 8px);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.april-overdue-date__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-foreground-text-text-destructive);
+}
+
+.april-table tbody .april-table__cell--sorted {
+  font-family: var(--typography-text-sm-semibold-font-family);
+  font-size: var(--typography-text-sm-semibold-font-size);
+  font-weight: var(--typography-text-sm-semibold-font-weight);
+  line-height: var(--typography-text-sm-semibold-line-height);
+}
+
+.april-table tbody .april-table__row:hover .april-table__cell,
+.april-table tbody .april-table__row--selected .april-table__cell,
+.april-table tbody .april-table__row--selected:hover .april-table__cell {
+  background: var(--color-background-table-cell-hover);
+}
+
+.april-table tbody .april-table__row:hover .april-table__cell--sticky-start,
+.april-table tbody .april-table__row:hover .april-table__cell--sticky-end,
+.april-table tbody .april-table__row--selected .april-table__cell--sticky-start,
+.april-table tbody .april-table__row--selected .april-table__cell--sticky-end {
+  background: var(--color-background-table-cell-hover);
+}
+
+.april-table__cell--select {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.april-table__cell--select .april-selector,
+.april-table__select-control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 48px;
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.april-table__select-input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.april-table__select-control .april-selector__box {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.april-table__select-control:has(.april-table__select-input:disabled) {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.april-table__cell--lead {
+  width: auto;
+}
+
+.april-table:has(.april-table__cell--scroll-zone):not(.april-table--overflow) .april-table__cell--lead {
+  width: var(--april-table-lead-flex-width, auto);
+}
+
+.april-table--overflow .april-table__cell--lead {
+  width: max-content;
+}
+
+.april-table__cell--sticky-start,
+.april-table__cell--sticky-end {
+  position: sticky;
+  z-index: 2;
+}
+
+.april-table__cell--sticky-start.april-table__cell--select {
+  left: 0;
+  z-index: 4;
+}
+
+.april-table thead .april-table__cell--sticky-start.april-table__cell--select {
+  z-index: 5;
+}
+
+.april-table tbody .april-table__cell--sticky-start.april-table__cell--select {
+  z-index: 4;
+}
+
+.april-table__cell--sticky-end {
+  right: 0;
+  width: max-content;
+}
+
+.april-table thead .april-table__cell--sticky-start,
+.april-table thead .april-table__cell--sticky-end {
+  z-index: 3;
+  background: var(--color-background-table-cell-header-default);
+}
+
+.april-table thead .april-table__cell--sticky-start.april-table__cell--lead,
+.april-table thead .april-table__cell--sticky-end.april-table__cell--actions {
+  z-index: 4;
+}
+
+.april-table tbody .april-table__cell--sticky-start,
+.april-table tbody .april-table__cell--sticky-end {
+  background: var(--color-background-table-cell-default);
+}
+
+.april-table tbody .april-table__cell--sticky-start.april-table__cell--lead,
+.april-table tbody .april-table__cell--sticky-end.april-table__cell--actions {
+  z-index: 3;
+}
+
+.april-table__cell--scroll-zone {
+  width: max-content;
+  min-width: max-content;
+}
+
+.april-table__cell--actions {
+  width: max-content;
+  text-align: right;
+}
+
+.april-table__col--reorder,
+.april-table__cell--reorder {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  padding-left: var(--spacing-spacing-sm, 8px);
+  padding-right: 0;
+}
+
+.april-table__drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-radius-sm, 8px);
+  background: transparent;
+  color: var(--color-foreground-icon-icon-muted, #6b7280);
+  cursor: grab;
+  touch-action: none;
+}
+
+.april-table__drag-handle:hover:not(:disabled) {
+  background: var(--color-background-surface-raised, #f9fafb);
+  color: var(--color-foreground-icon-icon-primary, #111827);
+}
+
+.april-table__drag-handle:active:not(:disabled) {
+  cursor: grabbing;
+}
+
+.april-table__drag-handle:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.april-table__drag-handle:focus-visible {
+  outline: 2px solid var(--color-border-form-input-focused, #4f46e5);
+  outline-offset: 1px;
+}
+
+.april-table__drag-handle .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.april-table__row--dragging {
+  opacity: 0.5;
+  background: var(--color-background-surface-raised, #f9fafb);
+}
+
+.april-table__drag-overlay {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm, 8px);
+  padding: var(--spacing-spacing-sm, 8px) var(--spacing-spacing-md, 12px);
+  border: 1px solid var(--color-border-border-gray-light, #e5e7eb);
+  border-radius: var(--radius-radius-md, 12px);
+  background: var(--color-background-surface-default, #fff);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.april-table__drag-overlay-label {
+  font: var(--text-sm-medium, 500 14px/20px inherit);
+  color: var(--color-foreground-text-primary, #111827);
+  white-space: nowrap;
+}
+
+.april-table__lead,
+.april-table__person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.april-table__person > span,
+.april-table__cell--primary .april-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.april-table__cell--primary .april-btn.april-btn--link,
+.april-table__cell--domain .april-btn.april-btn--link,
+.april-table tbody .april-table__cell .april-btn.april-btn--link {
+  gap: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.april-table__cell--primary .april-btn.april-btn--link {
+  font-family: var(--typography-text-sm-semibold-font-family);
+  font-size: var(--typography-text-sm-semibold-font-size);
+  font-weight: var(--typography-text-sm-semibold-font-weight);
+  line-height: var(--typography-text-sm-semibold-line-height);
+  color: var(--color-foreground-button-link-default);
+}
+
+.april-table__cell--domain .april-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.april-table__cell--primary .april-btn.april-btn--link:hover:not(:disabled):not([aria-disabled="true"]),
+.april-table__cell--primary
+  .april-btn.april-btn--link[data-state="hover"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-hover);
+}
+
+.april-table__cell--primary .april-btn.april-btn--link:active:not(:disabled):not([aria-disabled="true"]),
+.april-table__cell--primary
+  .april-btn.april-btn--link[data-state="active-pressed"]:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-pressed);
+}
+
+.april-table__cell--primary
+  .april-btn.april-btn--link:focus-visible:not(:disabled):not([aria-disabled="true"]),
+.april-table__cell--primary
+  .april-btn.april-btn--link[data-state="focused"]:focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  color: var(--color-foreground-button-link-focused);
+}
+
+.april-table__actions,
+.april-table__actions-skeleton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-spacing-xs);
+  width: 100%;
+}
+
+.april-table__lead-skeleton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-table__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Storybook playground (Figma component playground) */
+
+.april-table-playground {
+  min-height: min(70vh, 640px);
+  padding: var(--spacing-spacing-3xl);
+  background-color: var(--gray-gray-100);
+  background-image: radial-gradient(circle, var(--gray-gray-300) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.april-table-playground__frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border-border-gray-dark);
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-surface-default);
+}
+
+.april-table-playground__frame .april-filter-chips-header {
+  border-radius: var(--radius-radius-sm) var(--radius-radius-sm) 0 0;
+}
+
+.april-table-playground__frame .april-table-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.april-table__placeholder {
+  display: inline-block;
+  height: 16px;
+  border-radius: var(--radius-radius-xs);
+  background: var(--gray-gray-100);
+  animation: april-table-pulse 1.5s ease-in-out infinite;
+}
+
+.april-table__placeholder--avatar,
+.april-table__placeholder--checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.april-table-playground__frame:has(.april-table-shell--empty) {
+  display: grid;
+  place-items: center;
+  min-height: min(60vh, 480px);
+}
+
+.april-table__row--skeleton {
+  pointer-events: none;
+  user-select: none;
+}
+
+.april-table__row--skeleton .april-table__cell {
+  background: var(--color-background-table-cell-default);
+}
+
+.april-table__row--skeleton:hover .april-table__cell,
+.april-table-shell--loading .april-table__row:hover .april-table__cell {
+  background: var(--color-background-table-cell-default);
+}
+
+.april-table-shell--loading tbody,
+.april-table-shell--partially-loading .april-table__row--skeleton {
+  pointer-events: none;
+}
+
+.april-table-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-spacing-2xl);
+  padding: var(--spacing-spacing-3xl) var(--spacing-spacing-xl);
+  text-align: center;
+}
+
+.april-table-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-radius-sm);
+  background: var(--color-background-surface-raised);
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-table-empty__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-spacing-xs);
+  max-width: 360px;
+}
+
+.april-table-empty__title {
+  color: var(--color-foreground-text-text-default);
+}
+
+.april-table-empty__description {
+  margin: 0;
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-spacing-md);
+  padding: var(--spacing-spacing-md) var(--spacing-spacing-lg);
+  border: 1px solid var(--color-border-border-gray-light);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-radius-sm) var(--radius-radius-sm);
+  background: var(--color-background-table-cell-default);
+}
+
+.april-table-pagination__summary {
+  margin: 0;
+  color: var(--color-foreground-text-text-secondary);
+}
+
+.april-table-pagination__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-table-pagination__page {
+  min-width: 96px;
+  text-align: center;
+  color: var(--color-foreground-text-text-default);
+}
+
+@keyframes april-table-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.april-progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-sm);
+  width: 100%;
+  font-family: var(--april-font-family);
+}
+
+.april-progress-bar--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-spacing-md);
+}
+
+.april-progress-bar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 120px;
+  min-height: 20px;
+}
+
+.april-progress-bar__label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-spacing-xs);
+  min-width: 0;
+}
+
+.april-progress-bar__label {
+  color: var(--color-foreground-text-text-default);
+  font-size: var(--typography-text-sm-regular-font-size);
+  font-weight: var(--typography-text-sm-regular-font-weight);
+  line-height: var(--typography-text-sm-regular-line-height);
+}
+
+.april-progress-bar__info {
+  flex-shrink: 0;
+  color: var(--color-foreground-text-text-default);
+  font-size: var(--icon-size-icon-16);
+  line-height: 1;
+}
+
+.april-progress-bar__indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-spacing-xs);
+  min-width: 0;
+}
+
+.april-progress-bar__indicator-text {
+  color: var(--color-foreground-text-text-default);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+  white-space: nowrap;
+}
+
+.april-progress-bar__track {
+  width: 100%;
+  height: 8px;
+  border-radius: 32px;
+  background: var(--color-border-border-gray-light);
+  overflow: hidden;
+}
+
+.april-progress-bar--inline .april-progress-bar__track {
+  flex: 1;
+  min-width: 0;
+}
+
+.april-progress-bar__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-background-button-primary-default);
+  transition: width 0.2s ease;
+}
+
+.april-progress-bar__helper {
+  margin: 0;
+  color: var(--color-foreground-text-text-muted);
+  font-size: var(--typography-text-xs-regular-font-size);
+  font-weight: var(--typography-text-xs-regular-font-weight);
+  line-height: var(--typography-text-xs-regular-line-height);
+}
+
+.april-progress-bar--inline .april-progress-bar__label-row {
+  flex-shrink: 0;
+}
+
+.april-progress-bar--inline .april-progress-bar__indicator {
+  flex-shrink: 0;
+}
+
+.april-progress-bar .april-spinner {
+  flex-shrink: 0;
+}

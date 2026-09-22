@@ -1,0 +1,257 @@
+/* April System — primitive color tokens (Figma Mode 1) */
+
+.april-primitive-colors {
+  display: grid;
+  gap: var(--spacing-spacing-2xl);
+  max-width: 1200px;
+  font-family: var(--april-font-family);
+  color: var(--color-foreground-text-text-default, #101828);
+}
+
+.april-primitive-colors__header {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-primitive-colors__title {
+  margin: 0;
+  font-size: var(--font-size-text-xl);
+  line-height: var(--font-line-height-text-xl);
+  font-weight: 600;
+}
+
+.april-primitive-colors__description {
+  margin: 0;
+  font-size: var(--font-size-text-sm);
+  line-height: var(--font-line-height-text-sm);
+  color: var(--color-foreground-text-text-secondary, #364153);
+}
+
+.april-primitive-colors__description code {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+}
+
+.april-primitive-color-family {
+  display: grid;
+  gap: var(--spacing-spacing-md);
+}
+
+.april-primitive-color-family__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-primitive-color-family__title {
+  margin: 0;
+  font-size: var(--font-size-text-lg);
+  line-height: var(--font-line-height-text-lg);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.april-primitive-color-family__count {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  color: var(--color-foreground-text-text-muted, #99a1af);
+}
+
+.april-primitive-color-family__strip {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: var(--spacing-spacing-sm);
+  overflow-x: auto;
+}
+
+@media (max-width: 960px) {
+  .april-primitive-color-family__strip {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}
+
+.april-primitive-color-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-sm);
+  min-width: 0;
+}
+
+.april-primitive-color-swatch__chip {
+  width: 100%;
+  height: 64px;
+  border-radius: var(--radius-radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--april-shadow-xs);
+}
+
+.april-primitive-color-swatch__meta {
+  display: grid;
+  gap: 2px;
+}
+
+.april-primitive-color-swatch__name {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  font-weight: 600;
+  color: var(--color-foreground-text-text-default, #101828);
+}
+
+.april-primitive-color-swatch__hex {
+  font-size: var(--font-size-text-xxs);
+  line-height: var(--font-line-height-text-xxs);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-foreground-text-text-secondary, #364153);
+}
+
+.april-primitive-color-swatch__path,
+.april-primitive-color-swatch__var {
+  font-size: var(--font-size-text-xxs);
+  line-height: var(--font-line-height-text-xxs);
+  color: var(--color-foreground-text-text-muted, #99a1af);
+  word-break: break-all;
+}
+
+.april-primitive-color-swatch__var {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* April System — semantic color tokens */
+
+.april-semantic-colors {
+  display: grid;
+  gap: var(--spacing-spacing-2xl);
+  max-width: 1400px;
+  font-family: var(--april-font-family);
+  color: var(--color-foreground-text-text-default, #101828);
+}
+
+.april-semantic-colors__header {
+  display: grid;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-semantic-colors__title {
+  margin: 0;
+  font-size: var(--font-size-text-xl);
+  line-height: var(--font-line-height-text-xl);
+  font-weight: 600;
+}
+
+.april-semantic-colors__description,
+.april-semantic-colors__note {
+  margin: 0;
+  font-size: var(--font-size-text-sm);
+  line-height: var(--font-line-height-text-sm);
+  color: var(--color-foreground-text-text-secondary, #364153);
+}
+
+.april-semantic-colors__description code {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+}
+
+.april-semantic-color-role {
+  display: grid;
+  gap: var(--spacing-spacing-xl);
+  padding-top: var(--spacing-spacing-md);
+  border-top: 1px solid var(--color-border-border-gray-light, #e5e7eb);
+}
+
+.april-semantic-color-role__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-semantic-color-role__title {
+  margin: 0;
+  font-size: var(--font-size-text-lg);
+  line-height: var(--font-line-height-text-lg);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.april-semantic-color-role__count {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  color: var(--color-foreground-text-text-muted, #99a1af);
+}
+
+.april-semantic-color-group {
+  display: grid;
+  gap: var(--spacing-spacing-md);
+}
+
+.april-semantic-color-group__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-spacing-sm);
+}
+
+.april-semantic-color-group__title {
+  margin: 0;
+  font-size: var(--font-size-text-md);
+  line-height: var(--font-line-height-text-md);
+  font-weight: 600;
+}
+
+.april-semantic-color-group__count {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  color: var(--color-foreground-text-text-muted, #99a1af);
+}
+
+.april-semantic-color-group__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--spacing-spacing-md);
+}
+
+.april-semantic-color-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-sm);
+  min-width: 0;
+}
+
+.april-semantic-color-swatch__chip {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius-radius-sm);
+  border: 1px solid var(--color-border-border-gray-dark, #d1d5dc);
+  box-shadow: var(--april-shadow-xs);
+}
+
+.april-semantic-color-swatch__meta {
+  display: grid;
+  gap: 2px;
+}
+
+.april-semantic-color-swatch__name {
+  font-size: var(--font-size-text-xs);
+  line-height: var(--font-line-height-text-xs);
+  font-weight: 600;
+  color: var(--color-foreground-text-text-default, #101828);
+  word-break: break-word;
+}
+
+.april-semantic-color-swatch__hex {
+  font-size: var(--font-size-text-xxs);
+  line-height: var(--font-line-height-text-xxs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-foreground-text-text-secondary, #364153);
+}
+
+.april-semantic-color-swatch__var,
+.april-semantic-color-swatch__alias {
+  font-size: var(--font-size-text-xxs);
+  line-height: var(--font-line-height-text-xxs);
+  color: var(--color-foreground-text-text-muted, #99a1af);
+  word-break: break-all;
+}
+
+.april-semantic-color-swatch__var {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
