@@ -1,14 +1,13 @@
 name: CI
 
 on:
-  pull_request:
   push:
-    branches: [ main ]
+  pull_request:
 
 jobs:
-  scan_ruby:
+  backend-lint:
+    name: Backend lint
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,28 +18,15 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
-
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Lint code for consistent style
+      - name: RuboCop
         run: bin/rubocop -f github
 
-  test:
-    runs-on: ubuntu-latest
+      - name: Brakeman
+        run: bin/brakeman --no-pager
 
+  backend-spec:
+    name: Backend specs
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16
@@ -54,11 +40,9 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/acme_test
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,5 +65,43 @@ jobs:
       - name: Prepare database
         run: bin/rails db:prepare
 
-      - name: Run RSpec
+      - name: RSpec
         run: bundle exec rspec
+
+  frontend-lint:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+  frontend-spec:
+    name: Frontend specs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Vitest
+        run: npm test

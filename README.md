@@ -76,4 +76,6 @@ FX_ON=2024-06-01 bin/rails fx:sync
 ```sh
 bundle exec rspec
 bin/rubocop
+npm test
+npm run lint
 ```

@@ -28,7 +28,7 @@ export function PageToast({
     }, autoDismissMs);
 
     return () => window.clearTimeout(timer);
-  }, [title, description, color, autoDismiss, autoDismissMs, dismiss]);
+  }, [title, description, color, autoDismiss, autoDismissMs]);
 
   if (!title) return null;
 
