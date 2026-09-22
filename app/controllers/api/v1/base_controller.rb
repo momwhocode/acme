@@ -9,18 +9,38 @@ module Api
       before_action :require_login!
 
       rescue_from ActionController::InvalidAuthenticityToken do
-        render json: { error: "unauthorized" }, status: :unprocessable_entity
+        render_error(code: "invalid_token", message: "unauthorized", status: :unprocessable_entity)
       end
 
       rescue_from ActiveRecord::RecordNotFound do
-        render json: { error: "not found" }, status: :not_found
+        render_error(code: "not_found", message: "not found", status: :not_found)
       end
 
       private
 
+      def render_success(data, status: :ok, meta: nil)
+        payload = { data: data }
+        payload[:meta] = meta if meta.present?
+        render json: payload, status: status
+      end
+
+      def render_error(code:, message:, status:, details: nil)
+        error = { code: code, message: message }
+        error[:details] = details if details.present?
+        render json: { error: error }, status: status
+      end
+
       def render_validation(record)
-        render json: { error: "validation failed", errors: record.errors.messages },
-               status: :unprocessable_content
+        render_error(
+          code: "validation_failed",
+          message: "validation failed",
+          details: record.errors.messages,
+          status: :unprocessable_content
+        )
+      end
+
+      def render_request_error(message, status: :unprocessable_content)
+        render_error(code: "invalid_request", message: message, status: status)
       end
 
       def current_user
@@ -32,7 +52,7 @@ module Api
       def require_login!
         return if current_user
 
-        render json: { error: "unauthorized" }, status: :unauthorized
+        render_error(code: "unauthorized", message: "unauthorized", status: :unauthorized)
       end
     end
   end

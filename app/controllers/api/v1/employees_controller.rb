@@ -7,28 +7,28 @@ module Api
         query = DirectoryQuery.new(params)
         pager, records = pagy(query.relation, limit: query.limit, page: query.page)
 
-        render json: {
-          employees: records.map(&:as_directory_json),
-          pagination: pagination_json(pager)
-        }
+        render_success(
+          { employees: records.map(&:as_directory_json) },
+          meta: { pagination: pagination_json(pager) }
+        )
       rescue DirectoryQuery::Error => e
-        render json: { error: e.message }, status: :unprocessable_content
+        render_request_error(e.message)
       end
 
       def create
         employee, record = EmployeeOnboarder.call(employee_params)
-        render json: employee_payload(employee, record), status: :created
+        render_success(employee_payload(employee, record), status: :created)
       rescue EmployeeOnboarder::Error => e
-        render json: { error: e.message }, status: :unprocessable_content
+        render_request_error(e.message)
       rescue ActiveRecord::RecordInvalid => e
         render_validation(e.record)
       end
 
       def offboard
         employee = EmployeeOffboarder.call(employee: Employee.find(params[:id]), left_on: params[:left_on])
-        render json: { employee: employee.as_directory_json }
+        render_success({ employee: employee.as_directory_json })
       rescue EmployeeOffboarder::Error => e
-        render json: { error: e.message }, status: :unprocessable_content
+        render_request_error(e.message)
       rescue ActiveRecord::RecordInvalid => e
         render_validation(e.record)
       end

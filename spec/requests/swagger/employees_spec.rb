@@ -46,7 +46,7 @@ RSpec.describe "Employees", type: :request do
           end
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("pagination")).to include("page" => 1, "limit" => 25)
+            expect(api_meta.fetch("pagination")).to include("page" => 1, "limit" => 25)
           end
         end
 
@@ -58,7 +58,7 @@ RSpec.describe "Employees", type: :request do
           end
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("employees")).to eq([])
+            expect(api_data.fetch("employees")).to eq([])
           end
         end
 
@@ -67,7 +67,7 @@ RSpec.describe "Employees", type: :request do
           before { sign_in_hr }
 
           run_test! do |response|
-            expect(response.parsed_body.dig("pagination", "limit")).to eq(100)
+            expect(api_meta.dig("pagination", "limit")).to eq(100)
           end
         end
 
@@ -84,7 +84,7 @@ RSpec.describe "Employees", type: :request do
           end
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("employees").pluck("first_name")).to eq([ "Ada" ])
+            expect(api_data.fetch("employees").pluck("first_name")).to eq([ "Ada" ])
           end
         end
 
@@ -97,7 +97,7 @@ RSpec.describe "Employees", type: :request do
           end
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("employees").pluck("employment_type")).to eq([ "intern" ])
+            expect(api_data.fetch("employees").pluck("employment_type")).to eq([ "intern" ])
           end
         end
       end
@@ -115,7 +115,7 @@ RSpec.describe "Employees", type: :request do
           let(:type) { "contractor-plus" }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "unknown type")
+            expect(api_error).to include("code" => "invalid_request", "message" => "unknown type")
           end
         end
 
@@ -123,7 +123,7 @@ RSpec.describe "Employees", type: :request do
           let(:employment_status) { "onboarding" }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "unknown status")
+            expect(api_error).to include("message" => "unknown status")
           end
         end
 
@@ -131,7 +131,7 @@ RSpec.describe "Employees", type: :request do
           let(:country) { "USA" }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "unknown country")
+            expect(api_error).to include("message" => "unknown country")
           end
         end
       end
@@ -150,8 +150,8 @@ RSpec.describe "Employees", type: :request do
         before { sign_in_hr }
 
         run_test! do |response|
-          expect(response.parsed_body.dig("employee", "status")).to eq("active")
-          expect(response.parsed_body.dig("compensation_record", "change_reason")).to eq("hire")
+          expect(api_data.dig("employee", "status")).to eq("active")
+          expect(api_data.dig("compensation_record", "change_reason")).to eq("hire")
         end
       end
 
@@ -169,7 +169,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body.except(:compensation) }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "compensation is required")
+            expect(api_error).to include("message" => "compensation is required")
           end
         end
 
@@ -177,7 +177,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body.merge(compensation: {}) }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "compensation is required")
+            expect(api_error).to include("message" => "compensation is required")
           end
         end
 
@@ -186,7 +186,7 @@ RSpec.describe "Employees", type: :request do
           before { create(:employee, email: "ada@acme.test") }
 
           run_test! do |response|
-            expect(response.parsed_body).to include("error" => "validation failed")
+            expect(api_error).to include("code" => "validation_failed", "message" => "validation failed")
           end
         end
 
@@ -194,7 +194,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body.merge(first_name: "") }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("first_name")
+            expect(api_error.fetch("details")).to include("first_name")
           end
         end
 
@@ -202,7 +202,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body(compensation: { pay_period: "hourly", hours_per_week: nil }) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("hours_per_week")
+            expect(api_error.fetch("details")).to include("hours_per_week")
           end
         end
 
@@ -210,7 +210,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body(compensation: { currency: "JPY" }) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("currency")
+            expect(api_error.fetch("details")).to include("currency")
           end
         end
 
@@ -218,7 +218,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { onboard_body.merge(country: "USA") }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("country")
+            expect(api_error.fetch("details")).to include("country")
           end
         end
       end
@@ -246,7 +246,7 @@ RSpec.describe "Employees", type: :request do
         end
 
         run_test! do |response|
-          expect(response.parsed_body.fetch("employee")).to include("status" => "left", "left_on" => "2025-06-01")
+          expect(api_data.fetch("employee")).to include("status" => "left", "left_on" => "2025-06-01")
         end
       end
 
@@ -275,7 +275,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { { left_on: "2025-07-01" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "already left")
+            expect(api_error).to include("message" => "already left")
           end
         end
 
@@ -284,7 +284,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { { left_on: "" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "left_on is required")
+            expect(api_error).to include("message" => "left_on is required")
           end
         end
 
@@ -293,7 +293,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { { left_on: "June 1" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "left_on is invalid")
+            expect(api_error).to include("message" => "left_on is invalid")
           end
         end
 
@@ -304,7 +304,7 @@ RSpec.describe "Employees", type: :request do
           before { create(:compensation_record, employee: employee, effective_date: Date.new(2025, 4, 1)) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("left_on")
+            expect(api_error.fetch("details")).to include("left_on")
           end
         end
 
@@ -313,7 +313,7 @@ RSpec.describe "Employees", type: :request do
           let(:body) { { left_on: "2023-12-01" } }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("left_on")
+            expect(api_error.fetch("details")).to include("left_on")
           end
         end
       end

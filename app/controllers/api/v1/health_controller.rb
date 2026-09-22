@@ -4,7 +4,7 @@ module Api
       skip_before_action :require_login!
 
       def show
-        render json: { status: "ok", app: "acme" }
+        render_success({ status: "ok", app: "acme" })
       end
     end
   end

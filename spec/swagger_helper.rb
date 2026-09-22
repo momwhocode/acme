@@ -11,7 +11,8 @@ RSpec.configure do |config|
         version: "v1",
         description: <<~TEXT
           JSON API for the HR manager. Cookie session after `POST /api/v1/session`.
-          Mutating requests need `X-CSRF-Token` from the session payload when CSRF is on.
+          Mutating requests need `X-CSRF-Token` from `meta.csrf_token` when CSRF is on.
+          Success bodies are `{ data, meta? }`. Errors are `{ error: { code, message, details? } }`.
           Health and these docs are public. Everything else requires a signed-in HR session.
         TEXT
       },
@@ -44,21 +45,26 @@ RSpec.configure do |config|
             type: :object,
             required: %w[error],
             properties: {
-              error: { type: :string }
-            }
-          },
-          ValidationError: {
-            type: :object,
-            required: %w[error],
-            properties: {
-              error: { type: :string, example: "validation failed" },
-              errors: {
+              error: {
                 type: :object,
-                additionalProperties: {
-                  type: :array,
-                  items: { type: :string }
+                required: %w[code message],
+                properties: {
+                  code: { type: :string, example: "invalid_request" },
+                  message: { type: :string },
+                  details: {
+                    type: :object,
+                    additionalProperties: { type: :array, items: { type: :string } }
+                  }
                 }
               }
+            }
+          },
+          ValidationError: { "$ref" => "#/components/schemas/Error" },
+          Meta: {
+            type: :object,
+            properties: {
+              csrf_token: { type: :string },
+              pagination: { "$ref" => "#/components/schemas/Pagination" }
             }
           },
           User: {
@@ -73,25 +79,36 @@ RSpec.configure do |config|
           },
           Session: {
             type: :object,
-            required: %w[user csrf_token],
+            required: %w[data],
             properties: {
-              user: { "$ref" => "#/components/schemas/User" },
-              csrf_token: { type: :string }
+              data: {
+                type: :object,
+                required: %w[user],
+                properties: { user: { "$ref" => "#/components/schemas/User" } }
+              },
+              meta: { "$ref" => "#/components/schemas/Meta" }
             }
           },
           Logout: {
             type: :object,
-            required: %w[csrf_token],
+            required: %w[data],
             properties: {
-              csrf_token: { type: :string }
+              data: { type: :object },
+              meta: { "$ref" => "#/components/schemas/Meta" }
             }
           },
           Health: {
             type: :object,
-            required: %w[status app],
+            required: %w[data],
             properties: {
-              status: { type: :string, example: "ok" },
-              app: { type: :string, example: "acme" }
+              data: {
+                type: :object,
+                required: %w[status app],
+                properties: {
+                  status: { type: :string, example: "ok" },
+                  app: { type: :string, example: "acme" }
+                }
+              }
             }
           },
           Employee: {
@@ -147,33 +164,57 @@ RSpec.configure do |config|
           },
           DirectoryPage: {
             type: :object,
-            required: %w[employees pagination],
+            required: %w[data],
             properties: {
-              employees: { type: :array, items: { "$ref" => "#/components/schemas/Employee" } },
-              pagination: { "$ref" => "#/components/schemas/Pagination" }
+              data: {
+                type: :object,
+                required: %w[employees],
+                properties: {
+                  employees: { type: :array, items: { "$ref" => "#/components/schemas/Employee" } }
+                }
+              },
+              meta: { "$ref" => "#/components/schemas/Meta" }
             }
           },
           HireResponse: {
             type: :object,
-            required: %w[employee compensation_record],
+            required: %w[data],
             properties: {
-              employee: { "$ref" => "#/components/schemas/Employee" },
-              compensation_record: { "$ref" => "#/components/schemas/CompensationRecord" }
+              data: {
+                type: :object,
+                required: %w[employee compensation_record],
+                properties: {
+                  employee: { "$ref" => "#/components/schemas/Employee" },
+                  compensation_record: { "$ref" => "#/components/schemas/CompensationRecord" }
+                }
+              }
             }
           },
           CompensationChangeResponse: {
             type: :object,
-            required: %w[compensation_record employee],
+            required: %w[data],
             properties: {
-              compensation_record: { "$ref" => "#/components/schemas/CompensationRecord" },
-              employee: { "$ref" => "#/components/schemas/Employee" }
+              data: {
+                type: :object,
+                required: %w[compensation_record employee],
+                properties: {
+                  compensation_record: { "$ref" => "#/components/schemas/CompensationRecord" },
+                  employee: { "$ref" => "#/components/schemas/Employee" }
+                }
+              }
             }
           },
           OffboardResponse: {
             type: :object,
-            required: %w[employee],
+            required: %w[data],
             properties: {
-              employee: { "$ref" => "#/components/schemas/Employee" }
+              data: {
+                type: :object,
+                required: %w[employee],
+                properties: {
+                  employee: { "$ref" => "#/components/schemas/Employee" }
+                }
+              }
             }
           },
           CompensationInput: {

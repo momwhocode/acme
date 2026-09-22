@@ -10,7 +10,7 @@ RSpec.describe "HR session" do
     sign_in_as(email: "HR@acme.test", password: "password")
 
     expect(response).to have_http_status(:created)
-    expect(response.parsed_body.fetch("user")).to include(
+    expect(api_data.fetch("user")).to include(
       "id" => user.id,
       "email" => "hr@acme.test",
       "first_name" => "HR",
@@ -22,7 +22,7 @@ RSpec.describe "HR session" do
     create(:user, email: "hr@acme.test", password: "password")
     sign_in_as(email: "hr@acme.test", password: "password")
 
-    expect(response.parsed_body.fetch("csrf_token")).to be_present
+    expect(api_meta.fetch("csrf_token")).to be_present
   end
 
   it "rejects a wrong password with a generic error" do
@@ -30,34 +30,35 @@ RSpec.describe "HR session" do
     sign_in_as(email: "hr@acme.test", password: "wrong-password")
 
     expect(response).to have_http_status(:unauthorized)
-    expect(response.parsed_body).to eq("error" => "Invalid email or password")
+    expect(api_error).to include("code" => "invalid_credentials", "message" => "Invalid email or password")
   end
 
   it "rejects an unknown email with the same error" do
     sign_in_as(email: "missing@acme.test", password: "password")
 
     expect(response).to have_http_status(:unauthorized)
-    expect(response.parsed_body).to eq("error" => "Invalid email or password")
+    expect(api_error).to include("code" => "invalid_credentials", "message" => "Invalid email or password")
   end
 
   it "rejects blank credentials with the same error" do
     sign_in_as(email: "", password: "")
 
     expect(response).to have_http_status(:unauthorized)
-    expect(response.parsed_body).to eq("error" => "Invalid email or password")
+    expect(api_error).to include("code" => "invalid_credentials")
   end
 
   it "does not include the password digest" do
     create(:user, email: "hr@acme.test", password: "password")
     sign_in_as(email: "hr@acme.test", password: "password")
 
-    expect(response.parsed_body.fetch("user").keys).not_to include("password_digest")
+    expect(api_data.fetch("user").keys).not_to include("password_digest")
   end
 
   it "requires a session to read the current user" do
     get "/api/v1/session"
 
     expect(response).to have_http_status(:unauthorized)
+    expect(api_error).to include("code" => "unauthorized")
   end
 
   it "returns the signed-in HR user" do
@@ -66,7 +67,7 @@ RSpec.describe "HR session" do
     get "/api/v1/session"
 
     expect(response).to have_http_status(:ok)
-    expect(response.parsed_body.dig("user", "id")).to eq(user.id)
+    expect(api_data.dig("user", "id")).to eq(user.id)
   end
 
   it "returns a csrf token with the current session" do
@@ -74,7 +75,7 @@ RSpec.describe "HR session" do
     sign_in_as(email: user.email, password: "password")
     get "/api/v1/session"
 
-    expect(response.parsed_body.fetch("csrf_token")).to be_present
+    expect(api_meta.fetch("csrf_token")).to be_present
   end
 
   it "signs the HR manager out" do
@@ -90,7 +91,7 @@ RSpec.describe "HR session" do
     delete "/api/v1/session"
 
     expect(response).to have_http_status(:ok)
-    expect(response.parsed_body.fetch("csrf_token")).to be_present
+    expect(api_meta.fetch("csrf_token")).to be_present
   end
 
   it "rejects a sign in without a csrf token when protection is on" do
@@ -100,6 +101,7 @@ RSpec.describe "HR session" do
     sign_in_as(email: "hr@acme.test", password: "password")
 
     expect(response).to have_http_status(:unprocessable_content)
+    expect(api_error).to include("code" => "invalid_token")
   ensure
     Api::V1::BaseController.allow_forgery_protection = previous
   end

@@ -16,8 +16,8 @@ RSpec.describe "Session", type: :request do
         before { user }
 
         run_test! do |response|
-          expect(response.parsed_body.dig("user", "email")).to eq("hr@acme.test")
-          expect(response.parsed_body.fetch("csrf_token")).to be_present
+          expect(api_data.dig("user", "email")).to eq("hr@acme.test")
+          expect(api_meta.fetch("csrf_token")).to be_present
         end
       end
 
@@ -29,7 +29,7 @@ RSpec.describe "Session", type: :request do
           before { create(:user, email: "hr@acme.test", password: "password") }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "Invalid email or password")
+            expect(api_error).to include("code" => "invalid_credentials", "message" => "Invalid email or password")
           end
         end
 
@@ -37,7 +37,7 @@ RSpec.describe "Session", type: :request do
           let(:body) { { email: "missing@acme.test", password: "password" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "Invalid email or password")
+            expect(api_error).to include("code" => "invalid_credentials", "message" => "Invalid email or password")
           end
         end
 
@@ -45,7 +45,7 @@ RSpec.describe "Session", type: :request do
           let(:body) { { email: "", password: "" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "Invalid email or password")
+            expect(api_error).to include("code" => "invalid_credentials", "message" => "Invalid email or password")
           end
         end
       end
@@ -65,7 +65,7 @@ RSpec.describe "Session", type: :request do
         end
 
         run_test! do |response|
-          expect(response.parsed_body).to eq("error" => "unauthorized")
+          expect(api_error).to include("code" => "invalid_token", "message" => "unauthorized")
         end
       end
     end
@@ -80,8 +80,8 @@ RSpec.describe "Session", type: :request do
         before { sign_in_hr }
 
         run_test! do |response|
-          expect(response.parsed_body.fetch("user")).to include("email")
-          expect(response.parsed_body.fetch("csrf_token")).to be_present
+          expect(api_data.fetch("user")).to include("email")
+          expect(api_meta.fetch("csrf_token")).to be_present
         end
       end
 
@@ -103,7 +103,7 @@ RSpec.describe "Session", type: :request do
           before { sign_in_hr }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("csrf_token")).to be_present
+            expect(api_meta.fetch("csrf_token")).to be_present
           end
         end
 

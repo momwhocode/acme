@@ -32,7 +32,7 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees", params: onboard_payload, as: :json
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body).to include(
+      expect(api_data).to include(
         "employee" => include("email" => "ada@acme.test", "status" => "active"),
         "compensation_record" => include("change_reason" => "hire", "currency" => "GBP")
       )
@@ -43,7 +43,7 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees", params: onboard_payload.except(:compensation), as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to eq("error" => "compensation is required")
+      expect(api_error).to include("code" => "invalid_request", "message" => "compensation is required")
     end
 
     it "rejects a duplicate email" do
@@ -52,9 +52,10 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees", params: onboard_payload, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to include(
-        "error" => "validation failed",
-        "errors" => include("email" => [ "has already been taken" ])
+      expect(api_error).to include(
+        "code" => "validation_failed",
+        "message" => "validation failed",
+        "details" => include("email" => [ "has already been taken" ])
       )
     end
 
@@ -63,7 +64,7 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees", params: onboard_payload.merge(first_name: ""), as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.fetch("errors")).to include("first_name")
+      expect(api_error.fetch("details")).to include("first_name")
     end
 
     it "rejects hourly starting pay without hours" do
@@ -73,7 +74,7 @@ RSpec.describe "Employee lifecycle API" do
            as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.fetch("errors")).to include("hours_per_week")
+      expect(api_error.fetch("details")).to include("hours_per_week")
     end
   end
 
@@ -97,7 +98,7 @@ RSpec.describe "Employee lifecycle API" do
       }, as: :json
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body).to include(
+      expect(api_data).to include(
         "compensation_record" => include("change_reason" => "promotion"),
         "employee" => include("id" => employee.id, "level" => "IC3")
       )
@@ -120,7 +121,7 @@ RSpec.describe "Employee lifecycle API" do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to eq("error" => "cannot change pay for a leaver")
+      expect(api_error).to include("code" => "invalid_request", "message" => "cannot change pay for a leaver")
     end
 
     it "rejects a second record on the same date" do
@@ -133,7 +134,7 @@ RSpec.describe "Employee lifecycle API" do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.fetch("errors")).to include("effective_date")
+      expect(api_error.fetch("details")).to include("effective_date")
     end
 
     it "rejects an unsupported currency" do
@@ -146,7 +147,7 @@ RSpec.describe "Employee lifecycle API" do
       }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.fetch("errors")).to include("currency")
+      expect(api_error.fetch("details")).to include("currency")
     end
   end
 
@@ -167,7 +168,7 @@ RSpec.describe "Employee lifecycle API" do
             params: { left_on: "2025-06-01" }, as: :json
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.fetch("employee")).to include(
+      expect(api_data.fetch("employee")).to include(
         "id" => employee.id, "status" => "left", "left_on" => "2025-06-01"
       )
     end
@@ -179,7 +180,7 @@ RSpec.describe "Employee lifecycle API" do
             params: { left_on: "2025-07-01" }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to eq("error" => "already left")
+      expect(api_error).to include("message" => "already left")
     end
 
     it "returns not found for an unknown employee" do
@@ -195,7 +196,7 @@ RSpec.describe "Employee lifecycle API" do
       patch "/api/v1/employees/#{create(:employee).id}/offboard", params: { left_on: "" }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to eq("error" => "left_on is required")
+      expect(api_error).to include("message" => "left_on is required")
     end
 
     it "rejects a non-ISO leave date" do
@@ -204,7 +205,7 @@ RSpec.describe "Employee lifecycle API" do
             params: { left_on: "June 1" }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to eq("error" => "left_on is invalid")
+      expect(api_error).to include("message" => "left_on is invalid")
     end
 
     it "rejects a leave date before the latest compensation" do
@@ -216,7 +217,7 @@ RSpec.describe "Employee lifecycle API" do
             params: { left_on: "2025-03-01" }, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.fetch("errors")).to include("left_on")
+      expect(api_error.fetch("details")).to include("left_on")
     end
   end
 end

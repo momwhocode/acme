@@ -4,24 +4,24 @@ module Api
       skip_before_action :require_login!, only: %i[create destroy]
 
       def show
-        render json: session_payload(current_user)
+        render_success({ user: current_user.as_session_json }, meta: csrf_meta)
       end
 
       def create
         user = User.authenticate_by(email: email, password: password)
         unless user
-          render json: { error: "Invalid email or password" }, status: :unauthorized
+          render_error(code: "invalid_credentials", message: "Invalid email or password", status: :unauthorized)
           return
         end
 
         reset_session
         session[:user_id] = user.id
-        render json: session_payload(user), status: :created
+        render_success({ user: user.as_session_json }, status: :created, meta: csrf_meta)
       end
 
       def destroy
         reset_session
-        render json: { csrf_token: form_authenticity_token }
+        render_success({}, meta: csrf_meta)
       end
 
       private
@@ -34,8 +34,8 @@ module Api
         params[:password].to_s
       end
 
-      def session_payload(user)
-        { user: user.as_session_json, csrf_token: form_authenticity_token }
+      def csrf_meta
+        { csrf_token: form_authenticity_token }
       end
     end
   end

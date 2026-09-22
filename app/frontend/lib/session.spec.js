@@ -48,7 +48,7 @@ describe("session requests", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ user: { email: "hr@acme.test" }, csrf_token: "t" }), { status: 200 })
+        new Response(JSON.stringify({ data: { user: { email: "hr@acme.test" } }, meta: { csrf_token: "t" } }), { status: 200 })
       )
     )
 
@@ -57,7 +57,7 @@ describe("session requests", () => {
 
   it("signs in with email and password", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ user: { email: "hr@acme.test" } }), { status: 201 })
+      new Response(JSON.stringify({ data: { user: { email: "hr@acme.test" } }, meta: { csrf_token: "t" } }), { status: 201 })
     )
     vi.stubGlobal("fetch", fetchMock)
 
@@ -76,7 +76,7 @@ describe("session requests", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ error: "Invalid email or password" }), { status: 401 })
+        new Response(JSON.stringify({ error: { code: "invalid_credentials", message: "Invalid email or password" } }), { status: 401 })
       )
     )
 
@@ -86,7 +86,7 @@ describe("session requests", () => {
   })
 
   it("signs out", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ csrf_token: "n" }), { status: 200 }))
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: {}, meta: { csrf_token: "n" } }), { status: 200 }))
     vi.stubGlobal("fetch", fetchMock)
 
     await signOut()

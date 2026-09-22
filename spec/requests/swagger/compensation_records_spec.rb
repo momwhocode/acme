@@ -31,8 +31,8 @@ RSpec.describe "Compensation records", type: :request do
         end
 
         run_test! do |response|
-          expect(response.parsed_body.dig("compensation_record", "change_reason")).to eq("promotion")
-          expect(response.parsed_body.dig("employee", "level")).to eq("IC3")
+          expect(api_data.dig("compensation_record", "change_reason")).to eq("promotion")
+          expect(api_data.dig("employee", "level")).to eq("IC3")
         end
       end
 
@@ -61,7 +61,7 @@ RSpec.describe "Compensation records", type: :request do
           let(:body) { { base_amount: 90_000, currency: "USD", pay_period: "annual", effective_date: "2025-04-01" } }
 
           run_test! do |response|
-            expect(response.parsed_body).to eq("error" => "cannot change pay for a leaver")
+            expect(api_error).to include("message" => "cannot change pay for a leaver")
           end
         end
 
@@ -72,7 +72,7 @@ RSpec.describe "Compensation records", type: :request do
           before { create(:compensation_record, employee: employee, effective_date: Date.new(2025, 4, 1)) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("effective_date")
+            expect(api_error.fetch("details")).to include("effective_date")
           end
         end
 
@@ -83,7 +83,7 @@ RSpec.describe "Compensation records", type: :request do
           before { create(:compensation_record, employee: employee) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("currency")
+            expect(api_error.fetch("details")).to include("currency")
           end
         end
 
@@ -94,7 +94,7 @@ RSpec.describe "Compensation records", type: :request do
           before { create(:compensation_record, employee: employee, effective_date: Date.new(2024, 6, 1)) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("effective_date")
+            expect(api_error.fetch("details")).to include("effective_date")
           end
         end
 
@@ -107,7 +107,7 @@ RSpec.describe "Compensation records", type: :request do
           before { create(:compensation_record, employee: employee) }
 
           run_test! do |response|
-            expect(response.parsed_body.fetch("errors")).to include("hours_per_week")
+            expect(api_error.fetch("details")).to include("hours_per_week")
           end
         end
       end

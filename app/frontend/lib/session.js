@@ -1,4 +1,4 @@
-import { apiFetch, setCsrfToken } from "./http.js"
+import { apiData, apiErrorMessage, apiFetch, apiMeta, setCsrfToken } from "./http.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -17,7 +17,7 @@ export function loginFormErrors({ email, password }) {
 
 async function readPayload(response) {
   const payload = await response.json().catch(() => ({}))
-  setCsrfToken(payload.csrf_token)
+  setCsrfToken(apiMeta(payload).csrf_token)
   return payload
 }
 
@@ -26,8 +26,8 @@ export async function readSession() {
   if (response.status === 401) return null
 
   const payload = await readPayload(response)
-  if (!response.ok) throw new Error("Could not check the session")
-  return payload.user
+  if (!response.ok) throw new Error(apiErrorMessage(payload, "Could not check the session"))
+  return apiData(payload)?.user
 }
 
 export async function signIn({ email, password }) {
@@ -36,8 +36,8 @@ export async function signIn({ email, password }) {
     body: JSON.stringify({ email, password })
   })
   const payload = await readPayload(response)
-  if (!response.ok) throw new Error(payload.error || "Invalid email or password")
-  return payload.user
+  if (!response.ok) throw new Error(apiErrorMessage(payload, "Invalid email or password"))
+  return apiData(payload)?.user
 }
 
 export async function signOut() {

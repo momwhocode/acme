@@ -151,7 +151,9 @@ describe("employee requests", () => {
   it("raises the API error payload", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: "already left" }), { status: 422 }))
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { code: "invalid_request", message: "already left" } }), { status: 422 })
+      )
     )
 
     await expect(offboardEmployee("emp-1", { left_on: "2025-06-01" })).rejects.toThrow("already left")

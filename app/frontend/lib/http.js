@@ -23,3 +23,17 @@ export function apiFetch(path, options = {}) {
     headers
   })
 }
+
+export function apiData(payload) {
+  return payload?.data
+}
+
+export function apiMeta(payload) {
+  return payload?.meta || {}
+}
+
+export function apiErrorMessage(payload, fallback = "Request failed") {
+  const error = payload?.error
+  if (error && typeof error === "object") return error.message || fallback
+  return error || fallback
+}

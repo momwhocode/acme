@@ -1,4 +1,4 @@
-import { apiFetch } from "./http.js"
+import { apiErrorMessage, apiFetch } from "./http.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const COUNTRY_PATTERN = /^[A-Za-z]{2}$/
@@ -94,7 +94,7 @@ function queryString(params = {}) {
 
 async function readJson(response) {
   const payload = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(payload.error || "Request failed")
+  if (!response.ok) throw new Error(apiErrorMessage(payload))
   return payload
 }
 

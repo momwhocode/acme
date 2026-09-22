@@ -10,7 +10,7 @@ RSpec.describe "Health", type: :request do
       response "200", "service is up" do
         schema "$ref" => "#/components/schemas/Health"
         run_test! do |response|
-          expect(response.parsed_body).to include("status" => "ok", "app" => "acme")
+          expect(api_data).to include("status" => "ok", "app" => "acme")
         end
       end
     end

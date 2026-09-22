@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { apiFetch, csrfToken, setCsrfToken } from "./http.js"
+import { apiErrorMessage, apiData, apiFetch, apiMeta, csrfToken, setCsrfToken } from "./http.js"
 
 function stubDocument(token = "abc") {
   const meta = {
@@ -79,5 +79,18 @@ describe("apiFetch", () => {
     await apiFetch("/api/v1/employees")
 
     expect(fetchMock.mock.calls[0][1].headers["Content-Type"]).toBeUndefined()
+  })
+})
+
+describe("api envelope", () => {
+  it("reads data and meta", () => {
+    const payload = { data: { user: { email: "hr@acme.test" } }, meta: { csrf_token: "t" } }
+
+    expect(apiData(payload)).toEqual({ user: { email: "hr@acme.test" } })
+    expect(apiMeta(payload)).toEqual({ csrf_token: "t" })
+  })
+
+  it("reads a structured error message", () => {
+    expect(apiErrorMessage({ error: { code: "invalid_request", message: "already left" } })).toBe("already left")
   })
 })
