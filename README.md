@@ -21,6 +21,7 @@ The app is the source of truth for compensation: who is paid, how much, in which
 5. **Analytics dashboard** — Total annualised payroll cost (USD), headcount mix, average and median compensation, breakdowns by country, department, and type. Currency toggle (local ↔ USD). An AI chat answers questions in plain language — for example, "what is the total payout this month allowing for employees who have left."
 6. **CSV import** — Bring old records in from the spreadsheets the HR team is migrating off.
 7. **Seed data** — 10,000 realistic employees across countries, currencies, and types, so the app can be demonstrated at full scale.
+8. **HR login** — One HR manager account. Cookie session, no signup, no RBAC.
 
 ### Out of scope
 
@@ -63,9 +64,11 @@ bin/rails directory:import FILE=tmp/employees.csv
 
 CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are skipped. Import does not write FX rates.
 
-- App: http://localhost:3000
+- App: http://localhost:3000 — sign in as `hr@acme.test` / `whiteaeroplane`
 - API: http://localhost:3000/api/v1/health
 - Storybook: `npm run storybook` → http://localhost:6006
+
+Production must set `HR_PASSWORD` (and optionally `HR_EMAIL`) before the first seed. The default password is development/test only.
 
 FX rates live in `exchange_rates`. The seed catalog is the current snapshot (`Date.current`). Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
 

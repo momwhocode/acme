@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_22_180000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_22_193000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -53,6 +53,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_22_180000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["from_currency", "to_currency", "effective_date"], name: "index_exchange_rates_on_currencies_and_effective_date", unique: true
+  end
+
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((email)::text)", name: "index_users_on_lower_email", unique: true
   end
 
   add_foreign_key "compensation_records", "employees"

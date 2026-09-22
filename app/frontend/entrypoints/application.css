@@ -9,6 +9,17 @@
   gap: var(--spacing-spacing-lg);
 }
 
+.acme-home__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.acme-home__bar p {
+  flex: 1;
+}
+
 .acme-home__status {
   display: flex;
   flex-wrap: wrap;

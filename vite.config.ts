@@ -3,5 +3,8 @@ import RubyPlugin from "vite-plugin-ruby"
 import react from "@vitejs/plugin-react"
 
 export default defineConfig({
-  plugins: [RubyPlugin(), react()]
+  plugins: [RubyPlugin(), react()],
+  resolve: {
+    dedupe: ["react", "react-dom"]
+  }
 })

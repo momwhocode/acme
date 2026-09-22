@@ -1,56 +1,52 @@
 import { useEffect, useState } from "react"
-import { Button } from "../april/components/Button"
-import { Tag } from "../april/components/Tag"
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { readSession } from "../lib/session"
+import AuthLayout from "./AuthLayout"
+import HomePage from "./HomePage"
+import LoginPage from "./LoginPage"
+import LogoutPage from "./LogoutPage"
 
-function statusTag(status) {
-  if (status === "ok") return { type: "success", label: "API ok" }
-  if (status === "loading") return { type: "info", label: "Checking API" }
-  return { type: "error", label: "API offline" }
+function AppRoutes() {
+  const [user, setUser] = useState(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    readSession()
+      .then((sessionUser) => setUser(sessionUser))
+      .catch(() => setUser(null))
+      .finally(() => setReady(true))
+  }, [])
+
+  if (!ready) {
+    return (
+      <AuthLayout>
+        <p className="superadmin-auth-form__lead april-text-style april-text-style--text-md-regular">Loading…</p>
+      </AuthLayout>
+    )
+  }
+
+  return (
+    <Routes>
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/sign_in"
+          element={user ? <Navigate to="/" replace /> : <LoginPage onSignedIn={setUser} />}
+        />
+        <Route
+          path="/sign_out"
+          element={user ? <LogoutPage onSignedOut={() => setUser(null)} /> : <Navigate to="/sign_in" replace />}
+        />
+      </Route>
+      <Route path="/" element={user ? <HomePage user={user} /> : <Navigate to="/sign_in" replace />} />
+      <Route path="*" element={<Navigate to={user ? "/" : "/sign_in"} replace />} />
+    </Routes>
+  )
 }
 
 export default function App() {
-  const [status, setStatus] = useState("loading")
-
-  useEffect(() => {
-    fetch("/api/v1/health")
-      .then((response) => {
-        if (!response.ok) throw new Error("health failed")
-        return response.json()
-      })
-      .then((payload) => setStatus(payload.status))
-      .catch(() => setStatus("offline"))
-  }, [])
-
-  const tag = statusTag(status)
-
   return (
-    <main className="acme-home">
-      <Tag type="primary" label="Acme" leadingIcon={false} trailingIcon={false} />
-      <h1 className="april-text-style april-text-style--display-sm-semibold">Rails API + React</h1>
-      <p className="april-text-style april-text-style--text-md-regular">
-        Unified app using the April System.
-      </p>
-      <div className="acme-home__status">
-        <Tag type={tag.type} label={tag.label} leadingIcon={false} trailingIcon={false} />
-      </div>
-      <div className="acme-home__actions">
-        <Button
-          label="Open Storybook"
-          variant="primary"
-          size="md"
-          leadingIcon={false}
-          trailingIcon={false}
-          onClick={() => window.open("http://localhost:6006", "_blank", "noopener,noreferrer")}
-        />
-        <Button
-          label="API health"
-          variant="outlined"
-          size="md"
-          leadingIcon={false}
-          trailingIcon={false}
-          onClick={() => window.open("/api/v1/health", "_blank", "noopener,noreferrer")}
-        />
-      </div>
-    </main>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }

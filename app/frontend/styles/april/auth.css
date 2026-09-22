@@ -1,0 +1,111 @@
+/* Auth chrome — same layout as SchoolOS (Figma 768:14976). */
+
+.superadmin-auth {
+  --superadmin-auth-page-pad-x: clamp(16px, 4vw, 56px);
+  --superadmin-auth-page-pad-bottom: clamp(28px, 5vw, 76px);
+  --superadmin-auth-form-width: 420px;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--superadmin-auth-page-pad-x) var(--superadmin-auth-page-pad-x)
+    var(--superadmin-auth-page-pad-bottom);
+  background: var(--color-background-surface-default);
+}
+
+.superadmin-auth__body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.superadmin-auth__footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.superadmin-auth__copyright {
+  margin: 0;
+  max-width: none;
+  color: var(--color-foreground-text-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.superadmin-auth-form {
+  width: 100%;
+  max-width: var(--superadmin-auth-form-width);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-spacing-lg);
+}
+
+.superadmin-auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-spacing-md);
+  text-align: center;
+}
+
+.superadmin-auth-brand__wordmark {
+  margin: 0;
+  color: var(--color-foreground-text-text-default);
+}
+
+.superadmin-auth-brand__title {
+  margin: 0;
+  color: var(--color-foreground-text-text-default);
+}
+
+.superadmin-auth-brand__subtitle {
+  margin: 0;
+  max-width: 100%;
+  color: var(--color-foreground-text-text-muted);
+}
+
+.superadmin-auth-form__lead {
+  margin: calc(-1 * var(--spacing-spacing-sm)) 0 0;
+  text-align: center;
+  color: var(--color-foreground-text-text-muted);
+}
+
+.superadmin-auth-form__fields {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-spacing-lg);
+}
+
+.superadmin-auth-form__fields .april-text-input,
+.superadmin-auth-form__fields .april-btn--full-width {
+  width: 100%;
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .superadmin-auth {
+    min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+      max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  .superadmin-auth-form {
+    max-width: 100%;
+  }
+
+  .superadmin-auth__copyright {
+    white-space: normal;
+  }
+
+  .superadmin-auth-form__lead {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
