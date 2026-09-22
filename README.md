@@ -31,7 +31,7 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Approval workflows and notifications | Orthogonal to the core data model; parked as a clear extension point. |
 | Multi-tenancy | Single org (ACME). Avoids premature abstraction. |
 | Full RBAC | One persona (HR manager). Access control is a first-class production concern; a real build would gate salary visibility by role. |
-| Live FX API | A seeded exchange-rate table keeps tests deterministic and the demo reproducible. The integration point is isolated behind one service so it is swappable. |
+| Live FX in tests / default path | Seeds stay deterministic. `FX_SOURCE=live` is opt-in Frankfurter/ECB; CI and specs never hit the network. |
 | Pay bands and compa-ratio | High-value pay-equity feature, but a stretch. The data model leaves room (level field) so it is additive later. |
 
 ## Tech stack
@@ -60,6 +60,20 @@ bin/dev
 - App: http://localhost:3000
 - API: http://localhost:3000/api/v1/health
 - Storybook: `npm run storybook` → http://localhost:6006
+
+FX rates live in `exchange_rates`. The seed catalog is historical. Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
+
+```sh
+bin/rails fx:sync                 # replay seed catalog
+FX_SOURCE=live bin/rails fx:sync  # Frankfurter / ECB
+FX_ON=2024-06-01 bin/rails fx:sync
+```
+
+`CurrencyNormalizer` uses the latest row on or before `as_of`. Host cron (after the ECB publish, 06:15 UTC):
+
+```
+15 6 * * * cd /path/to/acme && FX_SOURCE=live bin/rails fx:sync
+```
 
 ## Test and lint
 
