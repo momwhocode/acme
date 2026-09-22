@@ -46,6 +46,10 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Lint / security | RuboCop (Rails, RSpec, FactoryBot, Performance), Brakeman |
 | Deployment | AWS, Nginx reverse proxy, Capistrano. CI runs quality checks and specs on every push and pull request; deploy follows a successful merge. |
 
+## Work log
+
+See [docs/WORKLOG.md](docs/WORKLOG.md) for what each commit added or left out, and what we are doing now.
+
 ## Setup
 
 ```sh

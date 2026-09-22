@@ -10,8 +10,50 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 0) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_22_121200) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
+  create_table "compensation_records", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_id", null: false
+    t.decimal "base_amount", precision: 15, scale: 2, null: false
+    t.string "currency", limit: 3, null: false
+    t.date "effective_date", null: false
+    t.string "change_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "pay_period", null: false
+    t.decimal "hours_per_week", precision: 5, scale: 2
+    t.index ["employee_id", "effective_date"], name: "index_compensation_records_on_employee_id_and_effective_date", unique: true
+  end
+
+  create_table "employees", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "country", null: false
+    t.string "department", null: false
+    t.string "employment_type", null: false
+    t.string "status", null: false
+    t.string "level"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "started_on", null: false
+    t.date "left_on"
+    t.index ["department", "country", "employment_type", "status"], name: "index_employees_on_directory_filters"
+    t.index ["email"], name: "index_employees_on_email", unique: true
+  end
+
+  create_table "exchange_rates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "from_currency", limit: 3, null: false
+    t.string "to_currency", limit: 3, null: false
+    t.decimal "rate", precision: 18, scale: 8, null: false
+    t.date "effective_date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["from_currency", "to_currency", "effective_date"], name: "index_exchange_rates_on_currencies_and_effective_date", unique: true
+  end
+
+  add_foreign_key "compensation_records", "employees"
 end
