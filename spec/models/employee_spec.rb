@@ -251,4 +251,29 @@ RSpec.describe Employee do
       )
     end
   end
+
+  describe "#current_compensation_record" do
+    it "returns the latest record on or before today" do
+      employee = create(:employee)
+      create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1), base_amount: 80_000)
+      current = create(:compensation_record, employee: employee, effective_date: Date.new(2025, 1, 1), base_amount: 90_000)
+
+      expect(employee.current_compensation_record).to eq(current)
+    end
+
+    it "ignores future-dated records" do
+      employee = create(:employee)
+      current = create(:compensation_record, employee: employee, effective_date: Date.current, base_amount: 80_000)
+      create(:compensation_record, employee: employee, effective_date: Date.current + 30, base_amount: 100_000)
+
+      expect(employee.current_compensation_record).to eq(current)
+    end
+
+    it "uses left_on as the cutoff for leavers" do
+      employee = create(:employee, :left, left_on: Date.new(2025, 6, 1))
+      current = create(:compensation_record, employee: employee, effective_date: Date.new(2025, 4, 1), base_amount: 90_000)
+
+      expect(employee.current_compensation_record).to eq(current)
+    end
+  end
 end

@@ -9,7 +9,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "health", to: "health#show"
       resource :session, only: %i[show create destroy]
-      resources :employees, only: %i[index create] do
+      resources :employees, only: %i[index show create] do
         resources :compensation_records, only: %i[create]
         member { patch :offboard }
       end

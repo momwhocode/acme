@@ -3,6 +3,7 @@ import {
   addCompensation,
   compensationErrors,
   directoryFilterErrors,
+  getEmployee,
   listEmployees,
   offboardEmployee,
   offboardErrors,
@@ -25,6 +26,10 @@ describe("directoryFilterErrors", () => {
 
   it("rejects a search that is too long", () => {
     expect(directoryFilterErrors({ q: "a".repeat(256) })).toEqual({ q: "q is too long" })
+  })
+
+  it("accepts a comma-separated country list", () => {
+    expect(directoryFilterErrors({ country: "GB,US" })).toEqual({})
   })
 })
 
@@ -109,6 +114,20 @@ describe("employee requests", () => {
 
     await expect(listEmployees({ q: "a".repeat(256) })).rejects.toThrow("q is too long")
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("loads an employee profile", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: { employee: { id: "emp-1" } } }), { status: 200 })
+    )
+    vi.stubGlobal("fetch", fetchMock)
+
+    await getEmployee("emp-1")
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/emp-1",
+      expect.objectContaining({ credentials: "same-origin" })
+    )
   })
 
   it("onboards an employee", async () => {

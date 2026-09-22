@@ -94,6 +94,24 @@ RSpec.describe "GET /api/v1/employees" do
     expect(api_data.fetch("employees").pluck("id")).to eq([ match.id ])
   end
 
+  it "includes current compensation and facets" do
+    sign_in_hr
+    ExchangeRate.seed!(on: Date.new(2024, 1, 1))
+    employee = create(:employee, department: "engineering", country: "GB")
+    create(:compensation_record, employee: employee, currency: "USD", base_amount: 80_000)
+
+    get "/api/v1/employees"
+
+    expect(api_data.fetch("employees").first).to include(
+      "id" => employee.id,
+      "current_compensation" => include("currency" => "USD", "annualised_usd" => "80000.0")
+    )
+    expect(api_meta.fetch("facets")).to include(
+      "departments" => [ "engineering" ],
+      "countries" => [ "GB" ]
+    )
+  end
+
   it "rejects a search that is too long" do
     sign_in_hr
     get "/api/v1/employees", params: { q: "a" * (DirectoryQuery::MAX_QUERY + 1) }

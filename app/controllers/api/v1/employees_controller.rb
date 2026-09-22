@@ -8,9 +8,13 @@ module Api
         pager, records = pagy(query.relation, limit: query.limit, page: query.page)
 
         render_success(
-          { employees: records.map(&:as_directory_json) },
-          meta: { pagination: pagination_json(pager) }
+          { employees: DirectoryPayload.employees(records) },
+          meta: { pagination: pagination_json(pager), facets: DirectoryPayload.facets }
         )
+      end
+
+      def show
+        render_success(EmployeeProfile.call(Employee.find(params[:id])))
       end
 
       def create

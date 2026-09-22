@@ -51,6 +51,17 @@ class Employee < ApplicationRecord
     DIRECTORY_JSON_KEYS.index_with { |key| public_send(key) }
   end
 
+  def current_compensation_record(as_of: Date.current)
+    cutoff = [ left_on, as_of.to_date ].compact.min
+    records = compensation_records
+    if records.loaded?
+      records.select { |record| record.effective_date && record.effective_date <= cutoff }
+             .max_by { |record| [ record.effective_date, record.id ] }
+    else
+      records.where(effective_date: ..cutoff).order(effective_date: :desc, id: :desc).first
+    end
+  end
+
   private
 
   def normalize_attributes

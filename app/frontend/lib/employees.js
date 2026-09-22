@@ -14,13 +14,18 @@ function present(value) {
 
 export const MAX_QUERY = 255
 
+function listValues(value) {
+  if (Array.isArray(value)) return value.map(present).filter(Boolean)
+  return present(value).split(",").map((entry) => entry.trim()).filter(Boolean)
+}
+
 export function directoryFilterErrors({ country, type, employment_type: employmentType, status, q } = {}) {
   const errors = {}
-  if (country && !COUNTRY_PATTERN.test(present(country))) errors.country = "unknown country"
-  const resolvedType = present(type || employmentType).toLowerCase()
-  if (resolvedType && !EMPLOYMENT_TYPES.includes(resolvedType)) errors.type = "unknown type"
-  const resolvedStatus = present(status).toLowerCase()
-  if (resolvedStatus && !STATUSES.includes(resolvedStatus)) errors.status = "unknown status"
+  if (listValues(country).some((code) => !COUNTRY_PATTERN.test(code))) errors.country = "unknown country"
+  const types = listValues(type || employmentType).map((entry) => entry.toLowerCase())
+  if (types.some((entry) => !EMPLOYMENT_TYPES.includes(entry))) errors.type = "unknown type"
+  const statuses = listValues(status).map((entry) => entry.toLowerCase())
+  if (statuses.some((entry) => !STATUSES.includes(entry))) errors.status = "unknown status"
   if (present(q).length > MAX_QUERY) errors.q = "q is too long"
   return errors
 }
@@ -105,11 +110,16 @@ function firstError(errors) {
   return errors.compensation || Object.values(errors)[0]
 }
 
-export async function listEmployees(params = {}) {
+export async function listEmployees(params = {}, options = {}) {
   const errors = directoryFilterErrors(params)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`))
+  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options))
+}
+
+export async function getEmployee(id, options = {}) {
+  if (!present(id)) throw new Error("Employee is required")
+  return readJson(await apiFetch(`/api/v1/employees/${id}`, options))
 }
 
 export async function onboardEmployee(payload) {

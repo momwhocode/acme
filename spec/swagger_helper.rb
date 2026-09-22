@@ -68,7 +68,14 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               csrf_token: { type: :string },
-              pagination: { "$ref" => "#/components/schemas/Pagination" }
+              pagination: { "$ref" => "#/components/schemas/Pagination" },
+              facets: {
+                type: :object,
+                properties: {
+                  departments: { type: :array, items: { type: :string } },
+                  countries: { type: :array, items: { type: :string } }
+                }
+              }
             }
           },
           User: {
@@ -132,7 +139,11 @@ RSpec.configure do |config|
               status: { type: :string, enum: %w[active left] },
               level: { type: :string, nullable: true },
               started_on: { type: :string, format: :date },
-              left_on: { type: :string, format: :date, nullable: true }
+              left_on: { type: :string, format: :date, nullable: true },
+              current_compensation: {
+                nullable: true,
+                allOf: [ { "$ref" => "#/components/schemas/CompensationRecord" } ]
+              }
             }
           },
           Decimal: {
@@ -153,7 +164,26 @@ RSpec.configure do |config|
               pay_period: { type: :string, enum: %w[hourly daily monthly annual] },
               hours_per_week: { "$ref" => "#/components/schemas/Decimal", nullable: true },
               effective_date: { type: :string, format: :date },
-              change_reason: { type: :string, nullable: true }
+              change_reason: { type: :string, nullable: true },
+              annualised_usd: { "$ref" => "#/components/schemas/Decimal" }
+            }
+          },
+          EmployeeProfile: {
+            type: :object,
+            required: %w[data],
+            properties: {
+              data: {
+                type: :object,
+                required: %w[employee compensation_records],
+                properties: {
+                  employee: { "$ref" => "#/components/schemas/Employee" },
+                  current_compensation: {
+                    nullable: true,
+                    allOf: [ { "$ref" => "#/components/schemas/CompensationRecord" } ]
+                  },
+                  compensation_records: { type: :array, items: { "$ref" => "#/components/schemas/CompensationRecord" } }
+                }
+              }
             }
           },
           Pagination: {

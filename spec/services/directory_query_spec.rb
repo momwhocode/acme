@@ -89,4 +89,12 @@ RSpec.describe DirectoryQuery do
       described_class::Error, "q is too long"
     )
   end
+
+  it "filters by a comma-separated country list" do
+    gb = create(:employee, country: "GB")
+    us = create(:employee, country: "US", email: "us@acme.test")
+    create(:employee, country: "IN", email: "in@acme.test")
+
+    expect(relation_for(country: "gb,us")).to contain_exactly(gb, us)
+  end
 end

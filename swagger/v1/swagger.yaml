@@ -69,6 +69,17 @@ components:
           type: string
         pagination:
           "$ref": "#/components/schemas/Pagination"
+        facets:
+          type: object
+          properties:
+            departments:
+              type: array
+              items:
+                type: string
+            countries:
+              type: array
+              items:
+                type: string
     User:
       type: object
       required:
@@ -181,6 +192,10 @@ components:
           type: string
           format: date
           nullable: true
+        current_compensation:
+          nullable: true
+          allOf:
+          - "$ref": "#/components/schemas/CompensationRecord"
     Decimal:
       description: Rails may serialize decimals as a number or a string.
       oneOf:
@@ -227,6 +242,29 @@ components:
         change_reason:
           type: string
           nullable: true
+        annualised_usd:
+          "$ref": "#/components/schemas/Decimal"
+    EmployeeProfile:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - employee
+          - compensation_records
+          properties:
+            employee:
+              "$ref": "#/components/schemas/Employee"
+            current_compensation:
+              nullable: true
+              allOf:
+              - "$ref": "#/components/schemas/CompensationRecord"
+            compensation_records:
+              type: array
+              items:
+                "$ref": "#/components/schemas/CompensationRecord"
     Pagination:
       type: object
       required:
@@ -598,6 +636,39 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/OnboardRequest"
+  "/api/v1/employees/{id}":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    get:
+      summary: Show an employee profile
+      tags:
+      - Employees
+      description: Current compensation plus newest-first effective-dated history.
+        Amounts include annualised USD.
+      responses:
+        '200':
+          description: profile
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/EmployeeProfile"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '404':
+          description: unknown employee
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/employees/{id}/offboard":
     parameters:
     - name: id

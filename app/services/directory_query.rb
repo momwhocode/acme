@@ -44,31 +44,39 @@ class DirectoryQuery
   end
 
   def normalize_country
-    value = @params[:country].to_s.strip.upcase.presence
-    return if value.blank?
-    raise Error, "unknown country" unless value.match?(/\A[A-Z]{2}\z/)
+    values = list_param(:country).map(&:upcase)
+    return if values.empty?
 
-    value
+    values.each { |value| raise Error, "unknown country" unless value.match?(/\A[A-Z]{2}\z/) }
+    values.uniq
   end
 
   def normalize_department
-    @params[:department].to_s.strip.gsub(/\s+/, " ").downcase.presence
+    values = list_param(:department).map { |value| value.gsub(/\s+/, " ").downcase }
+    values.presence
   end
 
   def normalize_type
-    permitted(@params[:type].presence || @params[:employment_type], Employee::EMPLOYMENT_TYPES, "unknown type")
+    permitted(list_param(:type, :employment_type), Employee::EMPLOYMENT_TYPES, "unknown type")
   end
 
   def normalize_status
-    permitted(@params[:status], Employee::STATUSES, "unknown status")
+    permitted(list_param(:status), Employee::STATUSES, "unknown status")
   end
 
   def permitted(raw, allowed, error)
-    value = raw.to_s.strip.downcase.presence
-    return if value.blank?
-    raise Error, error unless allowed.include?(value)
+    values = Array(raw).map { |value| value.to_s.strip.downcase }.reject(&:blank?)
+    return if values.empty?
 
-    value
+    values.each { |value| raise Error, error unless allowed.include?(value) }
+    values.uniq
+  end
+
+  def list_param(*keys)
+    keys.flat_map { |key| Array(@params[key]) }
+        .flat_map { |value| value.to_s.split(",") }
+        .map(&:strip)
+        .reject(&:blank?)
   end
 
   def integer_param(key)

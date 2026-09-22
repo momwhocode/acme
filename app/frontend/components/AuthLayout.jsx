@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom"
+import { APP_CHROME_SCROLL, useAppDocumentChrome } from "../lib/appDocumentChrome"
 
 export default function AuthLayout({ children }) {
+  useAppDocumentChrome(APP_CHROME_SCROLL)
   const year = new Date().getFullYear()
 
   return (

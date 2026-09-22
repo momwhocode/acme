@@ -245,6 +245,46 @@ RSpec.describe "Employees", type: :request do
     end
   end
 
+  path "/api/v1/employees/{id}" do
+    parameter name: :id, in: :path, schema: { type: :string, format: :uuid }
+
+    get "Show an employee profile" do
+      tags "Employees"
+      produces "application/json"
+      description "Current compensation plus newest-first effective-dated history. Amounts include annualised USD."
+
+      response "200", "profile" do
+        schema "$ref" => "#/components/schemas/EmployeeProfile"
+        let(:employee) { create(:employee) }
+        let(:id) { employee.id }
+        before do
+          sign_in_hr
+          ExchangeRate.seed!(on: Date.new(2024, 1, 1))
+          create(:compensation_record, employee: employee, change_reason: "hire")
+        end
+
+        run_test! do |response|
+          expect(api_data.fetch("employee")).to include("id" => employee.id)
+          expect(api_data.fetch("compensation_records")).not_to be_empty
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { create(:employee).id }
+        run_test!
+      end
+
+      response "404", "unknown employee" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { SecureRandom.uuid }
+        before { sign_in_hr }
+
+        run_test!
+      end
+    end
+  end
+
   path "/api/v1/employees/{id}/offboard" do
     parameter name: :id, in: :path, schema: { type: :string, format: :uuid }
 

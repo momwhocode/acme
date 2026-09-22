@@ -21,4 +21,18 @@ RSpec.describe "GET /" do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('id="root"')
   end
+
+  it "renders the employees path for the SPA" do
+    get "/employees"
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('id="root"')
+  end
+
+  it "renders an employee profile path for the SPA" do
+    get "/employees/#{SecureRandom.uuid}"
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('id="root"')
+  end
 end

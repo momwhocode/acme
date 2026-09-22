@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { readSession } from "../lib/session"
+import AppLayout from "./AppLayout"
 import AuthLayout from "./AuthLayout"
+import EmployeeProfilePage from "./EmployeeProfilePage"
+import EmployeesPage from "./EmployeesPage"
 import HomePage from "./HomePage"
 import LoginPage from "./LoginPage"
 import LogoutPage from "./LogoutPage"
@@ -37,7 +40,13 @@ function AppRoutes() {
           element={user ? <LogoutPage onSignedOut={() => setUser(null)} /> : <Navigate to="/sign_in" replace />}
         />
       </Route>
-      <Route path="/" element={user ? <HomePage user={user} /> : <Navigate to="/sign_in" replace />} />
+      <Route
+        element={user ? <AppLayout user={user} onSignedOut={() => setUser(null)} /> : <Navigate to="/sign_in" replace />}
+      >
+        <Route path="/" element={<HomePage user={user} />} />
+        <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+      </Route>
       <Route path="*" element={<Navigate to={user ? "/" : "/sign_in"} replace />} />
     </Routes>
   )

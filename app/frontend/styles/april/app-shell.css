@@ -1,0 +1,218 @@
+/* App chrome — same shell as SchoolOS (sidebar + scrolling main). */
+
+.superadmin-shell {
+  display: flex;
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--color-background-surface-default);
+}
+
+.superadmin-shell__main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background: var(--color-background-surface-default);
+}
+
+.acme-sidebar__wordmark {
+  padding-inline: 4px;
+  color: var(--color-foreground-text-text-default);
+  text-decoration: none;
+}
+
+.acme-page {
+  max-width: 48rem;
+  padding: var(--spacing-spacing-4xl) var(--spacing-spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-spacing-lg);
+}
+
+.acme-home__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-spacing-sm);
+}
+
+.acme-listing,
+.acme-profile {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.superadmin-tenants-table {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.superadmin-tenants-table .april-filter-chips-header {
+  flex-shrink: 0;
+}
+
+.superadmin-tenants-table__results {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.acme-profile {
+  padding: 0 0 var(--spacing-spacing-3xl);
+}
+
+.acme-profile__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--spacing-spacing-lg);
+  margin: 0;
+  padding: var(--spacing-spacing-xl);
+}
+
+.acme-profile__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.acme-profile__field dt {
+  color: var(--color-foreground-text-text-secondary, #64748b);
+}
+
+.acme-profile__field dd {
+  margin: 0;
+}
+
+.acme-profile__comp,
+.acme-profile [aria-labelledby="comp-history-title"] {
+  padding: 0 var(--spacing-spacing-xl) var(--spacing-spacing-xl);
+}
+
+.acme-profile__comp-meta {
+  font-weight: 400;
+}
+
+.acme-profile__timeline {
+  list-style: none;
+  margin: var(--spacing-spacing-md) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.acme-profile__timeline-item {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: var(--spacing-spacing-lg);
+  padding: var(--spacing-spacing-md) 0;
+  border-top: 1px solid var(--color-border-border-gray-dark);
+}
+
+.acme-profile__timeline-when {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .acme-profile__timeline-item {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tenant-shell__mobile-bar,
+.tenant-shell__nav-backdrop,
+.tenant-shell__nav-close {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .superadmin-shell--app {
+    flex-direction: column;
+    overflow-x: clip;
+    min-height: 100dvh;
+    max-width: 100%;
+  }
+
+  .tenant-shell__mobile-bar {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    height: 48px;
+    padding: env(safe-area-inset-top, 0px) var(--spacing-spacing-sm, 8px) 0
+      max(var(--spacing-spacing-sm, 8px), env(safe-area-inset-left, 0px));
+    background: var(--color-background-surface-default);
+    border-bottom: 1px solid var(--color-border-border-gray-dark);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    box-sizing: border-box;
+  }
+
+  .tenant-shell__nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(16, 24, 40, 0.4);
+    cursor: pointer;
+  }
+
+  .superadmin-shell--app > .april-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(256px, 86vw);
+    min-width: 0;
+    max-width: min(256px, 86vw);
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    transform: translateX(-100%);
+    transition:
+      transform 160ms ease,
+      visibility 160ms ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .superadmin-shell--app.superadmin-shell--nav-open > .april-sidebar {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .tenant-shell__nav-close {
+    display: inline-flex;
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    left: calc(min(256px, 86vw) - 48px);
+    z-index: 60;
+  }
+
+  .superadmin-shell--app .superadmin-shell__main {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: clip;
+  }
+}

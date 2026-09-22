@@ -36,5 +36,11 @@ export default [
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/refs": "off"
     }
+  },
+  {
+    files: ["app/frontend/**/*.{spec,test}.{js,jsx}"],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.vitest }
+    }
   }
 ]
