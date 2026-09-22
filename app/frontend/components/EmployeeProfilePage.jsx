@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router-dom"
 import { BreadcrumbHeader } from "../april/components/BreadcrumbHeader"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
+import { PageToast } from "../april/components/PageToast"
 import { Tag } from "../april/components/Tag"
+import CompensationChangeModal from "./CompensationChangeModal"
 import { getEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
 import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
@@ -30,6 +32,8 @@ export default function EmployeeProfilePage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const [reloadToken, setReloadToken] = useState(0)
+  const [changeOpen, setChangeOpen] = useState(false)
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -68,6 +72,27 @@ export default function EmployeeProfilePage() {
         onBack={() => navigate("/employees")}
         showTag={Boolean(employee)}
         tagLabel={employee?.status === "left" ? "Left" : "Active"}
+        showPrimaryButton={employee?.status === "active"}
+        primaryButtonLabel="Record pay change"
+        primaryIcon="payments"
+        onPrimary={() => setChangeOpen(true)}
+      />
+      {changeOpen && employee ? (
+        <CompensationChangeModal
+          employee={employee}
+          currentCompensation={current}
+          onCancel={() => setChangeOpen(false)}
+          onSuccess={() => {
+            setChangeOpen(false)
+            setToast({ title: "Compensation recorded" })
+            setReloadToken((token) => token + 1)
+          }}
+        />
+      ) : null}
+      <PageToast
+        title={toast?.title}
+        color="green"
+        onDismiss={() => setToast(null)}
       />
 
       {loading ? <div className="pattern-page__scroll" aria-busy="true" /> : null}

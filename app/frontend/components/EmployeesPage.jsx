@@ -1,8 +1,10 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
+import { PageToast } from "../april/components/PageToast"
+import OnboardEmployeeModal from "./OnboardEmployeeModal"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
 import {
   EMPLOYEES_TABLE_COLUMNS,
@@ -15,6 +17,8 @@ import { useEmployeesDirectory } from "../lib/useEmployeesDirectory"
 export default function EmployeesPage() {
   const navigate = useNavigate()
   const directory = useEmployeesDirectory()
+  const [onboardOpen, setOnboardOpen] = useState(false)
+  const [toast, setToast] = useState(null)
   const extensions = useMemo(
     () => createEmployeesTableExtensions({ onDetails: (row) => navigate(`/employees/${row.id}`) }),
     [navigate]
@@ -26,7 +30,29 @@ export default function EmployeesPage() {
 
   return (
     <section className="acme-listing">
-      <PageTitleNavHeader pageTitle="Employees" id="employees-title" />
+      <PageTitleNavHeader
+        pageTitle="Employees"
+        id="employees-title"
+        showPrimaryButton
+        primaryButtonLabel="Onboard"
+        primaryIcon="person_add"
+        onPrimary={() => setOnboardOpen(true)}
+      />
+      {onboardOpen ? (
+        <OnboardEmployeeModal
+          onCancel={() => setOnboardOpen(false)}
+          onSuccess={() => {
+            setOnboardOpen(false)
+            setToast({ title: "Employee onboarded" })
+            directory.retry()
+          }}
+        />
+      ) : null}
+      <PageToast
+        title={toast?.title}
+        color="green"
+        onDismiss={() => setToast(null)}
+      />
       {directory.error && !directory.rows.length ? (
         <PageLoadError title="Couldn't load employees" onRetry={directory.retry} />
       ) : (

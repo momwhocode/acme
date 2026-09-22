@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   addCompensation,
+  compensationChangeErrors,
   compensationErrors,
   directoryFilterErrors,
+  fieldErrorText,
+  firstApiFieldError,
   getEmployee,
   listEmployees,
   offboardEmployee,
@@ -70,6 +73,21 @@ describe("compensationErrors", () => {
       currency: "unknown currency",
       pay_period: "unknown pay period"
     })
+  })
+})
+
+describe("compensationChangeErrors", () => {
+  it("requires an effective date", () => {
+    expect(compensationChangeErrors({ base_amount: 1, currency: "USD", pay_period: "annual" })).toEqual({
+      effective_date: "Enter an effective date"
+    })
+  })
+})
+
+describe("fieldErrorText", () => {
+  it("reads the first API detail message", () => {
+    expect(fieldErrorText([ "has already been taken" ])).toBe("has already been taken")
+    expect(firstApiFieldError({ email: [ "has already been taken" ] })).toBe("has already been taken")
   })
 })
 
@@ -152,6 +170,50 @@ describe("employee requests", () => {
       "/api/v1/employees",
       expect.objectContaining({ method: "POST", body: JSON.stringify(payload) })
     )
+  })
+
+  it("does not call the API when a pay change is missing an effective date", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(addCompensation("emp-1", { base_amount: 1, currency: "USD", pay_period: "annual" })).rejects.toThrow(
+      "Enter an effective date"
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("attaches API field details to the thrown error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error: {
+              code: "validation_failed",
+              message: "validation failed",
+              details: { email: [ "has already been taken" ] }
+            }
+          }),
+          { status: 422 }
+        )
+      )
+    )
+
+    await expect(
+      onboardEmployee({
+        first_name: "Ada",
+        last_name: "Lovelace",
+        email: "ada@acme.test",
+        country: "GB",
+        department: "engineering",
+        employment_type: "full-time",
+        started_on: "2024-01-01",
+        compensation: { base_amount: 80000, currency: "GBP", pay_period: "annual" }
+      })
+    ).rejects.toMatchObject({
+      message: "validation failed",
+      details: { email: [ "has already been taken" ] }
+    })
   })
 
   it("records a compensation change", async () => {

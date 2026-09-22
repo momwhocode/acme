@@ -55,6 +55,12 @@ export function compensationErrors(compensation = {}) {
   return errors
 }
 
+export function compensationChangeErrors(compensation = {}) {
+  const errors = compensationErrors(compensation)
+  if (!present(compensation.effective_date)) errors.effective_date = "Enter an effective date"
+  return errors
+}
+
 export function onboardErrors(payload = {}) {
   const errors = {}
   if (!present(payload.first_name)) errors.first_name = "Enter a first name"
@@ -100,9 +106,16 @@ function queryString(params = {}) {
   return encoded ? `?${encoded}` : ""
 }
 
-async function readJson(response) {
+function throwPayloadError(payload, fallback) {
+  const error = new Error(apiErrorMessage(payload, fallback))
+  error.code = payload?.error?.code
+  error.details = payload?.error?.details || {}
+  throw error
+}
+
+async function readJson(response, fallback) {
   const payload = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(apiErrorMessage(payload))
+  if (!response.ok) throwPayloadError(payload, fallback)
   return payload
 }
 
@@ -114,37 +127,55 @@ export async function listEmployees(params = {}, options = {}) {
   const errors = directoryFilterErrors(params)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options))
+  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options), "Could not load employees")
 }
 
 export async function getEmployee(id, options = {}) {
   if (!present(id)) throw new Error("Employee is required")
-  return readJson(await apiFetch(`/api/v1/employees/${id}`, options))
+  return readJson(await apiFetch(`/api/v1/employees/${id}`, options), "Could not load employee")
 }
 
 export async function onboardEmployee(payload) {
   const errors = onboardErrors(payload)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch("/api/v1/employees", { method: "POST", body: JSON.stringify(payload) }))
+  return readJson(
+    await apiFetch("/api/v1/employees", { method: "POST", body: JSON.stringify(payload) }),
+    "Could not onboard employee"
+  )
 }
 
 export async function addCompensation(employeeId, payload) {
-  const errors = compensationErrors(payload)
+  const errors = compensationChangeErrors(payload)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch(`/api/v1/employees/${employeeId}/compensation_records`, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  }))
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}/compensation_records`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
+    "Could not record compensation"
+  )
 }
 
 export async function offboardEmployee(employeeId, { left_on: leftOn } = {}) {
   const errors = offboardErrors({ left_on: leftOn })
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch(`/api/v1/employees/${employeeId}/offboard`, {
-    method: "PATCH",
-    body: JSON.stringify({ left_on: leftOn })
-  }))
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}/offboard`, {
+      method: "PATCH",
+      body: JSON.stringify({ left_on: leftOn })
+    }),
+    "Could not offboard employee"
+  )
+}
+
+export function fieldErrorText(error) {
+  if (Array.isArray(error)) return error[0]
+  return error || undefined
+}
+
+export function firstApiFieldError(details = {}) {
+  return Object.values(details).map(fieldErrorText).find(Boolean)
 }

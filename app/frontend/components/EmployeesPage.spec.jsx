@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import EmployeesPage from "./EmployeesPage"
@@ -71,5 +72,15 @@ describe("EmployeesPage", () => {
     })
     expect(await screen.findByText("Ada Lovelace")).toBeTruthy()
     expect(screen.getByText("Showing 1–25 of 60")).toBeTruthy()
+  })
+
+  it("opens the onboard modal from the page header", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByRole("heading", { name: "Employees" })
+
+    await user.click(screen.getByRole("button", { name: "Onboard" }))
+
+    expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
   })
 })

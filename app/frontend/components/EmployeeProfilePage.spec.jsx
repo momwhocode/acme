@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 import { cleanup, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import EmployeeProfilePage from "./EmployeeProfilePage"
@@ -80,5 +81,54 @@ describe("EmployeeProfilePage", () => {
     expect(screen.getByText("Current")).toBeTruthy()
     expect(screen.getByText("Promotion")).toBeTruthy()
     expect(screen.getByText("Hire")).toBeTruthy()
+  })
+
+  it("opens the pay-change modal for an active employee", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("button", { name: "Record pay change" }))
+
+    expect(screen.getByRole("heading", { name: "Record pay change" })).toBeTruthy()
+  })
+
+  it("hides pay-change for a leaver", async () => {
+    getEmployee.mockResolvedValue({
+      data: {
+        employee: {
+          id: "emp-1",
+          first_name: "Ada",
+          last_name: "Lovelace",
+          email: "ada@acme.test",
+          department: "engineering",
+          country: "GB",
+          employment_type: "full-time",
+          status: "left",
+          level: "IC2",
+          started_on: "2024-01-01",
+          left_on: "2026-01-01"
+        },
+        current_compensation: null,
+        compensation_records: []
+      }
+    })
+
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    expect(screen.queryByRole("button", { name: "Record pay change" })).toBeNull()
   })
 })
