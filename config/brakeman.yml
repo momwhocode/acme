@@ -1,0 +1,4 @@
+---
+# Rails 7.2 is required for this monolith. Brakeman flags it as EOL after 2026-08-09.
+skip_checks:
+  - CheckEOLRails

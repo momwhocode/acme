@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -e
+
+if command -v overmind >/dev/null 2>&1; then
+  exec overmind start -f Procfile.dev "$@"
+fi
+
+if command -v foreman >/dev/null 2>&1; then
+  exec foreman start -f Procfile.dev "$@"
+fi
+
+echo "Install overmind or foreman to run web + Vite together."
+echo "Falling back to Rails only. In another terminal run: bin/vite dev"
+exec bin/rails server -p 3000
