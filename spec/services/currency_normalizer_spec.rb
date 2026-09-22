@@ -38,10 +38,8 @@ RSpec.describe CurrencyNormalizer do
       expect(annualised(amount: BigDecimal("80000"))).to eq(BigDecimal("80000.00"))
     end
 
-    it "converts EUR annual pay with the seeded 2024 rate" do
-      expect(
-        annualised(amount: 100_000, currency: "EUR", as_of: Date.new(2024, 6, 1))
-      ).to eq(BigDecimal("110000.00"))
+    it "converts EUR annual pay with the current seeded rate" do
+      expect(annualised(amount: 100_000, currency: "EUR")).to eq(BigDecimal("110000.00"))
     end
 
     it "converts GBP monthly pay to annual USD" do
@@ -86,34 +84,42 @@ RSpec.describe CurrencyNormalizer do
       ).to eq(BigDecimal("130000.00"))
     end
 
-    it "uses the latest seeded rate on or before as_of" do
+    it "uses the latest rate on or before as_of" do
+      ExchangeRate.upsert_quote!(
+        from_currency: "EUR", to_currency: "USD", rate: "1.05", effective_date: Date.current - 30
+      )
+
       expect(
-        annualised(amount: 100_000, currency: "EUR", as_of: Date.new(2021, 6, 1))
+        annualised(amount: 100_000, currency: "EUR", as_of: Date.current - 1)
       ).to eq(BigDecimal("105000.00"))
     end
 
     it "defaults as_of to Date.current" do
-      travel_to Date.new(2021, 6, 1) do
+      ExchangeRate.upsert_quote!(
+        from_currency: "EUR", to_currency: "USD", rate: "1.05", effective_date: Date.current - 1
+      )
+
+      travel_to Date.current - 1 do
         expect(annualised(amount: 100_000, currency: "EUR")).to eq(BigDecimal("105000.00"))
       end
     end
 
     it "converts a Time as_of to a date" do
-      expect(
-        annualised(amount: 100_000, currency: "EUR", as_of: Time.utc(2021, 6, 1, 23, 0, 0))
-      ).to eq(BigDecimal("105000.00"))
+      as_of = Time.utc(Date.current.year, Date.current.month, Date.current.day, 23, 0, 0)
+
+      expect(annualised(amount: 100_000, currency: "EUR", as_of: as_of)).to eq(BigDecimal("110000.00"))
     end
 
     it "converts a DateTime as_of to a date" do
-      expect(
-        annualised(amount: 100_000, currency: "EUR", as_of: DateTime.new(2021, 6, 1, 23, 0, 0))
-      ).to eq(BigDecimal("105000.00"))
+      as_of = DateTime.new(Date.current.year, Date.current.month, Date.current.day, 23, 0, 0)
+
+      expect(annualised(amount: 100_000, currency: "EUR", as_of: as_of)).to eq(BigDecimal("110000.00"))
     end
 
     it "parses an ISO8601 string as_of" do
       expect(
-        annualised(amount: 100_000, currency: "EUR", as_of: "2021-06-01")
-      ).to eq(BigDecimal("105000.00"))
+        annualised(amount: 100_000, currency: "EUR", as_of: Date.current.iso8601)
+      ).to eq(BigDecimal("110000.00"))
     end
 
     it "normalises lowercase currency codes" do
@@ -140,7 +146,7 @@ RSpec.describe CurrencyNormalizer do
     end
 
     it "normalises symbol currency codes" do
-      expect(annualised(amount: 10_000, currency: :eur, as_of: Date.new(2024, 6, 1))).to eq(BigDecimal("11000.00"))
+      expect(annualised(amount: 10_000, currency: :eur)).to eq(BigDecimal("11000.00"))
     end
 
     it "normalises uppercase pay periods" do

@@ -1,3 +1,19 @@
+# == Schema Information
+#
+# Table name: exchange_rates
+#
+#  id             :uuid             not null, primary key
+#  effective_date :date             not null
+#  from_currency  :string(3)        not null
+#  rate           :decimal(18, 8)   not null
+#  to_currency    :string(3)        not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
+# Indexes
+#
+#  index_exchange_rates_on_currencies_and_effective_date  (from_currency,to_currency,effective_date) UNIQUE
+#
 require "rails_helper"
 
 RSpec.describe ExchangeRate do
@@ -51,7 +67,7 @@ RSpec.describe ExchangeRate do
 
     it "rejects a duplicate pair on the same date" do
       described_class.seed!
-      duplicate = build_rate(effective_date: Date.new(2024, 1, 1))
+      duplicate = build_rate(effective_date: Date.current)
 
       expect(duplicate).not_to be_valid
     end
@@ -80,14 +96,20 @@ RSpec.describe ExchangeRate do
       expect { described_class.seed! }.not_to change(described_class, :count)
     end
 
-    it "restores catalog rates for seed dates" do
+    it "restores catalog rates for the seed date" do
       described_class.seed!
       described_class.upsert_quote!(
-        from_currency: "EUR", to_currency: "USD", rate: "9.99", effective_date: Date.new(2024, 1, 1)
+        from_currency: "EUR", to_currency: "USD", rate: "9.99", effective_date: Date.current
       )
       described_class.seed!
 
-      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.new(2024, 1, 1))).to eq(BigDecimal("1.10"))
+      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.current)).to eq(BigDecimal("1.10"))
+    end
+
+    it "writes the snapshot as of Date.current" do
+      described_class.seed!
+
+      expect(described_class.exists?(from_currency: "EUR", effective_date: Date.current)).to be(true)
     end
   end
 
@@ -141,10 +163,10 @@ RSpec.describe ExchangeRate do
       described_class.seed!
       described_class.sync!(
         [ { from_currency: "EUR", to_currency: "USD", rate: "1.3" } ],
-        on: Date.new(2026, 5, 1)
+        on: Date.current + 1
       )
 
-      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.new(2024, 6, 1))).to eq(BigDecimal("1.10"))
+      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.current)).to eq(BigDecimal("1.10"))
     end
 
     it "raises when a quote is missing a required key" do
@@ -158,15 +180,19 @@ RSpec.describe ExchangeRate do
     before { described_class.seed! }
 
     it "is case insensitive" do
-      expect(described_class.rate_to(from: "eur", to: "usd", on: Date.new(2024, 6, 1))).to eq(BigDecimal("1.10"))
+      expect(described_class.rate_to(from: "eur", to: "usd", on: Date.current)).to eq(BigDecimal("1.10"))
     end
 
     it "returns the latest row on or before on" do
-      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.new(2020, 6, 1))).to eq(BigDecimal("1.05"))
+      described_class.upsert_quote!(
+        from_currency: "EUR", to_currency: "USD", rate: "1.05", effective_date: Date.current - 30
+      )
+
+      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.current - 1)).to eq(BigDecimal("1.05"))
     end
 
     it "includes a row whose effective_date equals on" do
-      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.new(2024, 1, 1))).to eq(BigDecimal("1.10"))
+      expect(described_class.rate_to(from: "EUR", to: "USD", on: Date.current)).to eq(BigDecimal("1.10"))
     end
 
     it "returns nil when no row exists on or before on" do
@@ -183,7 +209,11 @@ RSpec.describe ExchangeRate do
 
     it "coerces a Time on to a date" do
       expect(
-        described_class.rate_to(from: "EUR", to: "USD", on: Time.utc(2024, 6, 1, 15, 0, 0))
+        described_class.rate_to(
+          from: "EUR",
+          to: "USD",
+          on: Time.utc(Date.current.year, Date.current.month, Date.current.day, 15, 0, 0)
+        )
       ).to eq(BigDecimal("1.10"))
     end
   end

@@ -19,10 +19,10 @@ RSpec.describe Fx::Sync do
       fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ]
     )
 
-    described_class.call(on: Date.new(2026, 1, 1), source: source)
+    described_class.call(on: Date.current + 1, source: source)
 
-    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.new(2024, 6, 1))).to eq(BigDecimal("1.10"))
-    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.new(2026, 1, 1))).to eq(BigDecimal("1.20"))
+    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.current)).to eq(BigDecimal("1.10"))
+    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.current + 1)).to eq(BigDecimal("1.20"))
   end
 
   it "uses the seed catalog when FX_SOURCE is not live" do

@@ -1,13 +1,28 @@
+# == Schema Information
+#
+# Table name: exchange_rates
+#
+#  id             :uuid             not null, primary key
+#  effective_date :date             not null
+#  from_currency  :string(3)        not null
+#  rate           :decimal(18, 8)   not null
+#  to_currency    :string(3)        not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
+# Indexes
+#
+#  index_exchange_rates_on_currencies_and_effective_date  (from_currency,to_currency,effective_date) UNIQUE
+#
 class ExchangeRate < ApplicationRecord
   QUOTE_CURRENCIES = %w[EUR GBP INR].freeze
 
-  # Historical catalog for tests and first-time seed. Live updates append new dated rows.
+  # Current snapshot for first-time seed. Live updates append new dated rows — do not edit these rates.
   SEED_RATES = [
-    { from_currency: "USD", to_currency: "USD", rate: "1.0", effective_date: Date.new(2020, 1, 1) },
-    { from_currency: "EUR", to_currency: "USD", rate: "1.05", effective_date: Date.new(2020, 1, 1) },
-    { from_currency: "EUR", to_currency: "USD", rate: "1.10", effective_date: Date.new(2024, 1, 1) },
-    { from_currency: "GBP", to_currency: "USD", rate: "1.25", effective_date: Date.new(2024, 1, 1) },
-    { from_currency: "INR", to_currency: "USD", rate: "0.012", effective_date: Date.new(2024, 1, 1) }
+    { from_currency: "USD", to_currency: "USD", rate: "1.0" },
+    { from_currency: "EUR", to_currency: "USD", rate: "1.10" },
+    { from_currency: "GBP", to_currency: "USD", rate: "1.25" },
+    { from_currency: "INR", to_currency: "USD", rate: "0.012" }
   ].freeze
 
   validates :from_currency, :to_currency, presence: true, length: { is: 3 }
@@ -17,13 +32,13 @@ class ExchangeRate < ApplicationRecord
 
   before_validation :normalize_currencies
 
-  def self.seed!
+  def self.seed!(on: Date.current)
     SEED_RATES.each do |attrs|
       upsert_quote!(
         from_currency: attrs[:from_currency],
         to_currency: attrs[:to_currency],
         rate: attrs[:rate],
-        effective_date: attrs[:effective_date]
+        effective_date: on
       )
     end
   end

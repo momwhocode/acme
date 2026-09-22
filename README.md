@@ -46,10 +46,6 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Lint / security | RuboCop (Rails, RSpec, FactoryBot, Performance), Brakeman |
 | Deployment | AWS, Nginx reverse proxy, Capistrano. CI runs quality checks and specs on every push and pull request; deploy follows a successful merge. |
 
-## Work log
-
-See [docs/WORKLOG.md](docs/WORKLOG.md) for what each commit added or left out, and what we are doing now.
-
 ## Setup
 
 ```sh
@@ -61,7 +57,7 @@ bin/dev
 - API: http://localhost:3000/api/v1/health
 - Storybook: `npm run storybook` → http://localhost:6006
 
-FX rates live in `exchange_rates`. The seed catalog is historical. Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
+FX rates live in `exchange_rates`. The seed catalog is the current snapshot (`Date.current`). Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
 
 ```sh
 bin/rails fx:sync                 # replay seed catalog
