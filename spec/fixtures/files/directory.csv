@@ -1,0 +1,4 @@
+first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason
+Ada,Lovelace,ada.lovelace@import.test,gb,Engineering,full-time,active,IC4,2020-01-15,,80000,GBP,annual,,2020-01-15,hire
+Ada,Lovelace,ada.lovelace@import.test,gb,Engineering,full-time,active,IC4,2020-01-15,,88000,GBP,annual,,2022-01-15,raise
+Alan,Turing,alan.turing@import.test,US,Product,part-time,active,IC2,2021-03-01,,45,USD,hourly,24,2021-03-01,hire

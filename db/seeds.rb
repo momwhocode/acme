@@ -1,4 +1,4 @@
-# Current FX snapshot for Date.current. Safe to re-run.
-# To append today's market rates without editing SEED_RATES:
-#   FX_SOURCE=live bin/rails fx:sync
-ExchangeRate.seed!
+# FX matrix + 10k employees. Idempotent unless FORCE=1.
+#   FORCE=1 bin/rails directory:seed
+#   bin/rails directory:import FILE=tmp/employees.csv
+DirectorySeeder.call

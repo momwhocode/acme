@@ -6,6 +6,10 @@ gem "rails", "~> 7.2.2", ">= 7.2.2.1"
 gem "sprockets-rails"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
+# Ruby 3.4 no longer ships csv as a default gem.
+gem "csv"
+# Realistic 10k directory seed (names, dates).
+gem "faker"
 # json 3.x dropped quirks_mode, which Rails 7.2 still passes.
 gem "json", "~> 2.10"
 # Use the Puma web server [https://github.com/puma/puma]

@@ -119,6 +119,14 @@ RSpec.describe Employee do
       expect(build(:employee, country: "A" * 256)).not_to be_valid
     end
 
+    it "rejects a country that is not a 2-letter code" do
+      expect(build(:employee, country: "USA")).not_to be_valid
+    end
+
+    it "rejects a single-letter country" do
+      expect(build(:employee, country: "G")).not_to be_valid
+    end
+
     it "rejects a department longer than 255 characters" do
       expect(build(:employee, department: "A" * 256)).not_to be_valid
     end

@@ -53,6 +53,16 @@ bin/setup
 bin/dev
 ```
 
+`bin/setup` seeds the FX matrix and 10,000 employees (`insert_all`). Re-run or import a spreadsheet:
+
+```sh
+bin/rails db:seed
+FORCE=1 COUNT=10000 bin/rails directory:seed
+bin/rails directory:import FILE=tmp/employees.csv
+```
+
+CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are skipped. Import does not write FX rates.
+
 - App: http://localhost:3000
 - API: http://localhost:3000/api/v1/health
 - Storybook: `npm run storybook` → http://localhost:6006

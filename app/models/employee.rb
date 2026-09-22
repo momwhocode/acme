@@ -29,7 +29,8 @@ class Employee < ApplicationRecord
 
   before_validation :normalize_attributes
 
-  validates :first_name, :last_name, :country, :department, presence: true, length: { maximum: 255 }
+  validates :first_name, :last_name, :department, presence: true, length: { maximum: 255 }
+  validates :country, presence: true, format: { with: /\A[A-Z]{2}\z/ }
   validates :started_on, presence: true
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }, length: { maximum: 255 }
