@@ -21,10 +21,10 @@ module Fx
       quotes = [ { from_currency: "USD", to_currency: "USD", rate: "1.0" } ]
       ExchangeRate::QUOTE_CURRENCIES.each do |code|
         usd_per_unit = usd_rates[code]
-        raise Error, "Frankfurter omitted #{code}." if usd_per_unit.blank?
+        raise Error, I18n.t("errors.fx_omitted", code: code) if usd_per_unit.blank?
 
         unit = BigDecimal(usd_per_unit.to_s)
-        raise Error, "Frankfurter returned a non-positive #{code} rate." unless unit.positive?
+        raise Error, I18n.t("errors.fx_non_positive", code: code) unless unit.positive?
 
         # Frankfurter quotes USD-per-unit; we store unit→USD so CurrencyNormalizer can multiply.
         quotes << {
@@ -36,7 +36,7 @@ module Fx
 
       QuoteSnapshot.new(on: quoted_on, quotes: quotes)
     rescue JSON::ParserError, KeyError, TypeError, Date::Error => error
-      raise Error, "Frankfurter response was invalid: #{error.message}"
+      raise Error, I18n.t("errors.fx_invalid", detail: error.message)
     end
 
     private
@@ -48,7 +48,7 @@ module Fx
 
     def http_get(uri)
       response = Net::HTTP.get_response(uri)
-      raise Error, "Frankfurter returned HTTP #{response.code}." unless response.is_a?(Net::HTTPSuccess)
+      raise Error, I18n.t("errors.fx_http", code: response.code) unless response.is_a?(Net::HTTPSuccess)
 
       response.body
     end

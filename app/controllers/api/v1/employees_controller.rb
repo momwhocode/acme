@@ -95,10 +95,10 @@ module Api
 
       def import_file
         file = params[:file]
-        raise AppError, "file is required" if file.blank?
+        raise AppError.t(:file_required) if file.blank?
 
         name = file.respond_to?(:original_filename) ? file.original_filename : file.to_s
-        raise AppError, "upload a CSV file" unless File.extname(name.to_s).downcase == ".csv"
+        raise AppError.t(:upload_csv) unless File.extname(name.to_s).downcase == ".csv"
 
         file
       end

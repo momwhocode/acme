@@ -1,7 +1,8 @@
+# Manager self-FK, pay-band midpoints, and the append-only HR audit log.
+
 class AddHrOperations < ActiveRecord::Migration[7.2]
   def change
     add_reference :employees, :manager, type: :uuid, foreign_key: { to_table: :employees }, null: true
-    add_index :employees, :manager_id, if_not_exists: true
 
     create_table :pay_bands, id: :uuid, default: -> { "gen_random_uuid()" } do |t|
       t.string :level, null: false

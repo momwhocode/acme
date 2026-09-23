@@ -15,6 +15,7 @@
 #  index_exchange_rates_on_currencies_and_effective_date  (from_currency,to_currency,effective_date) UNIQUE
 #
 # Dated FX quotes. Lookups use the latest row on or before as_of — never "latest overall".
+
 class ExchangeRate < ApplicationRecord
   QUOTE_CURRENCIES = %w[EUR GBP INR].freeze
 

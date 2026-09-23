@@ -1,3 +1,5 @@
+# Append-only pay rows. One effective_date per hire — corrections update, raises insert.
+
 class CreateCompensationRecords < ActiveRecord::Migration[7.2]
   def change
     create_table :compensation_records, id: :uuid do |t|

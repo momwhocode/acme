@@ -13,7 +13,7 @@ class CompensationAppender
   end
 
   def call
-    raise Error, "cannot change pay for a leaver" if @employee.status == "left"
+    raise Error.t(:cannot_change_pay_for_leaver) if @employee.status == "left"
 
     Employee.transaction do
       record = @employee.compensation_records.create!(compensation_attrs)

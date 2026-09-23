@@ -56,7 +56,7 @@ class User < ApplicationRecord
     chosen = password.presence || (Rails.env.production? ? nil : DEFAULT_PASSWORD)
     return chosen if chosen.present?
 
-    raise ArgumentError, "HR_PASSWORD is required to create the HR account."
+    raise ArgumentError, I18n.t("errors.hr_password_required")
   end
   private_class_method :hr_password!
 

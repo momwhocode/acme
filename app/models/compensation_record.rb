@@ -19,7 +19,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (employee_id => employees.id)
+#  fk_rails_...  (employee_id => employees.id) ON DELETE => cascade
 #
 # One effective-dated pay row. Unique per employee + effective_date.
 
@@ -67,9 +67,9 @@ class CompensationRecord < ApplicationRecord
     return if employee.blank? || effective_date.blank?
 
     if effective_date < employee.started_on
-      errors.add(:effective_date, "must be on or after the employee start date")
+      errors.add(:effective_date, :after_started_on)
     elsif employee.left_on.present? && effective_date > employee.left_on
-      errors.add(:effective_date, "must be on or before the employee leave date")
+      errors.add(:effective_date, :before_left_on)
     end
   end
 end

@@ -1,3 +1,5 @@
+# Replace the case-sensitive email unique index so HR@ and hr@ cannot both exist.
+
 class IndexEmployeesOnLowerEmail < ActiveRecord::Migration[7.2]
   def change
     remove_index :employees, :email

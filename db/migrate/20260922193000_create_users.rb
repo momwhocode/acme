@@ -1,3 +1,5 @@
+# Cookie-session HR account. Email uniqueness is case-insensitive from day one.
+
 class CreateUsers < ActiveRecord::Migration[7.2]
   def change
     create_table :users, id: :uuid do |t|

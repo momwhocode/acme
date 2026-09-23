@@ -53,7 +53,6 @@ class DirectorySeeder
   end
 
   def reset!
-    CompensationRecord.delete_all
     Employee.delete_all
   end
 

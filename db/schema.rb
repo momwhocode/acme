@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -38,6 +38,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
     t.string "pay_period", null: false
     t.decimal "hours_per_week", precision: 5, scale: 2
     t.index ["employee_id", "effective_date"], name: "index_compensation_records_on_employee_id_and_effective_date", unique: true
+    t.check_constraint "base_amount >= 0::numeric", name: "compensation_records_base_amount_non_negative"
+    t.check_constraint "currency::text ~ '^[A-Z]{3}$'::text", name: "compensation_records_currency_iso"
+    t.check_constraint "hours_per_week IS NULL OR hours_per_week > 0::numeric AND hours_per_week <= 168::numeric", name: "compensation_records_hours_range"
+    t.check_constraint "pay_period::text <> 'hourly'::text OR hours_per_week IS NOT NULL", name: "compensation_records_hourly_hours"
+    t.check_constraint "pay_period::text = ANY (ARRAY['hourly'::character varying, 'daily'::character varying, 'monthly'::character varying, 'annual'::character varying]::text[])", name: "compensation_records_pay_period_allowed"
   end
 
   create_table "employees", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -57,7 +62,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
     t.index "((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops", name: "index_employees_on_directory_search", using: :gin
     t.index "lower((email)::text)", name: "index_employees_on_lower_email", unique: true
     t.index ["department", "country", "employment_type", "status"], name: "index_employees_on_directory_filters"
+    t.index ["last_name", "first_name", "id"], name: "index_employees_on_directory_name"
     t.index ["manager_id"], name: "index_employees_on_manager_id"
+    t.index ["started_on", "left_on"], name: "index_employees_on_employment_dates"
+    t.check_constraint "country::text ~ '^[A-Z]{2}$'::text", name: "employees_country_iso"
+    t.check_constraint "employment_type::text = ANY (ARRAY['full-time'::character varying, 'part-time'::character varying, 'contractor'::character varying, 'freelancer'::character varying, 'intern'::character varying]::text[])", name: "employees_employment_type_allowed"
+    t.check_constraint "left_on IS NULL OR left_on >= started_on", name: "employees_left_on_covers_start"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'left'::character varying]::text[])", name: "employees_status_allowed"
   end
 
   create_table "exchange_rates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -68,6 +79,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["from_currency", "to_currency", "effective_date"], name: "index_exchange_rates_on_currencies_and_effective_date", unique: true
+    t.check_constraint "from_currency::text ~ '^[A-Z]{3}$'::text AND to_currency::text ~ '^[A-Z]{3}$'::text", name: "exchange_rates_currency_iso"
+    t.check_constraint "rate > 0::numeric", name: "exchange_rates_rate_positive"
   end
 
   create_table "pay_bands", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -77,6 +90,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["level", "currency"], name: "index_pay_bands_on_level_and_currency", unique: true
+    t.check_constraint "currency::text ~ '^[A-Z]{3}$'::text", name: "pay_bands_currency_iso"
+    t.check_constraint "midpoint > 0::numeric", name: "pay_bands_midpoint_positive"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -89,6 +104,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_140000) do
     t.index "lower((email)::text)", name: "index_users_on_lower_email", unique: true
   end
 
-  add_foreign_key "compensation_records", "employees"
-  add_foreign_key "employees", "employees", column: "manager_id"
+  add_foreign_key "audit_events", "users", column: "actor_id", on_delete: :nullify
+  add_foreign_key "compensation_records", "employees", on_delete: :cascade
+  add_foreign_key "employees", "employees", column: "manager_id", on_delete: :nullify
 end

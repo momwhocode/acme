@@ -26,8 +26,8 @@ module Api
         render json: payload, status: status
       end
 
-      def render_error(code:, message:, status:, details: nil)
-        error = { code: code, message: message }
+      def render_error(code:, message: nil, status:, details: nil, key: nil)
+        error = { code: code, message: message.presence || I18n.t("errors.#{key || code}") }
         error[:details] = details if details.present?
         render json: { error: error }, status: status
       end
@@ -35,7 +35,6 @@ module Api
       def render_validation(record)
         render_error(
           code: "validation_failed",
-          message: "validation failed",
           details: record.errors.messages,
           status: :unprocessable_content
         )
@@ -50,11 +49,11 @@ module Api
       end
 
       def handle_conflict(_exception)
-        render_error(code: "conflict", message: "already exists", status: :conflict)
+        render_error(code: "conflict", key: :already_exists, status: :conflict)
       end
 
       def handle_not_found(_exception)
-        render_error(code: "not_found", message: "not found", status: :not_found)
+        render_error(code: "not_found", status: :not_found)
       end
 
       def handle_parameter_missing(exception)
@@ -62,21 +61,21 @@ module Api
       end
 
       def handle_bad_request(_exception)
-        render_error(code: "invalid_request", message: "bad request", status: :bad_request)
+        render_error(code: "invalid_request", key: :bad_request, status: :bad_request)
       end
 
       def handle_parse_error(_exception)
-        render_error(code: "invalid_request", message: "invalid json", status: :bad_request)
+        render_error(code: "invalid_request", key: :invalid_json, status: :bad_request)
       end
 
       def handle_invalid_token(_exception)
-        render_error(code: "invalid_token", message: "unauthorized", status: :unprocessable_content)
+        render_error(code: "invalid_token", key: :unauthorized, status: :unprocessable_content)
       end
 
       def handle_internal_error(exception)
         Rails.logger.error("[api] #{exception.class}: #{exception.message}")
         Rails.logger.error(exception.backtrace&.first(8)&.join("\n"))
-        render_error(code: "internal_error", message: "internal error", status: :internal_server_error)
+        render_error(code: "internal_error", status: :internal_server_error)
       end
     end
   end

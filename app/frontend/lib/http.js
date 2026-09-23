@@ -1,6 +1,7 @@
 /** Cookie-session fetch helpers, CSRF header, and session-expired event. */
 
 import { getApiBaseUrl } from "../config/api.js"
+import { t } from "./messages.js"
 
 export const SESSION_EXPIRED_EVENT = "acme:session-expired"
 
@@ -57,7 +58,7 @@ export function apiMeta(payload) {
   return payload?.meta || {}
 }
 
-export function apiErrorMessage(payload, fallback = "Request failed") {
+export function apiErrorMessage(payload, fallback = t("errors.requestFailed")) {
   const error = payload?.error
   if (error && typeof error === "object") return error.message || fallback
   return error || fallback

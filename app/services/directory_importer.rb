@@ -25,9 +25,9 @@ class DirectoryImporter
   end
 
   def call
-    raise Error, "file is required" if @path.blank?
-    raise Error, "CSV not found: #{@path}" unless File.file?(@path)
-    raise Error, "file is too large" if File.size(@path) > MAX_BYTES
+    raise Error.t(:file_required) if @path.blank?
+    raise Error.t(:csv_not_found, path: @path) unless File.file?(@path)
+    raise Error.t(:file_too_large) if File.size(@path) > MAX_BYTES
 
     persist(parse)
   end
@@ -36,21 +36,21 @@ class DirectoryImporter
 
   def parse
     table = CSV.read(@path, headers: true, header_converters: ->(header) { header.to_s.strip })
-    raise Error, "CSV has no header row." if table.headers.blank?
+    raise Error.t(:csv_no_header) if table.headers.blank?
 
     missing = REQUIRED_HEADERS - table.headers
-    raise Error, "CSV is missing columns: #{missing.join(", ")}" if missing.any?
+    raise Error.t(:csv_missing_columns, columns: missing.join(", ")) if missing.any?
 
     grouped = Hash.new { |hash, key| hash[key] = [] }
     table.each_with_index do |row, index|
       email = row.fetch("email").to_s.strip.downcase
-      raise Error, "Row #{index + 2} is missing email." if email.blank?
+      raise Error.t(:csv_missing_email, row: index + 2) if email.blank?
 
       grouped[email] << row
     end
     grouped
   rescue CSV::MalformedCSVError => error
-    raise Error, "CSV is invalid: #{error.message}"
+    raise Error.t(:csv_invalid, detail: error.message)
   end
 
   def persist(grouped)
@@ -97,7 +97,7 @@ class DirectoryImporter
     compensation_attrs = rows.map { |row| compensation_from(row, employee_attrs, now, email) }
     dates = compensation_attrs.map { |row| row[:effective_date] }
     if dates.uniq.size != dates.size
-      raise Error, "#{email} has duplicate effective_date rows."
+      raise Error.t(:csv_duplicate_effective_date, email: email)
     end
 
     [ employee_attrs, compensation_attrs ]
@@ -114,7 +114,7 @@ class DirectoryImporter
     employee.compensation_records.each do |record|
       messages.concat(record.errors.full_messages) unless record.valid?
     end
-    raise Error, "#{email}: #{messages.uniq.join(", ")}" if messages.any?
+    raise Error.t(:csv_row_errors, email: email, messages: messages.uniq.join(", ")) if messages.any?
   end
 
   def write!(employees, compensations)
@@ -159,11 +159,11 @@ class DirectoryImporter
 
   def parse_date(value, field, context)
     text = value.to_s.strip
-    raise Error, "#{context}: #{field} is required." if text.blank?
+    raise Error.t(:field_required, context: context, field: field) if text.blank?
 
     Date.iso8601(text)
   rescue Date::Error, ArgumentError
-    raise Error, "#{context}: #{field} must be an ISO8601 date."
+    raise Error.t(:field_iso8601, context: context, field: field)
   end
 
   def parse_optional_date(value, field, context)

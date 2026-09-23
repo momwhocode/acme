@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { apiData, apiMeta } from "./http.js"
 import { listEmployees } from "./employees.js"
+import { t } from "./messages.js"
 import { defaultVisibleColumnIds } from "./tableColumns.js"
 import { nextSortState } from "./tableSort.js"
 import { hasSelectedListingFilters, readFilterSelection } from "./filterValues.js"
@@ -118,7 +119,7 @@ export function useEmployeesDirectory() {
       })
       .catch((caught) => {
         if (caught.name === "AbortError") return
-        setError(caught.message || "Could not load employees")
+        setError(caught.message || t("errors.loadEmployees"))
         setRows([])
       })
       .finally(() => {

@@ -1,3 +1,5 @@
+# Dated FX quotes. Lookups use the latest row on or before as_of.
+
 class CreateExchangeRates < ActiveRecord::Migration[7.2]
   def change
     create_table :exchange_rates, id: :uuid do |t|

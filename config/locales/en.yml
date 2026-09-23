@@ -1,1 +1,71 @@
-en: {}
+# API and domain copy. Controllers and services look up keys — do not inline user-facing strings.
+en:
+  errors:
+    unauthorized: unauthorized
+    invalid_credentials: Invalid email or password
+    validation_failed: validation failed
+    not_found: not found
+    already_exists: already exists
+    bad_request: bad request
+    invalid_json: invalid json
+    internal_error: internal error
+    as_of_invalid: as_of is invalid
+    file_required: file is required
+    upload_csv: upload a CSV file
+    q_too_long: q is too long
+    unknown_country: unknown country
+    unknown_type: unknown type
+    unknown_status: unknown status
+    unknown_manager: unknown manager
+    already_active: already active
+    already_left: already left
+    left_on_required: left_on is required
+    left_on_invalid: left_on is invalid
+    compensation_required: compensation is required
+    cannot_change_pay_for_leaver: cannot change pay for a leaver
+    cannot_delete_only_pay_record: cannot delete the only pay record
+    no_employee_fields: no employee fields to update
+    no_compensation_fields: no compensation fields to update
+    file_too_large: file is too large
+    csv_not_found: "CSV not found: %{path}"
+    csv_no_header: CSV has no header row.
+    csv_missing_columns: "CSV is missing columns: %{columns}"
+    csv_invalid: "CSV is invalid: %{detail}"
+    csv_missing_email: "Row %{row} is missing email."
+    csv_duplicate_effective_date: "%{email} has duplicate effective_date rows."
+    csv_row_errors: "%{email}: %{messages}"
+    field_required: "%{context}: %{field} is required."
+    field_iso8601: "%{context}: %{field} must be an ISO8601 date."
+    fx_no_quotes: "FX source returned no quotes for %{on}."
+    fx_omitted: "Frankfurter omitted %{code}."
+    fx_non_positive: "Frankfurter returned a non-positive %{code} rate."
+    fx_invalid: "Frankfurter response was invalid: %{detail}"
+    fx_http: "Frankfurter returned HTTP %{code}."
+    amount_required: Amount is required.
+    amount_negative: Amount must be zero or greater.
+    amount_numeric: Amount must be numeric.
+    unknown_pay_period: "Unknown pay period: %{period}."
+    hours_required: hours_per_week is required for hourly pay.
+    hours_positive: hours_per_week must be greater than zero.
+    hours_numeric: hours_per_week must be numeric.
+    currency_required: Currency is required.
+    missing_fx: "No %{from}->%{to} rate on or before %{on}."
+    hr_password_required: HR_PASSWORD is required to create the HR account.
+  activerecord:
+    errors:
+      models:
+        employee:
+          attributes:
+            manager_id:
+              self: cannot manage themselves
+            left_on:
+              after_started_on: must be on or after started_on
+              required_when_left: is required when status is left
+              after_latest_comp: must be on or after the latest compensation date
+            started_on:
+              before_earliest_comp: must be on or before the earliest compensation date
+        compensation_record:
+          attributes:
+            effective_date:
+              after_started_on: must be on or after the employee start date
+              before_left_on: must be on or before the employee leave date

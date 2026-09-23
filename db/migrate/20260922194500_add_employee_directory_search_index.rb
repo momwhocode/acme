@@ -1,3 +1,5 @@
+# Trigram GIN on "first last email" so directory `q` stays in Postgres.
+
 class AddEmployeeDirectorySearchIndex < ActiveRecord::Migration[7.2]
   def up
     enable_extension "pg_trgm" unless extension_enabled?("pg_trgm")

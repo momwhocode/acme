@@ -1,3 +1,5 @@
+# Ops entry points for demo data. `db:seed` calls the same services.
+
 namespace :directory do
   desc "Seed the FX matrix and 10k employees (COUNT, FORCE=1)"
   task seed: :environment do

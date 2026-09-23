@@ -6,7 +6,7 @@ module Fx
     def self.call(on: Date.current, source: default_source)
       snapshot = source.fetch(on: on)
       # Sources must return QuoteSnapshot — a raw quote array used to be accepted and is gone.
-      raise Error, "FX source returned no quotes for #{on}." unless snapshot.is_a?(QuoteSnapshot) && snapshot.quotes.present?
+      raise Error, I18n.t("errors.fx_no_quotes", on: on) unless snapshot.is_a?(QuoteSnapshot) && snapshot.quotes.present?
 
       ExchangeRate.sync!(snapshot.quotes, on: snapshot.on)
       snapshot.quotes.size

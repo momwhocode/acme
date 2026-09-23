@@ -11,7 +11,7 @@ module Api
       def create
         user = User.authenticate_by(email: email, password: password)
         unless user
-          render_error(code: "invalid_credentials", message: "Invalid email or password", status: :unauthorized)
+          render_error(code: "invalid_credentials", status: :unauthorized)
           return
         end
 

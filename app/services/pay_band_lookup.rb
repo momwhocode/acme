@@ -17,7 +17,7 @@ class PayBandLookup
       level: band.level,
       currency: band.currency,
       midpoint: band.midpoint,
-      compa_ratio: band.midpoint.positive? ? (local / band.midpoint).round(2) : nil
+      compa_ratio: (local / band.midpoint).round(2)
     }
   rescue CurrencyNormalizer::Error
     { level: band.level, currency: band.currency, midpoint: band.midpoint, compa_ratio: nil }

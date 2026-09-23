@@ -21,7 +21,7 @@ module Api
 
         Date.iso8601(params[:as_of].to_s)
       rescue Date::Error, ArgumentError
-        raise AppError, "as_of is invalid"
+        raise AppError.t(:as_of_invalid)
       end
     end
   end

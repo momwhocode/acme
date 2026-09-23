@@ -53,7 +53,7 @@ class DirectoryQuery
   def apply_search(scope)
     term = @params[:q].to_s.strip
     return scope if term.blank?
-    raise Error, "q is too long" if term.length > MAX_QUERY
+    raise Error.t(:q_too_long) if term.length > MAX_QUERY
 
     scope.where(SEARCH_SQL, q: "%#{Employee.sanitize_sql_like(term)}%")
   end
@@ -62,7 +62,7 @@ class DirectoryQuery
     values = list_param(:country).map(&:upcase)
     return if values.empty?
 
-    values.each { |value| raise Error, "unknown country" unless value.match?(/\A[A-Z]{2}\z/) }
+    values.each { |value| raise Error.t(:unknown_country) unless value.match?(/\A[A-Z]{2}\z/) }
     values.uniq
   end
 
@@ -73,11 +73,11 @@ class DirectoryQuery
 
   # Home and OpenAPI send `type`; some clients still send employment_type.
   def normalize_type
-    permitted(list_param(:type, :employment_type), Employee::EMPLOYMENT_TYPES, "unknown type")
+    permitted(list_param(:type, :employment_type), Employee::EMPLOYMENT_TYPES, :unknown_type)
   end
 
   def normalize_status
-    permitted(list_param(:status), Employee::STATUSES, "unknown status")
+    permitted(list_param(:status), Employee::STATUSES, :unknown_status)
   end
 
   def normalize_level
@@ -89,7 +89,7 @@ class DirectoryQuery
     values = Array(raw).map { |value| value.to_s.strip.downcase }.reject(&:blank?)
     return if values.empty?
 
-    values.each { |value| raise Error, error unless allowed.include?(value) }
+    values.each { |value| raise Error.t(error) unless allowed.include?(value) }
     values.uniq
   end
 
@@ -104,7 +104,7 @@ class DirectoryQuery
     ids = list_param(:manager)
     return scope if ids.empty?
 
-    ids.each { |id| raise Error, "unknown manager" unless id.match?(/\A[0-9a-f-]{36}\z/i) }
+    ids.each { |id| raise Error.t(:unknown_manager) unless id.match?(/\A[0-9a-f-]{36}\z/i) }
     scope.where(manager_id: ids)
   end
 

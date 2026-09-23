@@ -1,3 +1,5 @@
+# Directory hire table. Case-insensitive email uniqueness is added in a later migration.
+
 class CreateEmployees < ActiveRecord::Migration[7.2]
   def change
     enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")

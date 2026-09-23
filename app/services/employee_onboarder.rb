@@ -31,7 +31,7 @@ class EmployeeOnboarder
 
   def compensation_attrs
     raw = @params[:compensation]
-    raise Error, "compensation is required" if raw.blank?
+    raise Error.t(:compensation_required) if raw.blank?
 
     attrs = raw.to_h.with_indifferent_access.slice(*CompensationRecord::ATTR_KEYS)
     attrs[:effective_date] = @params[:started_on] if attrs[:effective_date].blank?

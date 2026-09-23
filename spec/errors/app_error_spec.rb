@@ -14,6 +14,11 @@ RSpec.describe AppError do
     ]).to all(be < described_class)
   end
 
+  it "looks up API copy from en.yml" do
+    expect(described_class.t(:already_left).message).to eq("already left")
+    expect(described_class.t(:csv_missing_email, row: 3).message).to eq("Row 3 is missing email.")
+  end
+
   it "is not used by seed and FX jobs" do
     expect([
       CurrencyNormalizer::Error,

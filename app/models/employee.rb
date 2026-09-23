@@ -20,13 +20,15 @@
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
+#  index_employees_on_directory_name     (last_name,first_name,id)
 #  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
+#  index_employees_on_employment_dates   (started_on,left_on)
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #  index_employees_on_manager_id         (manager_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (manager_id => employees.id)
+#  fk_rails_...  (manager_id => employees.id) ON DELETE => nullify
 #
 # Directory hire. Compensation is append-only; status changes go through offboard / rehire.
 
@@ -48,7 +50,6 @@ class Employee < ApplicationRecord
 
   has_many :compensation_records, dependent: :destroy, inverse_of: :employee
   belongs_to :manager, class_name: "Employee", optional: true
-  has_many :direct_reports, class_name: "Employee", foreign_key: :manager_id, inverse_of: :manager, dependent: :nullify
 
   before_validation :normalize_attributes
 
@@ -108,20 +109,20 @@ class Employee < ApplicationRecord
   def manager_is_not_self
     return if manager_id.blank? || manager_id != id
 
-    errors.add(:manager_id, "cannot manage themselves")
+    errors.add(:manager_id, :self)
   end
 
   def left_on_not_before_started_on
     return if left_on.blank? || started_on.blank?
     return unless left_on < started_on
 
-    errors.add(:left_on, "must be on or after started_on")
+    errors.add(:left_on, :after_started_on)
   end
 
   def left_on_present_for_leavers
     return unless status == "left" && left_on.blank?
 
-    errors.add(:left_on, "is required when status is left")
+    errors.add(:left_on, :required_when_left)
   end
 
   def employment_dates_cover_compensation
@@ -132,10 +133,10 @@ class Employee < ApplicationRecord
 
     earliest, latest = dates.minmax
     if started_on > earliest
-      errors.add(:started_on, "must be on or before the earliest compensation date")
+      errors.add(:started_on, :before_earliest_comp)
     end
     if left_on.present? && left_on < latest
-      errors.add(:left_on, "must be on or after the latest compensation date")
+      errors.add(:left_on, :after_latest_comp)
     end
   end
 

@@ -14,6 +14,7 @@ import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
 import SavedDirectoryViews from "./SavedDirectoryViews"
 import { destroyEmployee, exportEmployees, importToastTitle, rehireEmployee } from "../lib/employees"
+import { t } from "../lib/messages"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
 import {
   EMPLOYEES_TABLE_COLUMNS,
@@ -60,10 +61,10 @@ export default function EmployeesPage() {
         onRehire: async (row) => {
           try {
             await rehireEmployee(row.id)
-            setToast({ title: "Employee rehired" })
+            setToast({ title: t("success.employeeRehired") })
             retry()
           } catch (caught) {
-            setToast({ title: caught.message || "Could not rehire employee" })
+            setToast({ title: caught.message || t("errors.rehireEmployee") })
           }
         },
         onDelete: setDeleteRow
@@ -80,9 +81,9 @@ export default function EmployeesPage() {
     setBusy(true)
     try {
       await exportEmployees(exportQuery)
-      setToast({ title: "Exported this view" })
+      setToast({ title: t("success.exportedView") })
     } catch (caught) {
-      setToast({ title: caught.message || "Could not export employees" })
+      setToast({ title: caught.message || t("errors.exportEmployees") })
     } finally {
       setBusy(false)
     }
@@ -117,7 +118,7 @@ export default function EmployeesPage() {
           onCancel={() => setOnboardOpen(false)}
           onSuccess={() => {
             setOnboardOpen(false)
-            setToast({ title: "Employee onboarded" })
+            setToast({ title: t("success.employeeOnboarded") })
             retry()
           }}
         />
@@ -128,7 +129,7 @@ export default function EmployeesPage() {
           onCancel={() => setOffboardRow(null)}
           onSuccess={() => {
             setOffboardRow(null)
-            setToast({ title: "Marked as left" })
+            setToast({ title: t("success.markedAsLeft") })
             retry()
           }}
         />
@@ -146,10 +147,10 @@ export default function EmployeesPage() {
             try {
               await destroyEmployee(deleteRow.id)
               setDeleteRow(null)
-              setToast({ title: "Hire deleted" })
+              setToast({ title: t("success.hireDeleted") })
               retry()
             } catch (caught) {
-              setToast({ title: caught.message || "Could not delete employee" })
+              setToast({ title: caught.message || t("errors.deleteEmployee") })
             } finally {
               setBusy(false)
             }

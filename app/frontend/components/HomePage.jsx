@@ -50,6 +50,7 @@ import {
   homeTimeframeCompareAsOf
 } from "../lib/homeTimeframe"
 import { apiData } from "../lib/http"
+import { t } from "../lib/messages"
 
 /** Home overview — live analytics snapshot with in-page drill-down. */
 export default function HomePage({ user }) {
@@ -85,7 +86,7 @@ export default function HomePage({ user }) {
       })
       .catch((caught) => {
         if (caught.name === "AbortError") return
-        setError(caught.message || "Could not load home")
+        setError(caught.message || t("errors.loadHome"))
         setPayload(null)
         setCompare(null)
       })

@@ -21,7 +21,7 @@ module Api
       def require_login!
         return if current_user
 
-        render_error(code: "unauthorized", message: "unauthorized", status: :unauthorized)
+        render_error(code: "unauthorized", status: :unauthorized)
       end
 
       def audit!(action, record, payload = {})

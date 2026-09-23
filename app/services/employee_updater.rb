@@ -18,7 +18,7 @@ class EmployeeUpdater
 
   def call
     attrs = @params.slice(*ATTR_KEYS)
-    raise Error, "no employee fields to update" if attrs.empty?
+    raise Error.t(:no_employee_fields) if attrs.empty?
     attrs[:manager_id] = attrs[:manager_id].presence if attrs.key?(:manager_id)
 
     @employee.update!(attrs)

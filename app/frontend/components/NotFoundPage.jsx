@@ -2,6 +2,7 @@
 
 import { useNavigate } from "react-router-dom"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
+import { t } from "../lib/messages"
 import StatusPage from "./StatusPage"
 
 export default function NotFoundPage({ signedIn = false }) {
@@ -11,7 +12,7 @@ export default function NotFoundPage({ signedIn = false }) {
       inset={signedIn}
       showPrimary
       primaryLabel={signedIn ? "Employees" : "Sign in"}
-      secondaryLabel="Back to home"
+      secondaryLabel={t("labels.backToHome")}
       onPrimary={() => navigate(signedIn ? "/employees" : "/sign_in")}
       onSecondary={() => navigate("/")}
     />
@@ -21,7 +22,7 @@ export default function NotFoundPage({ signedIn = false }) {
 
   return (
     <section className="superadmin-page">
-      <PageTitleNavHeader id="not-found-title" pageTitle="Page not found" />
+      <PageTitleNavHeader id="not-found-title" pageTitle={t("errors.pageNotFound")} />
       {status}
     </section>
   )

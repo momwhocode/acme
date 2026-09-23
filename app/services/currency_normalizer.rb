@@ -34,19 +34,19 @@ class CurrencyNormalizer
   private
 
   def parse_amount(amount)
-    raise InvalidAmountError, "Amount is required." if amount.nil? || amount.to_s.strip.empty?
+    raise InvalidAmountError, I18n.t("errors.amount_required") if amount.nil? || amount.to_s.strip.empty?
 
     value = BigDecimal(amount.to_s)
-    raise InvalidAmountError, "Amount must be zero or greater." if value.negative?
+    raise InvalidAmountError, I18n.t("errors.amount_negative") if value.negative?
 
     value
   rescue ArgumentError
-    raise InvalidAmountError, "Amount must be numeric."
+    raise InvalidAmountError, I18n.t("errors.amount_numeric")
   end
 
   def annualise(amount, pay_period, hours_per_week)
     period = pay_period.to_s.strip.downcase
-    raise UnknownPayPeriodError, "Unknown pay period: #{pay_period.inspect}." unless CompensationRecord::PAY_PERIODS.include?(period)
+    raise UnknownPayPeriodError, I18n.t("errors.unknown_pay_period", period: pay_period.inspect) unless CompensationRecord::PAY_PERIODS.include?(period)
 
     case period
     when "annual" then amount
@@ -59,23 +59,23 @@ class CurrencyNormalizer
   end
 
   def parse_weekly_hours(hours_per_week)
-    raise InvalidHoursError, "hours_per_week is required for hourly pay." if hours_per_week.nil?
+    raise InvalidHoursError, I18n.t("errors.hours_required") if hours_per_week.nil?
 
     hours = BigDecimal(hours_per_week.to_s)
-    raise InvalidHoursError, "hours_per_week must be greater than zero." if hours <= 0
+    raise InvalidHoursError, I18n.t("errors.hours_positive") if hours <= 0
 
     hours
   rescue ArgumentError
-    raise InvalidHoursError, "hours_per_week must be numeric."
+    raise InvalidHoursError, I18n.t("errors.hours_numeric")
   end
 
   def fx_rate(currency, as_of)
     code = currency.to_s.strip.upcase
-    raise MissingRateError, "Currency is required." if code.blank?
+    raise MissingRateError, I18n.t("errors.currency_required") if code.blank?
 
     on = as_of.respond_to?(:to_date) ? as_of.to_date : as_of
     rate = @rates.rate_to(from: code, to: BASE_CURRENCY, on: on)
-    raise MissingRateError, "No #{code}->#{BASE_CURRENCY} rate on or before #{on}." if rate.blank?
+    raise MissingRateError, I18n.t("errors.missing_fx", from: code, to: BASE_CURRENCY, on: on) if rate.blank?
 
     BigDecimal(rate.to_s)
   end

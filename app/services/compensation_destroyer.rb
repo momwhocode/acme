@@ -4,7 +4,7 @@ class CompensationDestroyer
   class Error < AppError; end
 
   def self.call(record:)
-    raise Error, "cannot delete the only pay record" if record.employee.compensation_records.count <= 1
+    raise Error.t(:cannot_delete_only_pay_record) if record.employee.compensation_records.count <= 1
 
     record.destroy!
   end

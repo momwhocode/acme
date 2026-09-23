@@ -177,9 +177,7 @@ class AnalyticsQuery
                                 .where(effective_date: window).order(effective_date: :desc, id: :desc)
     {
       count: records.unscope(:order).count,
-      employees: records.limit(7).filter_map do |record|
-        next unless record.employee
-
+      employees: records.limit(7).map do |record|
         action_employee(record.employee, record.effective_date)
       end
     }

@@ -14,6 +14,7 @@ import EditEmployeeModal from "./EditEmployeeModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import { deleteCompensation, destroyEmployee, getEmployee, rehireEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
+import { t } from "../lib/messages"
 import { formatAprilShortDate } from "../april/renderers/date-time"
 import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
 import { renderCountryCell } from "../lib/tableCellRenderers"
@@ -81,7 +82,7 @@ export default function EmployeeProfilePage() {
       .then((body) => setPayload(apiData(body)))
       .catch((caught) => {
         if (caught.name === "AbortError") return
-        setError(caught.message || "Could not load employee")
+        setError(caught.message || t("errors.loadEmployee"))
         setErrorCode(caught.code || "")
         setPayload(null)
       })
@@ -99,13 +100,13 @@ export default function EmployeeProfilePage() {
   const title = employee
     ? `${employee.first_name} ${employee.last_name}`
     : errorCode === "not_found"
-      ? "Employee not found"
+      ? t("errors.employeeNotFound")
       : "Employee"
   const moreItems = left
     ? [
         { label: "Rehire", onClick: async () => {
           await rehireEmployee(employee.id)
-          setToast({ title: "Employee rehired" })
+          setToast({ title: t("success.employeeRehired") })
           refresh()
         } },
         { label: "Delete hire", onClick: () => setDeleteHireOpen(true) }
@@ -295,7 +296,7 @@ export default function EmployeeProfilePage() {
           onCancel={() => setEditOpen(false)}
           onSuccess={() => {
             setEditOpen(false)
-            setToast({ title: "Employee updated" })
+            setToast({ title: t("success.employeeUpdated") })
             refresh()
           }}
         />
@@ -307,7 +308,7 @@ export default function EmployeeProfilePage() {
           onCancel={() => setChangeOpen(false)}
           onSuccess={() => {
             setChangeOpen(false)
-            setToast({ title: "Compensation recorded" })
+            setToast({ title: t("success.compensationRecorded") })
             refresh()
           }}
         />
@@ -320,7 +321,7 @@ export default function EmployeeProfilePage() {
           onCancel={() => setEditRecord(null)}
           onSuccess={() => {
             setEditRecord(null)
-            setToast({ title: "Pay row corrected" })
+            setToast({ title: t("success.payRowCorrected") })
             refresh()
           }}
         />
@@ -331,7 +332,7 @@ export default function EmployeeProfilePage() {
           onCancel={() => setOffboardOpen(false)}
           onSuccess={() => {
             setOffboardOpen(false)
-            setToast({ title: "Marked as left" })
+            setToast({ title: t("success.markedAsLeft") })
             refresh()
           }}
         />
@@ -348,11 +349,11 @@ export default function EmployeeProfilePage() {
             setBusy(true)
             try {
               await destroyEmployee(employee.id)
-              setToast({ title: "Hire deleted" })
+              setToast({ title: t("success.hireDeleted") })
               onEmployeeChanged?.()
               close()
             } catch (caught) {
-              setToast({ title: caught.message || "Could not delete employee" })
+              setToast({ title: caught.message || t("errors.deleteEmployee") })
             } finally {
               setBusy(false)
             }
@@ -372,10 +373,10 @@ export default function EmployeeProfilePage() {
             try {
               await deleteCompensation(employee.id, deleteRecord.id)
               setDeleteRecord(null)
-              setToast({ title: "Pay row deleted" })
+              setToast({ title: t("success.payRowDeleted") })
               refresh()
             } catch (caught) {
-              setToast({ title: caught.message || "Could not delete compensation" })
+              setToast({ title: caught.message || t("errors.deleteCompensation") })
             } finally {
               setBusy(false)
             }

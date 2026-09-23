@@ -1,11 +1,12 @@
 /** Shared empty page used by the 404 route. */
 
 import { Button } from "../april/components/Button"
+import { t } from "../lib/messages"
 
 const COPY = {
   icon: "search_off",
-  title: "Page not found",
-  description: "This page isn't available. Head back home or open the directory."
+  title: t("errors.pageNotFound"),
+  description: t("errors.pageNotFoundDescription")
 }
 
 export default function StatusPage({
@@ -13,7 +14,7 @@ export default function StatusPage({
   title,
   description,
   primaryLabel,
-  secondaryLabel = "Back to home",
+  secondaryLabel = t("labels.backToHome"),
   showPrimary = false,
   showSecondary = true,
   onPrimary,

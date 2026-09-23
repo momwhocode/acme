@@ -1,6 +1,7 @@
 /** GET /api/v1/analytics — current and compare snapshots, optional mix filters. */
 
 import { apiErrorMessage, apiFetch } from "./http.js"
+import { t } from "./messages.js"
 
 function throwPayloadError(payload, fallback) {
   const error = new Error(apiErrorMessage(payload, fallback))
@@ -24,5 +25,5 @@ export async function getAnalytics(options = {}) {
   if (type) params.set("type", type)
   if (level) params.set("level", level)
   const query = params.toString()
-  return readJson(await apiFetch(`/api/v1/analytics${query ? `?${query}` : ""}`, request), "Could not load analytics")
+  return readJson(await apiFetch(`/api/v1/analytics${query ? `?${query}` : ""}`, request), t("errors.loadAnalytics"))
 }

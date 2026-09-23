@@ -1,6 +1,7 @@
 /** Employees API client and form validation for onboard, pay, and lifecycle actions. */
 
 import { apiErrorMessage, apiFetch } from "./http.js"
+import { t } from "./messages.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const COUNTRY_PATTERN = /^[A-Za-z]{2}$/
@@ -24,66 +25,66 @@ function listValues(value) {
 
 export function directoryFilterErrors({ country, type, status, manager, q } = {}) {
   const errors = {}
-  if (listValues(country).some((code) => !COUNTRY_PATTERN.test(code))) errors.country = "unknown country"
+  if (listValues(country).some((code) => !COUNTRY_PATTERN.test(code))) errors.country = t("errors.unknownCountry")
   const types = listValues(type).map((entry) => entry.toLowerCase())
-  if (types.some((entry) => !EMPLOYMENT_TYPES.includes(entry))) errors.type = "unknown type"
+  if (types.some((entry) => !EMPLOYMENT_TYPES.includes(entry))) errors.type = t("errors.unknownType")
   const statuses = listValues(status).map((entry) => entry.toLowerCase())
-  if (statuses.some((entry) => !STATUSES.includes(entry))) errors.status = "unknown status"
-  if (listValues(manager).some((id) => !UUID_PATTERN.test(id))) errors.manager = "unknown manager"
-  if (present(q).length > MAX_QUERY) errors.q = "q is too long"
+  if (statuses.some((entry) => !STATUSES.includes(entry))) errors.status = t("errors.unknownStatus")
+  if (listValues(manager).some((id) => !UUID_PATTERN.test(id))) errors.manager = t("errors.unknownManager")
+  if (present(q).length > MAX_QUERY) errors.q = t("errors.queryTooLong")
   return errors
 }
 
 export function compensationErrors(compensation = {}) {
   const errors = {}
   if (compensation.base_amount == null || compensation.base_amount === "") {
-    errors.base_amount = "Enter an amount"
+    errors.base_amount = t("errors.enterAmount")
   } else if (Number(compensation.base_amount) < 0) {
-    errors.base_amount = "Amount must be zero or greater"
+    errors.base_amount = t("errors.amountNegative")
   }
 
   const currency = present(compensation.currency).toUpperCase()
-  if (!currency) errors.currency = "Enter a currency"
-  else if (!CURRENCIES.includes(currency)) errors.currency = "unknown currency"
+  if (!currency) errors.currency = t("errors.enterCurrency")
+  else if (!CURRENCIES.includes(currency)) errors.currency = t("errors.unknownCurrency")
 
   const period = present(compensation.pay_period).toLowerCase()
-  if (!period) errors.pay_period = "Enter a pay period"
-  else if (!PAY_PERIODS.includes(period)) errors.pay_period = "unknown pay period"
+  if (!period) errors.pay_period = t("errors.enterPayPeriod")
+  else if (!PAY_PERIODS.includes(period)) errors.pay_period = t("errors.unknownPayPeriod")
   if (period === "hourly" && (compensation.hours_per_week == null || compensation.hours_per_week === "")) {
-    errors.hours_per_week = "hours_per_week is required for hourly pay"
+    errors.hours_per_week = t("errors.hoursRequired")
   }
 
   if (compensation.effective_date && !ISO_DATE.test(present(compensation.effective_date))) {
-    errors.effective_date = "effective_date is invalid"
+    errors.effective_date = t("errors.effectiveDateInvalid")
   }
   return errors
 }
 
 export function compensationChangeErrors(compensation = {}) {
   const errors = compensationErrors(compensation)
-  if (!present(compensation.effective_date)) errors.effective_date = "Enter an effective date"
+  if (!present(compensation.effective_date)) errors.effective_date = t("errors.enterEffectiveDate")
   return errors
 }
 
 export function employeeIdentityErrors(payload = {}) {
   const errors = {}
-  if (!present(payload.first_name)) errors.first_name = "Enter a first name"
-  if (!present(payload.last_name)) errors.last_name = "Enter a last name"
+  if (!present(payload.first_name)) errors.first_name = t("errors.enterFirstName")
+  if (!present(payload.last_name)) errors.last_name = t("errors.enterLastName")
 
   const email = present(payload.email)
-  if (!email) errors.email = "Enter an email"
-  else if (!EMAIL_PATTERN.test(email)) errors.email = "Enter a valid email"
+  if (!email) errors.email = t("errors.enterEmail")
+  else if (!EMAIL_PATTERN.test(email)) errors.email = t("errors.enterValidEmail")
 
-  if (!present(payload.country)) errors.country = "Enter a country"
-  else if (!COUNTRY_PATTERN.test(present(payload.country))) errors.country = "Enter a 2-letter country"
-  if (!present(payload.department)) errors.department = "Enter a department"
+  if (!present(payload.country)) errors.country = t("errors.enterCountry")
+  else if (!COUNTRY_PATTERN.test(present(payload.country))) errors.country = t("errors.enterCountryCode")
+  if (!present(payload.department)) errors.department = t("errors.enterDepartment")
 
   const employmentType = present(payload.employment_type).toLowerCase()
-  if (!employmentType) errors.employment_type = "Enter an employment type"
-  else if (!EMPLOYMENT_TYPES.includes(employmentType)) errors.employment_type = "unknown type"
+  if (!employmentType) errors.employment_type = t("errors.enterEmploymentType")
+  else if (!EMPLOYMENT_TYPES.includes(employmentType)) errors.employment_type = t("errors.unknownType")
 
-  if (!present(payload.started_on)) errors.started_on = "Enter a start date"
-  else if (!ISO_DATE.test(present(payload.started_on))) errors.started_on = "started_on is invalid"
+  if (!present(payload.started_on)) errors.started_on = t("errors.enterStartDate")
+  else if (!ISO_DATE.test(present(payload.started_on))) errors.started_on = t("errors.startedOnInvalid")
 
   return errors
 }
@@ -91,7 +92,7 @@ export function employeeIdentityErrors(payload = {}) {
 export function onboardErrors(payload = {}) {
   const errors = employeeIdentityErrors(payload)
   if (!payload.compensation || Object.keys(payload.compensation).length === 0) {
-    errors.compensation = "compensation is required"
+    errors.compensation = t("errors.compensationRequired")
   } else {
     Object.assign(errors, compensationErrors(payload.compensation))
   }
@@ -100,10 +101,10 @@ export function onboardErrors(payload = {}) {
 
 export function offboardErrors({ left_on: leftOn, started_on: startedOn } = {}) {
   const errors = {}
-  if (!present(leftOn)) errors.left_on = "left_on is required"
-  else if (!ISO_DATE.test(present(leftOn))) errors.left_on = "left_on is invalid"
+  if (!present(leftOn)) errors.left_on = t("errors.leftOnRequired")
+  else if (!ISO_DATE.test(present(leftOn))) errors.left_on = t("errors.leftOnInvalid")
   else if (present(startedOn) && present(leftOn) < present(startedOn)) {
-    errors.left_on = "must be on or after started_on"
+    errors.left_on = t("errors.leftOnAfterStarted")
   }
   return errors
 }
@@ -117,9 +118,9 @@ function csvFile(file) {
 }
 
 export function importErrors(file) {
-  if (!file) return { file: "Choose a CSV file" }
-  if (!csvFile(file)) return { file: "upload a CSV file" }
-  if (file.size > MAX_IMPORT_BYTES) return { file: "file is too large" }
+  if (!file) return { file: t("errors.chooseCsv") }
+  if (!csvFile(file)) return { file: t("errors.uploadCsv") }
+  if (file.size > MAX_IMPORT_BYTES) return { file: t("errors.fileTooLarge") }
   return {}
 }
 
@@ -128,9 +129,9 @@ export function importToastTitle(payload = {}) {
   const data = payload.data || payload
   const employees = Number(data.employees) || 0
   const updated = Number(data.updated) || 0
-  const people = employees === 1 ? "employee" : "employees"
-  if (updated) return `Imported ${employees} ${people} · updated ${updated}`
-  return `Imported ${employees} ${people}`
+  const people = employees === 1 ? t("labels.employee") : t("labels.employees")
+  if (updated) return t("success.importedWithUpdates", { count: employees, people, updated })
+  return t("success.imported", { count: employees, people })
 }
 
 function downloadBlob(blob, filename) {
@@ -174,12 +175,12 @@ export async function listEmployees(params = {}, options = {}) {
   const errors = directoryFilterErrors(params)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
-  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options), "Could not load employees")
+  return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options), t("errors.loadEmployees"))
 }
 
 export async function getEmployee(id, options = {}) {
-  if (!present(id)) throw new Error("Employee is required")
-  return readJson(await apiFetch(`/api/v1/employees/${id}`, options), "Could not load employee")
+  if (!present(id)) throw new Error(t("errors.employeeRequired"))
+  return readJson(await apiFetch(`/api/v1/employees/${id}`, options), t("errors.loadEmployee"))
 }
 
 export async function onboardEmployee(payload) {
@@ -188,12 +189,12 @@ export async function onboardEmployee(payload) {
 
   return readJson(
     await apiFetch("/api/v1/employees", { method: "POST", body: JSON.stringify(payload) }),
-    "Could not onboard employee"
+    t("errors.onboardEmployee")
   )
 }
 
 export async function updateEmployee(employeeId, payload) {
-  if (!present(employeeId)) throw new Error("Employee is required")
+  if (!present(employeeId)) throw new Error(t("errors.employeeRequired"))
   const errors = employeeIdentityErrors(payload)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
@@ -202,7 +203,7 @@ export async function updateEmployee(employeeId, payload) {
       method: "PATCH",
       body: JSON.stringify(payload)
     }),
-    "Could not update employee"
+    t("errors.updateEmployee")
   )
 }
 
@@ -215,12 +216,12 @@ export async function addCompensation(employeeId, payload) {
       method: "POST",
       body: JSON.stringify(payload)
     }),
-    "Could not record compensation"
+    t("errors.recordCompensation")
   )
 }
 
 export async function updateCompensation(employeeId, recordId, payload) {
-  if (!present(employeeId) || !present(recordId)) throw new Error("Compensation is required")
+  if (!present(employeeId) || !present(recordId)) throw new Error(t("errors.compensationRecordRequired"))
   const errors = compensationChangeErrors(payload)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
@@ -229,34 +230,34 @@ export async function updateCompensation(employeeId, recordId, payload) {
       method: "PATCH",
       body: JSON.stringify(payload)
     }),
-    "Could not update compensation"
+    t("errors.updateCompensation")
   )
 }
 
 export async function deleteCompensation(employeeId, recordId) {
-  if (!present(employeeId) || !present(recordId)) throw new Error("Compensation is required")
+  if (!present(employeeId) || !present(recordId)) throw new Error(t("errors.compensationRecordRequired"))
 
   return readJson(
     await apiFetch(`/api/v1/employees/${employeeId}/compensation_records/${recordId}`, { method: "DELETE" }),
-    "Could not delete compensation"
+    t("errors.deleteCompensation")
   )
 }
 
 export async function rehireEmployee(employeeId) {
-  if (!present(employeeId)) throw new Error("Employee is required")
+  if (!present(employeeId)) throw new Error(t("errors.employeeRequired"))
 
   return readJson(
     await apiFetch(`/api/v1/employees/${employeeId}/rehire`, { method: "PATCH" }),
-    "Could not rehire employee"
+    t("errors.rehireEmployee")
   )
 }
 
 export async function destroyEmployee(employeeId) {
-  if (!present(employeeId)) throw new Error("Employee is required")
+  if (!present(employeeId)) throw new Error(t("errors.employeeRequired"))
 
   return readJson(
     await apiFetch(`/api/v1/employees/${employeeId}`, { method: "DELETE" }),
-    "Could not delete employee"
+    t("errors.deleteEmployee")
   )
 }
 
@@ -269,7 +270,7 @@ export async function exportEmployees(params = {}) {
   })
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}))
-    throwPayloadError(payload, "Could not export employees")
+    throwPayloadError(payload, t("errors.exportEmployees"))
   }
 
   const blob = await response.blob()
@@ -283,7 +284,7 @@ export async function importEmployees(file) {
 
   const body = new FormData()
   body.append("file", file)
-  return readJson(await apiFetch("/api/v1/employees/import", { method: "POST", body }), "Could not import employees")
+  return readJson(await apiFetch("/api/v1/employees/import", { method: "POST", body }), t("errors.importEmployees"))
 }
 
 export async function offboardEmployee(employeeId, { left_on: leftOn, started_on: startedOn } = {}) {
@@ -295,7 +296,7 @@ export async function offboardEmployee(employeeId, { left_on: leftOn, started_on
       method: "PATCH",
       body: JSON.stringify({ left_on: leftOn })
     }),
-    "Could not offboard employee"
+    t("errors.offboardEmployee")
   )
 }
 

@@ -1,19 +1,20 @@
 /** HR session: login validation plus cookie session read/sign-in/sign-out. */
 
 import { apiData, apiErrorMessage, apiFetch, apiMeta, setCsrfToken } from "./http.js"
+import { t } from "./messages.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function loginFormErrors({ email, password }) {
   const errors = {}
   const trimmedEmail = String(email || "").trim()
-  if (!trimmedEmail) errors.email = "Enter your email"
-  else if (!EMAIL_PATTERN.test(trimmedEmail)) errors.email = "Enter a valid email"
+  if (!trimmedEmail) errors.email = t("errors.enterYourEmail")
+  else if (!EMAIL_PATTERN.test(trimmedEmail)) errors.email = t("errors.enterValidEmail")
 
   const passwordValue = String(password || "")
-  if (!passwordValue) errors.password = "Enter your password"
-  else if (passwordValue.length < 8) errors.password = "Password must be at least 8 characters"
-  else if (passwordValue.length > 72) errors.password = "Password is too long"
+  if (!passwordValue) errors.password = t("errors.enterYourPassword")
+  else if (passwordValue.length < 8) errors.password = t("errors.passwordTooShort")
+  else if (passwordValue.length > 72) errors.password = t("errors.passwordTooLong")
   return errors
 }
 
@@ -28,7 +29,7 @@ export async function readSession() {
   if (response.status === 401) return null
 
   const payload = await readPayload(response)
-  if (!response.ok) throw new Error(apiErrorMessage(payload, "Could not check the session"))
+  if (!response.ok) throw new Error(apiErrorMessage(payload, t("errors.checkSession")))
   return apiData(payload)?.user
 }
 
@@ -38,7 +39,7 @@ export async function signIn({ email, password }) {
     body: JSON.stringify({ email: String(email || "").trim(), password })
   })
   const payload = await readPayload(response)
-  if (!response.ok) throw new Error(apiErrorMessage(payload, "Invalid email or password"))
+  if (!response.ok) throw new Error(apiErrorMessage(payload, t("errors.invalidCredentials")))
   return apiData(payload)?.user
 }
 
@@ -46,5 +47,5 @@ export async function signOut() {
   const response = await apiFetch("/api/v1/session", { method: "DELETE" })
   await readPayload(response)
   if (response.status === 401) return
-  if (!response.ok) throw new Error("Could not sign out")
+  if (!response.ok) throw new Error(t("errors.signOut"))
 }
