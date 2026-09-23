@@ -17,29 +17,13 @@ class AppConfig
       fx_source == "live"
     end
 
-    def database_password
-      string(:database, :password).presence
-    end
-
-    def redis_url
-      string(:redis, :url).presence || "redis://localhost:6379/1"
-    end
-
-    def google_maps_browser_key
-      string(:google_maps, :browser_key).presence.to_s
-    end
-
     def api_url
       string(:api, :url).sub(%r{/\z}, "")
     end
 
-    def force_ssl?
-      string(:force_ssl) == "true"
-    end
-
-    # Browser-safe slice injected as window.ACME_CONFIG. Maps key is referrer-restricted.
+    # Browser-safe slice injected as window.ACME_CONFIG.
     def frontend_payload
-      { apiUrl: api_url, mapsBrowserKey: google_maps_browser_key }
+      { apiUrl: api_url }
     end
 
     private

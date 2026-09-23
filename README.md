@@ -86,10 +86,6 @@ fx:
   source: seed        # or live (Frankfurter / ECB)
 database:
   password:           # used when DATABASE_URL is not set
-redis:
-  url: redis://localhost:6379/1
-google_maps:
-  browser_key:        # optional Places key (referrer-restricted)
 api:
   url:                # empty = same-origin /api
 force_ssl: false      # set true after nginx has a certificate

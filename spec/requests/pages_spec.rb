@@ -10,8 +10,7 @@ RSpec.describe "GET /" do
 
   it "injects credentials into window.ACME_CONFIG" do
     allow(AppConfig).to receive(:frontend_payload).and_return(
-      apiUrl: "https://api.example.com",
-      mapsBrowserKey: "maps-key"
+      apiUrl: "https://api.example.com"
     )
 
     get "/"

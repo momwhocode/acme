@@ -41,18 +41,6 @@ RSpec.describe AppConfig do
     expect(described_class).not_to be_fx_live
   end
 
-  it "defaults force_ssl to off so the IP deploy can serve HTTP" do
-    stub_credentials({})
-
-    expect(described_class).not_to be_force_ssl
-  end
-
-  it "turns force_ssl on from credentials" do
-    stub_credentials(force_ssl: true)
-
-    expect(described_class).to be_force_ssl
-  end
-
   it "strips a trailing slash from the API URL" do
     stub_credentials(api: { url: "https://api.example.com/" })
 
@@ -60,12 +48,9 @@ RSpec.describe AppConfig do
   end
 
   it "exposes the browser-safe frontend payload" do
-    stub_credentials(api: { url: "https://api.example.com" }, google_maps: { browser_key: "maps-key" })
+    stub_credentials(api: { url: "https://api.example.com" })
 
-    expect(described_class.frontend_payload).to eq(
-      apiUrl: "https://api.example.com",
-      mapsBrowserKey: "maps-key"
-    )
+    expect(described_class.frontend_payload).to eq(apiUrl: "https://api.example.com")
   end
 
   it "defaults FX when the master key is missing" do
@@ -82,7 +67,6 @@ RSpec.describe AppConfig do
       ActiveSupport::EncryptedFile::MissingKeyError.new(key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
     )
 
-    expect(described_class.redis_url).to eq("redis://localhost:6379/1")
-    expect(described_class.frontend_payload).to eq(apiUrl: "", mapsBrowserKey: "")
+    expect(described_class.frontend_payload).to eq(apiUrl: "")
   end
 end

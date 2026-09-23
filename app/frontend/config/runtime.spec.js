@@ -11,11 +11,10 @@ describe("runtimeConfig", () => {
   })
 
   it("reads the injected credentials payload", () => {
-    window.ACME_CONFIG = { apiUrl: "https://api.example.com", mapsBrowserKey: "maps-key" }
+    window.ACME_CONFIG = { apiUrl: "https://api.example.com" }
 
     expect(runtimeConfig()).toEqual({
-      apiUrl: "https://api.example.com",
-      mapsBrowserKey: "maps-key"
+      apiUrl: "https://api.example.com"
     })
   })
 })

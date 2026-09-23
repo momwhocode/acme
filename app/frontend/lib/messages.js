@@ -2,8 +2,6 @@
 
 import { en } from "../locales/en.js"
 
-export { en }
-
 export function t(path, vars = {}) {
   const value = path.split(".").reduce((node, key) => node?.[key], en)
   if (typeof value !== "string") return path
