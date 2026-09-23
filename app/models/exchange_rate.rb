@@ -14,6 +14,7 @@
 #
 #  index_exchange_rates_on_currencies_and_effective_date  (from_currency,to_currency,effective_date) UNIQUE
 #
+# Dated FX quotes. Lookups use the latest row on or before as_of — never "latest overall".
 class ExchangeRate < ApplicationRecord
   QUOTE_CURRENCIES = %w[EUR GBP INR].freeze
 
@@ -70,6 +71,7 @@ class ExchangeRate < ApplicationRecord
     record
   end
 
+  # Latest quote on or before `on`. Never falls forward to a later snapshot.
   def self.rate_to(from:, to:, on:)
     on = on.respond_to?(:to_date) ? on.to_date : on
     where(from_currency: from.to_s.upcase, to_currency: to.to_s.upcase)

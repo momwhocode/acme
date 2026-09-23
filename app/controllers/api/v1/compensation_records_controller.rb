@@ -26,6 +26,7 @@ module Api
 
       def destroy
         record = compensation_record
+        # Destroy first so a last-row rejection never leaves an audit for a pay row that still exists.
         CompensationDestroyer.call(record: record)
         audit!("destroy", record, { employee_id: record.employee_id })
         render_success({})

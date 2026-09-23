@@ -41,6 +41,7 @@ class Employee < ApplicationRecord
     "L5+" => %w[L5 L6 L7 L8 IC5 IC6 IC7 IC8 M1 M2 M3 M4 M5]
   }.freeze
 
+  # Home L5+ and directory `level=L5+` expand to the stored IC/M codes in LEVEL_BUCKETS.
   def self.levels_in_bucket(*values)
     values.flatten.flat_map { |value| LEVEL_BUCKETS[value.to_s] || [ value.to_s ] }.uniq
   end
@@ -79,6 +80,7 @@ class Employee < ApplicationRecord
     "#{first_name} #{last_name}".strip
   end
 
+  # Latest pay on or before as_of, never after left_on. Uses loaded records when present.
   def current_compensation_record(as_of: Date.current)
     cutoff = [ left_on, as_of.to_date ].compact.min
     records = compensation_records

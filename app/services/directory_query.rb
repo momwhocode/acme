@@ -38,6 +38,7 @@ class DirectoryQuery
     raw.positive? ? raw : 1
   end
 
+  # OpenAPI uses per_page; limit is the older alias.
   def limit
     raw = integer_param(:per_page) || integer_param(:limit) || DEFAULT_LIMIT
     raw.clamp(1, MAX_LIMIT)
@@ -70,6 +71,7 @@ class DirectoryQuery
     values.presence
   end
 
+  # Home and OpenAPI send `type`; some clients still send employment_type.
   def normalize_type
     permitted(list_param(:type, :employment_type), Employee::EMPLOYMENT_TYPES, "unknown type")
   end
@@ -108,6 +110,7 @@ class DirectoryQuery
 
   def apply_sort(scope)
     key = @params[:sort].to_s
+    # Default directory order is A–Z by last name — not whatever the last explicit sort was.
     return scope.order(last_name: :asc, first_name: :asc, id: :asc) if key.blank?
 
     direction = @params[:direction].to_s == "asc" ? :asc : :desc

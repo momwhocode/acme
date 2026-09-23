@@ -161,7 +161,7 @@ export function directoryQueryFromFilters({
   const level = readFilterSelection(filterValues.level)
   if (country.length) params.country = country.join(",")
   if (department.length) params.department = department.join(",")
-  if (type.length) params.type = type.join(",")
+  if (type.length) params.type = type.join(",") // Directory API alias; not employment_type.
   if (status.length) params.status = status.join(",")
   if (manager.length) params.manager = manager.join(",")
   if (level.length) params.level = level.join(",")

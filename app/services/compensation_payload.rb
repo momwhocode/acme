@@ -7,6 +7,7 @@ class CompensationPayload
     record.as_api_json.merge(annualised_usd: usd(record, normalizer))
   end
 
+  # Missing FX is not a 422 — profile still returns the local pay row.
   def self.usd(record, normalizer)
     normalizer.annualised_usd(
       amount: record.base_amount,

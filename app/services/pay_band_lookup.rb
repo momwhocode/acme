@@ -2,6 +2,7 @@
 
 class PayBandLookup
   def self.call(employee:, compensation:, normalizer: CurrencyNormalizer.new)
+    # No band when level or current pay is missing — profile still renders without compa.
     return if employee&.level.blank? || compensation.blank?
 
     band = PayBand.for(level: employee.level, currency: compensation.currency)

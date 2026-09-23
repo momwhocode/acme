@@ -26,6 +26,7 @@ export function analyticsParamsFromFocus(focus) {
   return queryKey ? { [queryKey]: focus.value } : {}
 }
 
+// Clicking the same slice again clears the drill-down.
 export function toggleFocus(current, next) {
   return current?.key === next?.key && current?.value === next?.value ? null : next
 }

@@ -1,3 +1,5 @@
+/** April table avatars: skip system actors, keep a stable color per person. */
+
 import { avatarColorForId } from "../april/renderers/avatar.js"
 
 const USER_ENTITY_TYPE = "user"

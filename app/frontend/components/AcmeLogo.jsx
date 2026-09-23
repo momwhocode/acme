@@ -1,3 +1,5 @@
+/** Sidebar wordmark — keep fill colors on the SVG so the mark stays on brand. */
+
 export default function AcmeLogo({ className = "" }) {
   return (
     <svg

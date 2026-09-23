@@ -1,3 +1,5 @@
+/** April date display and parse helpers. Storage stays ISO `YYYY-MM-DD`. */
+
 import { formatIsoDate, parseIsoDate, startOfDay } from "./dateRangePicker.js";
 
 /** Display ISO `YYYY-MM-DD` as `MM/DD/YYYY` for April date fields. */

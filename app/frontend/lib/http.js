@@ -18,6 +18,7 @@ export function notifySessionExpired() {
   globalThis.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
 }
 
+// Only bounce the SPA on a real session 401 — login invalid_credentials stays on the form.
 function notifyIfUnauthorized(response) {
   if (response.status !== 401 || typeof response.clone !== "function") return
   response

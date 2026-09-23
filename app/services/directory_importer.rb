@@ -64,6 +64,7 @@ class DirectoryImporter
     grouped.each do |email, rows|
       employee_attrs, compensation_attrs = records_from(rows, email, now)
       if (employee = existing[email])
+        # Same email updates the hire — import is upsert, not skip-on-duplicate.
         updated += 1
         updated_comps += upsert_existing!(employee, employee_attrs, compensation_attrs)
         next

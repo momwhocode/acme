@@ -45,6 +45,7 @@ module Api
 
       def destroy
         employee = Employee.find(params[:id])
+        # Audit first — after destroy the row is gone and AuditRecorder has nothing to attach to.
         audit!("destroy", employee, { email: employee.email })
         EmployeeDestroyer.call(employee: employee)
         render_success({})

@@ -17,6 +17,7 @@ class CompensationAppender
 
     Employee.transaction do
       record = @employee.compensation_records.create!(compensation_attrs)
+      # Level is an employee field; pay change forms send it on the same request.
       @employee.update!(level: @params[:level]) if @params.key?(:level)
       [ record, @employee.reload ]
     end

@@ -1,3 +1,5 @@
+/** Document chrome mode: signed-in shell vs signed-out scroll (html[data-app-chrome]). */
+
 import { useLayoutEffect } from "react"
 
 export const APP_CHROME_SHELL = "shell"

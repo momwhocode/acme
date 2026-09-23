@@ -26,6 +26,7 @@ module Fx
         unit = BigDecimal(usd_per_unit.to_s)
         raise Error, "Frankfurter returned a non-positive #{code} rate." unless unit.positive?
 
+        # Frankfurter quotes USD-per-unit; we store unit→USD so CurrencyNormalizer can multiply.
         quotes << {
           from_currency: code,
           to_currency: "USD",

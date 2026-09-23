@@ -32,6 +32,7 @@ class PayBand < ApplicationRecord
   validates :midpoint, numericality: { greater_than: 0 }
   validates :level, uniqueness: { scope: :currency }
 
+  # Local midpoints = USD catalog / current as_of FX. Seed FX before calling this.
   def self.seed!
     ExchangeRate.supported_currencies.each do |currency|
       rate = ExchangeRate.rate_to(from: currency, to: "USD", on: Date.current) || 1

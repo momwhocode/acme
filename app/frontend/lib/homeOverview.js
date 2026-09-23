@@ -90,6 +90,7 @@ export function formatCompactUsd(amount) {
   return formatUsd(value)
 }
 
+// Median KPI run-rate is annual / 12 on the client — analytics does not return monthly_usd.
 export function formatMonthlyUsd(annual) {
   if (annual == null || annual === "") return "—"
   return formatUsd(Number(annual) / 12)
@@ -109,6 +110,7 @@ export function pctShare(part, whole) {
   return ((Number(part) || 0) / total) * 100
 }
 
+// No delta when compare is missing or prior is 0 — a +∞% tag is worse than hiding it.
 export function formatSignedPct(current, previous, digits = 1) {
   const next = Number(current) || 0
   const prior = Number(previous)
@@ -158,6 +160,7 @@ export function typeSlices(rows = []) {
     }))
 }
 
+// Chart buckets: IC/L 1–4 stay distinct; L5+ and every manager (M*) share L5+.
 function levelBucket(level) {
   const text = String(level || "").trim().toUpperCase()
   const numbered = text.match(/^(?:IC|L)(\d+)\+?$/)

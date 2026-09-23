@@ -27,6 +27,7 @@ export function employeeAvatar(employee = {}) {
   const seed = employee.id || employee.email || `${employee.first_name || ""} ${employee.last_name || ""}`.trim()
   const hash = hashSeed(seed)
   const color = employee.color || AVATAR_COLORS[hash % AVATAR_COLORS.length] || avatarColorForId(seed)
+  // About one in three rows gets a portrait so the table is mixed, not all photos.
   const useImage = hash % 3 === 0
 
   return {

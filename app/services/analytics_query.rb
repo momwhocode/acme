@@ -15,6 +15,7 @@ class AnalyticsQuery
 
   def call
     predicate, filter_binds = employee_predicate
+    # JOIN dates, then mix filters, then valued FX + employment window. Do not prepend filters.
     rows = query(mix_sql(predicate), @as_of, @as_of, *filter_binds, @as_of, @as_of, @as_of, name: "AnalyticsMix")
     total = rows.find { |row| row["bucket"] == "total" } || {}
 
@@ -32,6 +33,7 @@ class AnalyticsQuery
 
   private
 
+  # Latest pay row on or before min(left_on, as_of). Headcount is employment dates, not status=active.
   def current_comp_sql(predicate)
     <<~SQL.squish
       SELECT DISTINCT ON (employees.id)
@@ -94,6 +96,7 @@ class AnalyticsQuery
     SQL
   end
 
+  # Currency is only set when the grouping is a single currency (GROUPING SETS cannot SELECT currency).
   def mix_sql(predicate)
     <<~SQL.squish
       WITH current_comp AS (#{current_comp_sql(predicate)}),
@@ -143,6 +146,7 @@ class AnalyticsQuery
     ApplicationRecord.connection.select_all(ApplicationRecord.sanitize_sql_array([ sql, *binds ]), name)
   end
 
+  # Trailing 30 days for onboard/leave/pay; contracts look 90 days past as_of.
   def actions
     window = (@as_of - 29.days)..@as_of
     upcoming = (@as_of + 1.day)..(@as_of + 90.days)
@@ -203,6 +207,7 @@ class AnalyticsQuery
     scope
   end
 
+  # Optional mix filters. Binds follow the two JOIN date placeholders in mix_sql.
   def employee_predicate
     clauses = [ "TRUE" ]
     binds = []

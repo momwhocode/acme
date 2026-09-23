@@ -123,6 +123,7 @@ export function importErrors(file) {
   return {}
 }
 
+// Import is upsert: `employees` is new rows, `updated` is existing emails rewritten.
 export function importToastTitle(payload = {}) {
   const data = payload.data || payload
   const employees = Number(data.employees) || 0

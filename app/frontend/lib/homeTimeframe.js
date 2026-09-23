@@ -22,6 +22,7 @@ function isCurrentMonth(value, referenceDate) {
   return year === referenceDate.getFullYear() && month === referenceDate.getMonth()
 }
 
+// Current month + To Date uses today so Home is live. Past months use that month's last day.
 export function homeTimeframeAsOf(value, referenceDate = new Date()) {
   if (value?.toDate !== false && isCurrentMonth(value, referenceDate)) {
     return formatIsoDate(referenceDate)
@@ -29,6 +30,7 @@ export function homeTimeframeAsOf(value, referenceDate = new Date()) {
   return formatIsoDate(monthEnd(value, referenceDate))
 }
 
+// Compare snapshot is always the last day of the month before as_of.
 export function homeTimeframeCompareAsOf(value, referenceDate = new Date()) {
   const asOf = homeTimeframeAsOf(value, referenceDate)
   const asOfDate = new Date(`${asOf}T00:00:00`)

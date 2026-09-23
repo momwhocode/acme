@@ -4,6 +4,7 @@ export function isSortableColumn(column) {
   return Boolean(column?.sortable || column?.kind === "sortable-header");
 }
 
+// First click on a column sorts desc (pay / dates read better that way).
 export function nextSortState(current, columnId) {
   if (current.columnId !== columnId) {
     return { columnId, direction: "desc" };
