@@ -41,6 +41,23 @@ RSpec.describe AnalyticsQuery do
     expect(described_class.call(as_of: Date.new(2026, 1, 1))).to include(annualised_usd: BigDecimal("80000.0"))
   end
 
+  it "counts people employed on as_of even if they later left" do
+    create(:compensation_record,
+           employee: create(:employee, :left, email: "gone@acme.test", left_on: Date.new(2026, 6, 1)),
+           base_amount: 80_000)
+
+    expect(described_class.call(as_of: Date.new(2026, 5, 1))).to include(headcount: 1, annualised_usd: 80_000)
+    expect(described_class.call(as_of: Date.new(2026, 7, 1))).to include(headcount: 0, annualised_usd: 0)
+  end
+
+  it "excludes people who have not started yet" do
+    create(:compensation_record,
+           employee: create(:employee, email: "future@acme.test", started_on: Date.new(2026, 6, 1)),
+           effective_date: Date.new(2026, 6, 1), base_amount: 80_000)
+
+    expect(described_class.call(as_of: Date.new(2026, 1, 1))).to include(headcount: 0)
+  end
+
   it "breaks active headcount down by type and department" do
     create(:compensation_record,
            employee: create(:employee, email: "eng@acme.test", department: "engineering",

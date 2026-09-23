@@ -8,7 +8,7 @@ class AnalyticsQuery
   end
 
   def call
-    rows = query(mix_sql, @as_of, @as_of, name: "AnalyticsMix")
+    rows = query(mix_sql, @as_of, @as_of, @as_of, @as_of, @as_of, name: "AnalyticsMix")
     total = rows.find { |row| row["bucket"] == "total" } || {}
 
     {
@@ -30,7 +30,7 @@ class AnalyticsQuery
   def monthly_usd
     month_start = @as_of.beginning_of_month
     month_end = @as_of.end_of_month
-    row = query(monthly_sql, @as_of, @as_of, month_end, month_start, name: "AnalyticsMonthly").first || {}
+    row = query(monthly_sql, @as_of, @as_of, @as_of, month_end, month_start, name: "AnalyticsMonthly").first || {}
     money(row["monthly_usd"]) || 0
   end
 
@@ -88,6 +88,7 @@ class AnalyticsQuery
         FROM exchange_rates
         WHERE exchange_rates.from_currency = current_comp.currency
           AND exchange_rates.to_currency = '#{usd}'
+          AND exchange_rates.effective_date <= ?::date
         ORDER BY exchange_rates.effective_date DESC
         LIMIT 1
       ) fx ON TRUE
@@ -116,7 +117,8 @@ class AnalyticsQuery
         ROUND(AVG(annualised_usd), 2) AS average_usd,
         ROUND((PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY annualised_usd))::numeric, 2) AS median_usd
       FROM valued
-      WHERE status = 'active'
+      WHERE started_on <= ?::date
+        AND (left_on IS NULL OR left_on >= ?::date)
       GROUP BY GROUPING SETS ((employment_type), (department), (country), (currency), ())
     SQL
   end

@@ -28,6 +28,8 @@ export function FilterChipsHeader({
   visibleColumnIds,
   onColumnToggle,
   clearGeneration = 0,
+  endContent = null,
+  ariaLabel = "Table filters",
 }) {
   const [internalSearch, setInternalSearch] = useState("");
   const isSearchControlled = searchValue !== undefined;
@@ -48,45 +50,50 @@ export function FilterChipsHeader({
     <header
       className={["april-filter-chips-header", className].filter(Boolean).join(" ")}
       id={id}
-      aria-label="Table filters"
+      aria-label={ariaLabel}
     >
-      <div className="april-filter-chips-header__start">
-        <div className="april-filter-chips-header__chips" role="toolbar" aria-label="Filter chips">
-          {chips.map((chip, index) => {
-            const chipId = `${id}-chip-${index}`;
-            const filterKey = resolveFilterKey(chip, index);
+      {chips.length > 0 || showClearAll ? (
+        <div className="april-filter-chips-header__start">
+          {chips.length > 0 ? (
+            <div className="april-filter-chips-header__chips" role="toolbar" aria-label="Filter chips">
+              {chips.map((chip, index) => {
+                const chipId = `${id}-chip-${index}`;
+                const filterKey = resolveFilterKey(chip, index);
 
-            return (
-              <Fragment key={chipId}>
-                {renderFilterChip(chip, {
-                  chipId,
-                  filterKey,
-                  filterValues,
-                  onFilterChange,
-                  clearGeneration,
-                })}
-              </Fragment>
-            );
-          })}
+                return (
+                  <Fragment key={chipId}>
+                    {renderFilterChip(chip, {
+                      chipId,
+                      filterKey,
+                      filterValues,
+                      onFilterChange,
+                      clearGeneration,
+                    })}
+                  </Fragment>
+                );
+              })}
+            </div>
+          ) : null}
+          {showClearAll ? (
+            <Button
+              label={clearAllLabel}
+              variant="link-neutral"
+              size="md"
+              leadingIcon={false}
+              trailingIcon={false}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                onClearAll?.();
+              }}
+              onClick={(event) => {
+                event.currentTarget.blur();
+              }}
+            />
+          ) : null}
         </div>
-        {showClearAll ? (
-          <Button
-            label={clearAllLabel}
-            variant="link-neutral"
-            size="md"
-            leadingIcon={false}
-            trailingIcon={false}
-            onMouseDown={(event) => {
-              event.preventDefault();
-              onClearAll?.();
-            }}
-            onClick={(event) => {
-              event.currentTarget.blur();
-            }}
-          />
-        ) : null}
-      </div>
+      ) : null}
       <div className="april-filter-chips-header__end">
+        {endContent}
         {showSearch ? (
           <div className="april-filter-chips-header__search">
             <TextInput

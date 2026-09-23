@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { apiErrorMessage, apiData, apiFetch, apiMeta, csrfToken, setCsrfToken } from "./http.js"
+import { apiErrorMessage, apiData, apiFetch, apiMeta, csrfToken, SESSION_EXPIRED_EVENT, setCsrfToken } from "./http.js"
 
 function stubDocument(token = "abc") {
   const meta = {
@@ -90,6 +90,45 @@ describe("apiFetch", () => {
     await apiFetch("/api/v1/employees")
 
     expect(fetchMock.mock.calls[0][1].headers["Content-Type"]).toBeUndefined()
+  })
+
+  it("notifies when the session has expired", async () => {
+    stubDocument("csrf-token")
+    const onExpired = vi.fn()
+    globalThis.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { code: "unauthorized", message: "unauthorized" } }), { status: 401 })
+      )
+    )
+
+    await apiFetch("/api/v1/employees")
+    await vi.waitFor(() => {
+      expect(onExpired).toHaveBeenCalled()
+    })
+
+    globalThis.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
+  })
+
+  it("does not treat invalid credentials as an expired session", async () => {
+    stubDocument("csrf-token")
+    const onExpired = vi.fn()
+    globalThis.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { code: "invalid_credentials", message: "Invalid email or password" } }), {
+          status: 401
+        })
+      )
+    )
+
+    await apiFetch("/api/v1/session", { method: "POST", body: JSON.stringify({ email: "hr@acme.test" }) })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(onExpired).not.toHaveBeenCalled()
+    globalThis.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
   })
 })
 

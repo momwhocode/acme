@@ -61,7 +61,7 @@ describe("session requests", () => {
     )
     vi.stubGlobal("fetch", fetchMock)
 
-    await signIn({ email: "hr@acme.test", password: "password" })
+    await signIn({ email: "  hr@acme.test  ", password: "password" })
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/session",

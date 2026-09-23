@@ -1,9 +1,11 @@
+import { employeeAvatar } from "./employeeAvatar.js"
 import { filterTableColumns, toggleableColumns } from "./tableColumns.js"
 import { EMPLOYMENT_TYPES, STATUSES } from "./employees.js"
 import { readFilterSelection } from "./filterValues.js"
 
 export const EMPLOYEES_TABLE_COLUMNS = [
-  { id: "lead", label: "Employee", kind: "lead", sticky: "start" },
+  { id: "select", kind: "select", sticky: "start" },
+  { id: "lead", label: "Employee", kind: "lead", sticky: "start", showAvatar: true },
   { id: "email", label: "Email", kind: "header", scroll: "start" },
   { id: "department", label: "Department", kind: "header", scroll: true },
   { id: "country", label: "Country", kind: "header", scroll: true },
@@ -11,7 +13,7 @@ export const EMPLOYEES_TABLE_COLUMNS = [
   { id: "status", label: "Status", kind: "status", scroll: true },
   { id: "level", label: "Level", kind: "header", scroll: true },
   { id: "pay", label: "Annual USD", kind: "header", scroll: true },
-  { id: "started_on", label: "Started", kind: "date", scroll: true },
+  { id: "started_on", label: "Start date", kind: "date", scroll: true },
   { id: "actions", kind: "actions", sticky: "end" }
 ]
 
@@ -24,6 +26,22 @@ export const TYPE_FILTER_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({
   value,
   label: value
 }))
+
+export function countryFlag(code) {
+  const iso = String(code || "").trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(iso)) return ""
+  return String.fromCodePoint(...[...iso].map((letter) => 127397 + letter.charCodeAt(0)))
+}
+
+export function countryLabel(code) {
+  const iso = String(code || "").trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(iso)) return code || "—"
+  try {
+    return new Intl.DisplayNames([ "en" ], { type: "region" }).of(iso) || iso
+  } catch {
+    return iso
+  }
+}
 
 export function titleCase(value) {
   return String(value || "")
@@ -72,13 +90,60 @@ export function formatMoney(amount, currency) {
   }
 }
 
+export function employeeRowMenuItems(row, { onDetails, onOffboard } = {}) {
+  const items = [ { label: "View profile", onClick: () => onDetails?.(row) } ]
+  if (row.employee?.status === "active") {
+    items.push({ label: "Mark as left", onClick: () => onOffboard?.(row) })
+  }
+  return items
+}
+
+export function selectedEmployeesCsv(rows = []) {
+  const header = [ "Name", "Email", "Department", "Country", "Type", "Status", "Level", "Pay", "Started" ]
+  const escape = (value) => {
+    const text = String(value ?? "")
+    return /[",\n]/.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text
+  }
+
+  return [
+    header,
+    ...rows.map((row) => [
+      row.name,
+      row.email,
+      row.department,
+      row.country,
+      row.employment_type,
+      row.status,
+      row.level,
+      row.pay,
+      row.started_on
+    ])
+  ]
+    .map((line) => line.map(escape).join(","))
+    .join("\n")
+}
+
+export function downloadSelectedEmployees(rows = []) {
+  const blob = new Blob([ selectedEmployeesCsv(rows) ], { type: "text/csv;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = "employees.csv"
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export function employeeTableRow(employee) {
   const pay = employee.current_compensation?.annualised_usd
+  const avatar = employeeAvatar(employee)
   return {
     id: employee.id,
     name: `${employee.first_name} ${employee.last_name}`.trim(),
     first_name: employee.first_name,
     last_name: employee.last_name,
+    initials: avatar.initials,
+    color: avatar.color,
+    avatarUrl: avatar.avatarUrl,
     email: employee.email,
     department: titleCase(employee.department),
     country: employee.country,

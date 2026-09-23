@@ -17,6 +17,8 @@
 class User < ApplicationRecord
   DEFAULT_EMAIL = "hr@acme.test".freeze
   DEFAULT_PASSWORD = "whiteaeroplane".freeze
+  DEFAULT_FIRST_NAME = "Sharvari".freeze
+  DEFAULT_LAST_NAME = "Potnis".freeze
 
   has_secure_password
 
@@ -30,11 +32,14 @@ class User < ApplicationRecord
   def self.seed_hr!(email: ENV["HR_EMAIL"].presence || DEFAULT_EMAIL, password: ENV["HR_PASSWORD"])
     normalized = email.to_s.strip.downcase.presence || DEFAULT_EMAIL
     existing = find_by("LOWER(email) = ?", normalized)
-    return existing if existing
+    if existing
+      existing.update!(first_name: DEFAULT_FIRST_NAME, last_name: DEFAULT_LAST_NAME)
+      return existing
+    end
 
     create!(
-      first_name: "HR",
-      last_name: "Manager",
+      first_name: DEFAULT_FIRST_NAME,
+      last_name: DEFAULT_LAST_NAME,
       email: normalized,
       password: hr_password!(password)
     )

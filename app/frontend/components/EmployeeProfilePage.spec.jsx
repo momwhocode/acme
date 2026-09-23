@@ -185,5 +185,22 @@ describe("EmployeeProfilePage", () => {
     )
 
     expect(await screen.findByRole("heading", { name: "Employee not found" })).toBeTruthy()
+    expect(screen.getByText("This person is not in the directory.")).toBeTruthy()
+  })
+
+  it("closes back to the directory", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees" element={<p>Directory</p>} />
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("button", { name: "Close" }))
+    expect(screen.getByText("Directory")).toBeTruthy()
   })
 })

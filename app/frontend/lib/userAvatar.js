@@ -31,6 +31,7 @@ export function resolveAvatarUser(entity) {
     ...withUserEntityType(entity),
     imageUrl: resolved,
     src: resolved,
+    avatarType: resolved ? "image" : entity.avatarType || "initials",
     color: entity.color || avatarColorForId(colorSeed),
   }
 }

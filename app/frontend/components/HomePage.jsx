@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Button } from "../april/components/Button"
+import { FilterChipDateRange } from "../april/components/FilterChipDateRange"
+import { FilterChipsHeader } from "../april/components/FilterChipsHeader"
 import { KpiHeader } from "../april/components/KpiHeader"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { Tabs } from "../april/components/Tabs"
-import { TextareaInput } from "../april/components/TextareaInput"
-import { ANALYTICS_PROMPTS, analyticsQuestionError, askAnalytics, getAnalytics } from "../lib/analytics"
-import {
-  analyticsShare,
-  directoryPathFromMix,
-  fxRatesCopy,
-  kpiMoney,
-  mixLabel,
-  mixMoney,
-  payrollInsight
-} from "../lib/analyticsDisplay"
+import { getAnalytics } from "../lib/analytics"
+import { analyticsShare, directoryPathFromMix, kpiMoney, mixLabel, mixMoney } from "../lib/analyticsDisplay"
 import { formatUsd } from "../lib/employeesTable"
 import { formatCount } from "../lib/homeSummary"
+import {
+  DEFAULT_HOME_TIMEFRAME,
+  HOME_TIMEFRAME_PRESETS,
+  homeTimeframeAsOf
+} from "../lib/homeTimeframe"
 import { apiData } from "../lib/http"
 
 function MixCard({ title, rows, rowKey, total, currencyMode, onSelect }) {
@@ -70,106 +67,19 @@ function MixCard({ title, rows, rowKey, total, currencyMode, onSelect }) {
   )
 }
 
-function AnalyticsChat() {
-  const [question, setQuestion] = useState("")
-  const [askError, setAskError] = useState("")
-  const [messages, setMessages] = useState([])
-  const [busy, setBusy] = useState(false)
-
-  const send = async (text) => {
-    const next = text || question
-    const error = analyticsQuestionError(next)
-    if (error) {
-      setAskError(error)
-      return
-    }
-    if (busy) return
-    setAskError("")
-    setBusy(true)
-    setQuestion("")
-    setMessages((current) => [ ...current, { role: "hr", text: next } ])
-    try {
-      const body = await askAnalytics(next)
-      setMessages((current) => [ ...current, { role: "assistant", text: apiData(body)?.answer || "No answer." } ])
-    } catch (caught) {
-      setMessages((current) => [ ...current, { role: "assistant", text: caught.message } ])
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <section className="acme-dash__card acme-dash__chat" aria-labelledby="home-chat-title">
-      <h2 id="home-chat-title" className="april-text-style april-text-style--text-lg-semibold">
-        Ask payroll
-      </h2>
-      <p className="april-text-style april-text-style--text-sm-regular">
-        Plain-language questions about current pay, mix, and this month including leavers.
-      </p>
-      <div className="acme-dash__prompts">
-        {ANALYTICS_PROMPTS.map((prompt) => (
-          <Button
-            key={prompt}
-            variant="outlined"
-            size="md"
-            label={prompt}
-            leadingIcon={false}
-            trailingIcon={false}
-            onClick={() => send(prompt)}
-          />
-        ))}
-      </div>
-      <ol className="acme-dash__messages">
-        {messages.map((message, index) => (
-          <li key={`${message.role}-${index}`} className={`acme-dash__message acme-dash__message--${message.role}`}>
-            <p className="april-text-style april-text-style--text-sm-regular">{message.text}</p>
-          </li>
-        ))}
-      </ol>
-      <div className="acme-dash__ask">
-        <TextareaInput
-          id="home-question"
-          label="Question"
-          showLabel={false}
-          fullWidth
-          rows={2}
-          maxLength={255}
-          placeholder="Ask about payroll or headcount"
-          value={question}
-          state={askError ? "error" : "default"}
-          description={askError}
-          showDescription={Boolean(askError)}
-          onChange={(event) => {
-            setQuestion(event.target.value)
-            setAskError("")
-          }}
-        />
-        <Button
-          variant="primary"
-          size="md"
-          label="Ask"
-          icon="send"
-          leadingIcon
-          trailingIcon={false}
-          loading={busy}
-          onClick={() => send()}
-        />
-      </div>
-    </section>
-  )
-}
-
 export default function HomePage({ user }) {
   const navigate = useNavigate()
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState("")
   const [reloadToken, setReloadToken] = useState(0)
   const [currencyMode, setCurrencyMode] = useState("usd")
+  const [timeframe, setTimeframe] = useState(DEFAULT_HOME_TIMEFRAME)
+  const asOf = homeTimeframeAsOf(timeframe)
 
   useEffect(() => {
     const controller = new AbortController()
     setError("")
-    getAnalytics({ signal: controller.signal })
+    getAnalytics({ signal: controller.signal, as_of: asOf })
       .then((analytics) => setPayload(apiData(analytics)))
       .catch((caught) => {
         if (caught.name === "AbortError") return
@@ -178,13 +88,11 @@ export default function HomePage({ user }) {
       })
 
     return () => controller.abort()
-  }, [reloadToken])
+  }, [reloadToken, asOf])
 
   const local = currencyMode === "local"
   const usdTotal = Number(payload?.annualised_usd || 0)
   const localTotal = (payload?.by_currency || []).reduce((sum, row) => sum + Number(row.payroll_local || 0), 0)
-  const insight = payload ? payrollInsight(payload) : ""
-  const fxCopy = payload?.fx_rates?.length ? fxRatesCopy(payload.fx_rates) : ""
   const kpiItems = local
     ? [
         { label: "Active employees", value: formatCount(payload?.headcount) },
@@ -205,18 +113,11 @@ export default function HomePage({ user }) {
     <section className="superadmin-page superadmin-page--home acme-home acme-dash">
       <PageTitleNavHeader
         id="home-title"
-        pageTitle="Home"
-        showTag={Boolean(payload)}
-        tagLabel={payload ? `${formatCount(payload.headcount)} active` : ""}
-        tagType="success"
-        showSecondaryButton
-        secondaryButtonLabel="Onboard"
-        secondaryIcon="person_add"
-        onSecondary={() => navigate("/employees?onboard=1")}
+        pageTitle={`Welcome Back, ${user.first_name}!`}
         showPrimaryButton
-        primaryButtonLabel="Open directory"
-        primaryIcon="group"
-        onPrimary={() => navigate("/employees")}
+        primaryButtonLabel="Onboard Employee"
+        primaryIcon="person_add"
+        onPrimary={() => navigate("/employees?onboard=1")}
       >
         <Tabs
           id="home-currency"
@@ -228,24 +129,36 @@ export default function HomePage({ user }) {
           onTabChange={(index) => setCurrencyMode(index === 1 ? "local" : "usd")}
         />
       </PageTitleNavHeader>
-      <p className="acme-home__intro april-text-style april-text-style--text-md-regular">
-        Welcome back, {user.first_name}. Compensation source of truth for ACME.
-      </p>
 
       {error && !payload ? (
         <PageLoadError title="Couldn't load home" onRetry={() => setReloadToken((token) => token + 1)} />
       ) : (
-        <KpiHeader state={payload ? "default" : "loading"} items={kpiItems} id="home-kpi" />
+        <>
+          <FilterChipsHeader
+            id="home-timeframe"
+            className="acme-dash__toolbar"
+            ariaLabel="Home timeframe"
+            chips={[]}
+            showSearch={false}
+            showColumnsButton={false}
+            showClearAll={false}
+            endContent={
+              <FilterChipDateRange
+                id="home-timeframe-chip"
+                filterLabel="Timeframe"
+                presets={HOME_TIMEFRAME_PRESETS}
+                showPeriod
+                value={timeframe}
+                onChange={setTimeframe}
+              />
+            }
+          />
+          <KpiHeader state={payload ? "default" : "loading"} items={kpiItems} id="home-kpi" />
+        </>
       )}
 
       {payload ? (
         <div className="superadmin-page__body acme-dash__body">
-          {insight ? (
-            <p className="acme-dash__insight april-text-style april-text-style--text-md-regular">{insight}</p>
-          ) : null}
-          {fxCopy ? (
-            <p className="acme-dash__fx april-text-style april-text-style--text-sm-regular">USD quotes {fxCopy}</p>
-          ) : null}
           <div className="acme-dash__grid">
             <MixCard
               title="By type"
@@ -281,7 +194,6 @@ export default function HomePage({ user }) {
               />
             ) : null}
           </div>
-          <AnalyticsChat />
         </div>
       ) : null}
     </section>

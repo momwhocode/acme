@@ -22,4 +22,11 @@ describe("resolveAvatarUser", () => {
   it("keeps an explicit color", () => {
     expect(resolveAvatarUser({ id: "emp-1", name: "Ada", color: "teal" }).color).toBe("teal")
   })
+
+  it("uses an image when a photo url is present", () => {
+    expect(resolveAvatarUser({ id: "emp-1", name: "Ada", avatarUrl: "/avatars/employee-1.svg" })).toMatchObject({
+      avatarType: "image",
+      imageUrl: "/avatars/employee-1.svg"
+    })
+  })
 })

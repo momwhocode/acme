@@ -10,7 +10,7 @@ export function UserAvatar({ user, size = "md", className = "", alt }) {
 
   return (
     <Avatar
-      type={avatarUser.avatarType === "image" ? "image" : "initials"}
+      type={avatarUser.avatarType === "image" || avatarUser.imageUrl ? "image" : "initials"}
       size={size}
       initials={avatarUser.initials}
       color={avatarUser.color}

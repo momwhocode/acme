@@ -1,14 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { analyticsQuestionError, askAnalytics, getAnalytics } from "./analytics.js"
-import { analyticsShare, directoryPathFromMix, fxRatesCopy, mixLabel, mixMoney, payrollInsight } from "./analyticsDisplay.js"
-
-describe("analyticsQuestionError", () => {
-  it("requires a short question", () => {
-    expect(analyticsQuestionError("")).toBe("Enter a question")
-    expect(analyticsQuestionError("a".repeat(256))).toBe("question is too long")
-    expect(analyticsQuestionError("What is payroll?")).toBe("")
-  })
-})
+import { getAnalytics } from "./analytics.js"
+import { analyticsShare, directoryPathFromMix, mixLabel, mixMoney } from "./analyticsDisplay.js"
 
 describe("analytics display", () => {
   it("labels mix rows and formats local money", () => {
@@ -25,25 +17,6 @@ describe("analytics display", () => {
       "/employees?status=active&department=engineering"
     )
     expect(directoryPathFromMix("country", { country: "GB" })).toBe("/employees?status=active&country=GB")
-  })
-
-  it("names the department that holds most payroll", () => {
-    expect(
-      payrollInsight({
-        annualised_usd: 200000,
-        by_department: [
-          { department: "engineering", payroll_usd: 150000 },
-          { department: "sales", payroll_usd: 50000 }
-        ]
-      })
-    ).toBe("Engineering accounts for 75% of active annualised payroll.")
-    expect(payrollInsight({ annualised_usd: 0, by_department: [] })).toBe("")
-  })
-
-  it("lists USD quotes", () => {
-    expect(fxRatesCopy([ { currency: "USD", to_usd: "1.0" }, { currency: "GBP", to_usd: "1.25" } ])).toBe(
-      "USD 1 · GBP 1.25"
-    )
   })
 })
 
@@ -65,17 +38,15 @@ describe("analytics requests", () => {
     )
   })
 
-  it("asks a question", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ data: { answer: "ok" } }), { status: 200 })
-    )
+  it("loads a snapshot for an as_of date", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: {} }), { status: 200 }))
     vi.stubGlobal("fetch", fetchMock)
 
-    await askAnalytics("What is payroll?")
+    await getAnalytics({ as_of: "2026-08-31" })
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v1/analytics/ask",
-      expect.objectContaining({ method: "POST", body: JSON.stringify({ question: "What is payroll?" }) })
+      "/api/v1/analytics?as_of=2026-08-31",
+      expect.objectContaining({ credentials: "same-origin" })
     )
   })
 })

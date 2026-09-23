@@ -53,6 +53,7 @@ describe("AppLayout", () => {
     renderShell()
 
     expect(screen.getByLabelText("HR navigation")).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Acme" })).toBeTruthy()
     expect(screen.getByRole("link", { name: "Home" })).toBeTruthy()
     expect(screen.getByRole("link", { name: "Employees" })).toBeTruthy()
     expect(screen.getByText("Home content")).toBeTruthy()
@@ -80,7 +81,7 @@ describe("AppLayout", () => {
     expect(onSignedOut).toHaveBeenCalled()
   })
 
-  it("leaves the shell when sign out fails", async () => {
+  it("stays signed in when sign out fails", async () => {
     signOut.mockRejectedValue(new Error("Could not sign out"))
     const user = userEvent.setup()
     const { onSignedOut } = renderShell()
@@ -89,8 +90,9 @@ describe("AppLayout", () => {
     await user.click(screen.getByRole("menuitem", { name: "Logout" }))
 
     await waitFor(() => {
-      expect(screen.getByText("Sign in page")).toBeTruthy()
+      expect(signOut).toHaveBeenCalled()
     })
-    expect(onSignedOut).toHaveBeenCalled()
+    expect(onSignedOut).not.toHaveBeenCalled()
+    expect(screen.getByText("Home content")).toBeTruthy()
   })
 })

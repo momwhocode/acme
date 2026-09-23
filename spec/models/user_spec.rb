@@ -117,6 +117,13 @@ RSpec.describe User do
       expect { described_class.seed_hr!(password: nil) }.to raise_error(ArgumentError, /HR_PASSWORD/)
     end
 
+    it "keeps the default HR display name current" do
+      user = create(:user, email: described_class::DEFAULT_EMAIL, first_name: "HR", last_name: "Manager")
+      described_class.seed_hr!
+
+      expect(user.reload).to have_attributes(first_name: "Sharvari", last_name: "Potnis")
+    end
+
     it "falls back to the default email when the given email is blank" do
       user = described_class.seed_hr!(email: "  ")
 

@@ -372,27 +372,6 @@ RSpec.configure do |config|
               }
             }
           },
-          AnalyticsAsk: {
-            type: :object,
-            required: %w[data],
-            properties: {
-              data: {
-                type: :object,
-                required: %w[answer],
-                properties: {
-                  question: { type: :string },
-                  answer: { type: :string }
-                }
-              }
-            }
-          },
-          AnalyticsAskRequest: {
-            type: :object,
-            required: %w[question],
-            properties: {
-              question: { type: :string, maxLength: 255, example: "What is the total annualised payroll?" }
-            }
-          },
           LoginRequest: {
             type: :object,
             required: %w[email password],

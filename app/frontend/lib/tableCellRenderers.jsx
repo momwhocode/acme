@@ -1,6 +1,7 @@
 import { Button } from "../april/components/Button.jsx"
 import { TableRowActionsMenu } from "../april/components/TableRowActionsMenu.jsx"
 import { UserAvatar } from "../april/components/UserAvatar.jsx"
+import { countryFlag, countryLabel } from "./employeesTable.js"
 
 export function renderTableLink(label, onClick) {
   return (
@@ -26,8 +27,22 @@ export function renderTableLead({ name, user, onClick }) {
   )
 }
 
-export function renderTableActions({ id, name, onDetails, items = [] }) {
+export function renderTableActions({ id, name, items = [] }) {
   return (
-    <TableRowActionsMenu id={id} ariaLabel={`Actions for ${name}`} onDetails={onDetails} items={items} />
+    <TableRowActionsMenu id={id} ariaLabel={`Actions for ${name}`} items={items} />
+  )
+}
+
+export function renderCountryCell(code) {
+  const flag = countryFlag(code)
+  return (
+    <span className="acme-country">
+      {flag ? (
+        <span className="acme-country__flag" aria-hidden="true">
+          {flag}
+        </span>
+      ) : null}
+      <span className="acme-country__label">{countryLabel(code)}</span>
+    </span>
   )
 }

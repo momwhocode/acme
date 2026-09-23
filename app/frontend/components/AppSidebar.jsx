@@ -4,6 +4,7 @@ import { Sidebar } from "../april/components/Sidebar"
 import { hrSidebarMenu, resolveHrActiveNavItemId } from "../lib/hrNav"
 import { userDisplayName, userInitials } from "../lib/profile"
 import { signOut } from "../lib/session"
+import AcmeLogo from "./AcmeLogo"
 
 export default function AppSidebar({ user, onSignedOut }) {
   const navigate = useNavigate()
@@ -16,11 +17,11 @@ export default function AppSidebar({ user, onSignedOut }) {
     setSigningOut(true)
     try {
       await signOut()
+      onSignedOut()
+      navigate("/sign_in", { replace: true })
     } catch {
-      // Leave the shell even if the API is unreachable, same as SchoolOS.
+      setSigningOut(false)
     }
-    onSignedOut()
-    navigate("/sign_in", { replace: true })
   }
 
   return (
@@ -29,8 +30,8 @@ export default function AppSidebar({ user, onSignedOut }) {
       ariaLabel="HR navigation"
       variant="main"
       headerContent={
-        <Link to="/" className="april-sidebar__logo-link acme-sidebar__wordmark">
-          <span className="april-text-style april-text-style--display-xs-semibold">Acme</span>
+        <Link to="/" className="april-sidebar__logo-link acme-sidebar__wordmark" aria-label="Acme">
+          <AcmeLogo className="april-sidebar__logo-image acme-sidebar__logo" />
         </Link>
       }
       topItems={menu.topItems}

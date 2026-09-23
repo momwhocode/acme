@@ -1,16 +1,15 @@
-import { renderTableActions, renderTableLead } from "./tableCellRenderers.jsx"
+import { employeeRowMenuItems } from "./employeesTable.js"
+import { renderCountryCell, renderTableActions, renderTableLead } from "./tableCellRenderers.jsx"
 
-export function createEmployeesTableExtensions({ onDetails }) {
+export function createEmployeesTableExtensions({ onDetails, onOffboard }) {
   return {
     renderBodyContent(column, row) {
+      if (column.id === "country") return renderCountryCell(row.country)
+
       if (column.kind === "lead") {
         return renderTableLead({
           name: row.name,
-          user: {
-            id: row.id,
-            name: row.name,
-            initials: `${row.first_name?.[0] || ""}${row.last_name?.[0] || ""}`.toUpperCase()
-          },
+          user: row,
           onClick: () => onDetails?.(row)
         })
       }
@@ -20,7 +19,7 @@ export function createEmployeesTableExtensions({ onDetails }) {
       return renderTableActions({
         id: `employee-row-${row.id}`,
         name: row.name,
-        onDetails: () => onDetails?.(row)
+        items: employeeRowMenuItems(row, { onDetails, onOffboard })
       })
     }
   }

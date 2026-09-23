@@ -19,8 +19,9 @@ function renderDirectory(path = "/employees") {
   return render(
     <MemoryRouter initialEntries={[ path ]}>
       <Routes>
-        <Route path="/employees" element={<EmployeesPage />} />
-        <Route path="/employees/:id" element={<p>Profile</p>} />
+        <Route path="/employees" element={<EmployeesPage />}>
+          <Route path=":id" element={<p>Profile</p>} />
+        </Route>
       </Routes>
     </MemoryRouter>
   )
@@ -71,7 +72,28 @@ describe("EmployeesPage", () => {
       expect(listEmployees).toHaveBeenCalled()
     })
     expect(await screen.findByText("Ada Lovelace")).toBeTruthy()
+    expect(screen.getAllByRole("button", { name: "Country" }).length).toBeGreaterThan(0)
+    expect(screen.getByRole("button", { name: "Start date" })).toBeTruthy()
+    expect(screen.getByText("United Kingdom")).toBeTruthy()
+    expect(screen.getByText("1 Jan-2024")).toBeTruthy()
     expect(screen.getByText("Showing 1–25 of 60")).toBeTruthy()
+    expect(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: "Details" })).toBeNull()
+    expect(screen.getByRole("button", { name: "Actions for Ada Lovelace" })).toBeTruthy()
+  })
+
+  it("opens the row menu and shows a bulk bar when a row is selected", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByText("Ada Lovelace")
+
+    await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
+    expect(screen.getByRole("menuitem", { name: "View profile" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Mark as left" })).toBeTruthy()
+
+    await user.click(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" }))
+    expect(screen.getByRole("toolbar", { name: "Bulk actions" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Clear selection" })).toBeTruthy()
   })
 
   it("opens the onboard modal from the page header", async () => {
@@ -79,7 +101,7 @@ describe("EmployeesPage", () => {
     renderDirectory()
     await screen.findByRole("heading", { name: "Employees" })
 
-    await user.click(screen.getByRole("button", { name: "Onboard" }))
+    await user.click(screen.getByRole("button", { name: "Onboard Employee" }))
 
     expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
   })

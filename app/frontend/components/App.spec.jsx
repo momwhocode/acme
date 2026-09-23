@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import App from "./App"
 
@@ -17,6 +17,7 @@ vi.mock("../lib/analytics", async () => {
   return { ...actual, getAnalytics: vi.fn() }
 })
 
+import { SESSION_EXPIRED_EVENT } from "../lib/http"
 import { getAnalytics } from "../lib/analytics"
 import { listEmployees } from "../lib/employees"
 import { readSession } from "../lib/session"
@@ -71,7 +72,32 @@ describe("App routes", () => {
     readSession.mockResolvedValue({ first_name: "Ada", last_name: "Lovelace", email: "hr@acme.test" })
     render(<App />)
 
-    expect(await screen.findByRole("heading", { name: "Home" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "Welcome Back, Ada!" })).toBeTruthy()
     expect(screen.getByLabelText("HR navigation")).toBeTruthy()
+  })
+
+  it("returns to the landing page when the session expires", async () => {
+    readSession.mockResolvedValue({ first_name: "Ada", last_name: "Lovelace", email: "hr@acme.test" })
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Welcome Back, Ada!" })).toBeTruthy()
+
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+
+    expect(await screen.findByRole("heading", { name: "Salary management" })).toBeTruthy()
+  })
+
+  it("refreshes the session when the tab becomes visible", async () => {
+    readSession.mockResolvedValue({ first_name: "Ada", last_name: "Lovelace", email: "hr@acme.test" })
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Welcome Back, Ada!" })).toBeTruthy()
+
+    readSession.mockResolvedValue(null)
+    document.dispatchEvent(new Event("visibilitychange"))
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Salary management" })).toBeTruthy()
+    })
   })
 })

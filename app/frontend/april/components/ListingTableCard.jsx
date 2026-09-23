@@ -42,7 +42,8 @@ export function ListingTableCard({
   tableExtensions,
   skeletonRows,
   pagination,
-  onPageChange
+  onPageChange,
+  selection
 }) {
   const showFilteredEmpty = !isDatasetEmpty && rows.length === 0 && hasActiveFilters
   const clearAllVisible = showClearAll === false ? false : hasSelectedListingFilters(filterValues)
@@ -78,6 +79,7 @@ export function ListingTableCard({
             rows={rows}
             extensions={tableExtensions}
             skeletonRows={skeletonRows}
+            selection={selection}
           />
           {pagination ? (
             <TablePagination

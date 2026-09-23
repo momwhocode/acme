@@ -24,6 +24,8 @@ function renderFilterChip(chip, { chipId, filterKey, filterValues, onFilterChang
       <FilterChipDateRange
         id={chipId}
         filterLabel={chip.filterLabel}
+        presets={chip.datePresets}
+        showPeriod={chip.showPeriod}
         value={filterValues[filterKey]}
         onChange={(next) => onFilterChange?.(filterKey, next)}
       />

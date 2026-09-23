@@ -35,21 +35,26 @@ RSpec.describe "GET /api/v1/analytics" do
     )
   end
 
-  it "answers a payroll question" do
+  it "snapshots payroll on as_of" do
     sign_in_hr
-    create(:compensation_record, employee: create(:employee), base_amount: 80_000, currency: "GBP")
+    employee = create(:employee)
+    create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1), base_amount: 70_000,
+                                 currency: "USD")
+    create(:compensation_record, employee: employee, effective_date: Date.new(2026, 6, 1), base_amount: 120_000,
+                                 currency: "USD")
 
-    post "/api/v1/analytics/ask", params: { question: "What is the total annualised payroll?" }, as: :json
+    get "/api/v1/analytics", params: { as_of: "2025-01-01" }
 
     expect(response).to have_http_status(:ok)
-    expect(api_data).to include("answer" => a_string_including("100,000 USD"))
+    expect(api_data).to include("annualised_usd" => "70000.0")
   end
 
-  it "rejects a blank question" do
+  it "rejects an invalid as_of" do
     sign_in_hr
-    post "/api/v1/analytics/ask", params: { question: "" }, as: :json
+
+    get "/api/v1/analytics", params: { as_of: "not-a-date" }
 
     expect(response).to have_http_status(:unprocessable_content)
-    expect(api_error).to include("code" => "invalid_request", "message" => "question is required")
+    expect(api_error).to include("code" => "invalid_request", "message" => "as_of is invalid")
   end
 end

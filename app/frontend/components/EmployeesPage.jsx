@@ -1,19 +1,23 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Outlet, useNavigate, useSearchParams } from "react-router-dom"
+import { FloatingBar } from "../april/components/FloatingBar"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { PageToast } from "../april/components/PageToast"
 import ImportEmployeesModal from "./ImportEmployeesModal"
+import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
 import { importToastTitle } from "../lib/employees"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
 import {
   EMPLOYEES_TABLE_COLUMNS,
+  downloadSelectedEmployees,
   employeeColumnOptions,
   visibleEmployeeColumns
 } from "../lib/employeesTable"
 import { createColumnToggleHandler } from "../lib/tableColumns"
+import { useTableRowSelection } from "../lib/tableSelection"
 import { useEmployeesDirectory } from "../lib/useEmployeesDirectory"
 
 export default function EmployeesPage() {
@@ -22,7 +26,10 @@ export default function EmployeesPage() {
   const directory = useEmployeesDirectory()
   const [onboardOpen, setOnboardOpen] = useState(() => searchParams.get("onboard") === "1")
   const [importOpen, setImportOpen] = useState(false)
+  const [offboardRow, setOffboardRow] = useState(null)
   const [toast, setToast] = useState(null)
+  const [selectedIds, setSelectedIds] = useState([])
+  const { selection, selectedCount } = useTableRowSelection(directory.rows, selectedIds, setSelectedIds)
 
   useEffect(() => {
     if (searchParams.get("onboard") !== "1") return
@@ -30,14 +37,25 @@ export default function EmployeesPage() {
     next.delete("onboard")
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams])
+
+  const rowIdsKey = directory.rows.map((row) => row.id).join(",")
+  useEffect(() => {
+    setSelectedIds([])
+  }, [rowIdsKey])
+
   const extensions = useMemo(
-    () => createEmployeesTableExtensions({ onDetails: (row) => navigate(`/employees/${row.id}`) }),
+    () =>
+      createEmployeesTableExtensions({
+        onDetails: (row) => navigate(`/employees/${row.id}`),
+        onOffboard: setOffboardRow
+      }),
     [navigate]
   )
   const onColumnToggle = useMemo(
     () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, directory.setVisibleColumnIds),
     [directory.setVisibleColumnIds]
   )
+  const selectedRows = directory.rows.filter((row) => selectedIds.includes(row.id))
 
   return (
     <section className="superadmin-page superadmin-page--listing acme-listing">
@@ -49,7 +67,7 @@ export default function EmployeesPage() {
         secondaryIcon="upload"
         onSecondary={() => setImportOpen(true)}
         showPrimaryButton
-        primaryButtonLabel="Onboard"
+        primaryButtonLabel="Onboard Employee"
         primaryIcon="person_add"
         onPrimary={() => setOnboardOpen(true)}
       />
@@ -69,6 +87,17 @@ export default function EmployeesPage() {
           onSuccess={() => {
             setOnboardOpen(false)
             setToast({ title: "Employee onboarded" })
+            directory.retry()
+          }}
+        />
+      ) : null}
+      {offboardRow ? (
+        <OffboardEmployeeModal
+          employee={offboardRow.employee}
+          onCancel={() => setOffboardRow(null)}
+          onSuccess={() => {
+            setOffboardRow(null)
+            setToast({ title: "Marked as left" })
             directory.retry()
           }}
         />
@@ -102,6 +131,7 @@ export default function EmployeesPage() {
             tableType={directory.loading ? "loading" : "default"}
             tableExtensions={extensions}
             skeletonRows={8}
+            selection={selection}
             pagination={{
               page: directory.pagination.page,
               totalPages: directory.pagination.pages,
@@ -111,6 +141,21 @@ export default function EmployeesPage() {
             onPageChange={directory.handlePageChange}
           />
         )}
+        <Outlet context={{ onEmployeeChanged: directory.retry }} />
+        {selectedCount > 0 ? (
+          <div className="acme-listing__bulk-bar">
+            <FloatingBar
+              selection={`${selectedCount} of ${directory.pagination.count} Selected`}
+              actions={[ { id: "export", label: "Export", leadingIcon: "download" } ]}
+              showDelete={false}
+              showMore={false}
+              onClearSelection={() => setSelectedIds([])}
+              onActionClick={(action) => {
+                if (action.id === "export") downloadSelectedEmployees(selectedRows)
+              }}
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   )

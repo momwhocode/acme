@@ -33,7 +33,7 @@ export async function readSession() {
 export async function signIn({ email, password }) {
   const response = await apiFetch("/api/v1/session", {
     method: "POST",
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email: String(email || "").trim(), password })
   })
   const payload = await readPayload(response)
   if (!response.ok) throw new Error(apiErrorMessage(payload, "Invalid email or password"))

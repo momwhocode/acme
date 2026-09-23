@@ -40,13 +40,13 @@ export function isDateRangeFilterActive(value) {
   return Boolean(value?.preset && value.preset !== "lifetime");
 }
 
-export function dateRangeFilterGroups(value = DEFAULT_DATE_RANGE_FILTER) {
+export function dateRangeFilterGroups(value = DEFAULT_DATE_RANGE_FILTER, presets = CREATED_ON_DATE_PRESETS) {
   const preset = value?.preset ?? "lifetime";
 
   return [
     {
       label: "Select Date Range",
-      items: CREATED_ON_DATE_PRESETS.map((option) => ({
+      items: presets.map((option) => ({
         ...option,
         selected: preset === option.value,
         state: preset === option.value ? "active" : "default",
@@ -177,24 +177,35 @@ export function parseRowDate(value) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-export function dateFilterDisplayLabel(filterLabel, value) {
-  if (!isDateRangeFilterActive(value)) return filterLabel;
+export function dateFilterDisplayLabel(filterLabel, value, options = {}) {
+  const labels = {
+    ...PRESET_LABELS,
+    ...Object.fromEntries((options.presets || []).map((option) => [option.value, option.label])),
+  };
+  const showPeriod = options.showPeriod === true;
+  const preset = value?.preset ?? "lifetime";
 
-  if (value.preset !== "custom") {
-    return `${filterLabel}: ${PRESET_LABELS[value.preset] ?? value.preset}`;
+  if (preset === "custom") {
+    if (value.from && value.to) {
+      const range = `${formatAprilShortDate(`${value.from}T00:00:00`)} – ${formatAprilShortDate(`${value.to}T00:00:00`)}`;
+      return showPeriod ? range : `${filterLabel}: ${range}`;
+    }
+
+    if (value.from) {
+      const from = `From ${formatAprilShortDate(`${value.from}T00:00:00`)}`;
+      return showPeriod ? from : `${filterLabel}: ${from}`;
+    }
+
+    if (value.to) {
+      const until = `Until ${formatAprilShortDate(`${value.to}T00:00:00`)}`;
+      return showPeriod ? until : `${filterLabel}: ${until}`;
+    }
+
+    return showPeriod ? "Custom" : `${filterLabel}: Custom`;
   }
 
-  if (value.from && value.to) {
-    return `${filterLabel}: ${formatAprilShortDate(`${value.from}T00:00:00`)} – ${formatAprilShortDate(`${value.to}T00:00:00`)}`;
-  }
+  if (!isDateRangeFilterActive(value) && !showPeriod) return filterLabel;
 
-  if (value.from) {
-    return `${filterLabel}: From ${formatAprilShortDate(`${value.from}T00:00:00`)}`;
-  }
-
-  if (value.to) {
-    return `${filterLabel}: Until ${formatAprilShortDate(`${value.to}T00:00:00`)}`;
-  }
-
-  return `${filterLabel}: Custom`;
+  const period = labels[preset] ?? preset;
+  return showPeriod ? period : `${filterLabel}: ${period}`;
 }

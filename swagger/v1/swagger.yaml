@@ -580,29 +580,6 @@ components:
                     example: GBP
                   to_usd:
                     "$ref": "#/components/schemas/Decimal"
-    AnalyticsAsk:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: object
-          required:
-          - answer
-          properties:
-            question:
-              type: string
-            answer:
-              type: string
-    AnalyticsAskRequest:
-      type: object
-      required:
-      - question
-      properties:
-        question:
-          type: string
-          maxLength: 255
-          example: What is the total annualised payroll?
     LoginRequest:
       type: object
       required:
@@ -626,6 +603,14 @@ paths:
       - Analytics
       description: SQL aggregations over current active compensation. Returns annualised
         payroll in USD, average and median pay, and headcount mix by type and department.
+      parameters:
+      - name: as_of
+        in: query
+        required: false
+        description: Snapshot date. Defaults to today.
+        schema:
+          type: string
+          format: date
       responses:
         '200':
           description: metrics
@@ -639,38 +624,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-  "/api/v1/analytics/ask":
-    post:
-      summary: Ask a payroll question
-      tags:
-      - Analytics
-      description: Answers payroll, average, median, headcount mix, and this month
-        including leavers from the SQL snapshot.
-      parameters: []
-      responses:
-        '200':
-          description: answered
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/AnalyticsAsk"
-        '401':
-          description: not signed in
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Error"
-        '422':
-          description: invalid question
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Error"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/AnalyticsAskRequest"
   "/api/v1/employees/{employee_id}/compensation_records":
     parameters:
     - name: employee_id

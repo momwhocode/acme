@@ -21,6 +21,8 @@ export function FilterChipDateRange({
   id = "filter-chip-date-range",
   filterLabel = "Created On",
   value = DEFAULT_DATE_RANGE_FILTER,
+  presets,
+  showPeriod = false,
   onChange,
 }) {
   const [open, setOpen] = useState(false);
@@ -28,8 +30,8 @@ export function FilterChipDateRange({
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
   const active = isDateRangeFilterActive(value);
-  const displayLabel = dateFilterDisplayLabel(filterLabel, value);
-  const groups = useMemo(() => dateRangeFilterGroups(value), [value]);
+  const displayLabel = dateFilterDisplayLabel(filterLabel, value, { presets, showPeriod });
+  const groups = useMemo(() => dateRangeFilterGroups(value, presets), [value, presets]);
   const showCustomCalendar = open && value?.preset === "custom";
 
   useLayoutEffect(() => {

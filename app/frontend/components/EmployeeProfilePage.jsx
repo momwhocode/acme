@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { BreadcrumbHeader } from "../april/components/BreadcrumbHeader"
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
+import { Button } from "../april/components/Button"
+import { IconMenuDropdown } from "../april/components/IconMenuDropdown"
+import { Modal } from "../april/components/Modal"
 import { PageLoadError } from "../april/components/PageLoadError"
-import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { PageToast } from "../april/components/PageToast"
 import { Tag } from "../april/components/Tag"
 import CompensationChangeModal from "./CompensationChangeModal"
 import EditEmployeeModal from "./EditEmployeeModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
-import StatusPage from "./StatusPage"
 import { getEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
 import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
@@ -31,6 +31,7 @@ function compensationCopy(record) {
 export default function EmployeeProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { onEmployeeChanged } = useOutletContext() || {}
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState("")
   const [errorCode, setErrorCode] = useState("")
@@ -40,6 +41,12 @@ export default function EmployeeProfilePage() {
   const [changeOpen, setChangeOpen] = useState(false)
   const [offboardOpen, setOffboardOpen] = useState(false)
   const [toast, setToast] = useState(null)
+
+  const close = () => navigate("/employees")
+  const refresh = () => {
+    setReloadToken((token) => token + 1)
+    onEmployeeChanged?.()
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -64,96 +71,74 @@ export default function EmployeeProfilePage() {
   const current = payload?.current_compensation
   const history = payload?.compensation_records || []
   const left = employee?.status === "left"
+  const title = employee
+    ? `${employee.first_name} ${employee.last_name}`
+    : errorCode === "not_found"
+      ? "Employee not found"
+      : "Employee"
 
   return (
-    <section className="superadmin-page superadmin-page--profile">
-      <BreadcrumbHeader
-        id="employee-profile-crumbs"
-        items={[
-          { label: "Employees", onClick: () => navigate("/employees") },
-          { label: employee ? `${employee.first_name} ${employee.last_name}` : "Profile" }
-        ]}
-      />
-      <PageTitleNavHeader
-        id="employee-profile-title"
-        pageTitle={employee ? `${employee.first_name} ${employee.last_name}` : "Employee"}
-        showLeadingIcon
-        onBack={() => navigate("/employees")}
-        showTag={Boolean(employee)}
-        tagLabel={left ? "Left" : "Active"}
-        tagType={left ? "default" : "success"}
-        showSecondaryButton={Boolean(employee)}
-        secondaryButtonLabel="Edit"
-        secondaryIcon="edit"
-        onSecondary={() => setEditOpen(true)}
-        showPrimaryButton={employee?.status === "active"}
-        primaryButtonLabel="Record pay change"
-        primaryIcon="payments"
-        onPrimary={() => setChangeOpen(true)}
-        moreMenuItems={
-          employee?.status === "active"
-            ? [ { label: "Mark as left", onClick: () => setOffboardOpen(true) } ]
-            : []
-        }
-      />
-      {editOpen && employee ? (
-        <EditEmployeeModal
-          employee={employee}
-          onCancel={() => setEditOpen(false)}
-          onSuccess={() => {
-            setEditOpen(false)
-            setToast({ title: "Employee updated" })
-            setReloadToken((token) => token + 1)
-          }}
-        />
-      ) : null}
-      {changeOpen && employee ? (
-        <CompensationChangeModal
-          employee={employee}
-          currentCompensation={current}
-          onCancel={() => setChangeOpen(false)}
-          onSuccess={() => {
-            setChangeOpen(false)
-            setToast({ title: "Compensation recorded" })
-            setReloadToken((token) => token + 1)
-          }}
-        />
-      ) : null}
-      {offboardOpen && employee ? (
-        <OffboardEmployeeModal
-          employee={employee}
-          onCancel={() => setOffboardOpen(false)}
-          onSuccess={() => {
-            setOffboardOpen(false)
-            setToast({ title: "Marked as left" })
-            setReloadToken((token) => token + 1)
-          }}
-        />
-      ) : null}
-      <PageToast
-        title={toast?.title}
-        color="green"
-        onDismiss={() => setToast(null)}
-      />
+    <>
+      <Modal
+        backdrop
+        size="lg"
+        icon="person"
+        title={title}
+        description={employee?.email || ""}
+        showDescription={Boolean(employee?.email)}
+        showConfirmInput={false}
+        showReset={false}
+        showFooter={false}
+        onCancel={close}
+        className="acme-profile-modal"
+      >
+        {employee ? (
+          <div className="acme-profile-modal__toolbar">
+            <Tag type={left ? "default" : "success"} label={left ? "Left" : "Active"} leadingIcon={false} trailingIcon={false} />
+            <div className="acme-profile-modal__actions">
+              <Button
+                label="Edit"
+                variant="outlined"
+                size="md"
+                icon="edit"
+                leadingIcon
+                trailingIcon={false}
+                onClick={() => setEditOpen(true)}
+              />
+              {employee.status === "active" ? (
+                <Button
+                  label="Record pay change"
+                  variant="primary"
+                  size="md"
+                  icon="payments"
+                  leadingIcon
+                  trailingIcon={false}
+                  onClick={() => setChangeOpen(true)}
+                />
+              ) : null}
+              {employee.status === "active" ? (
+                <IconMenuDropdown
+                  id="employee-profile-more-menu"
+                  ariaLabel="More actions"
+                  variant="outlined"
+                  size="md"
+                  items={[ { label: "Mark as left", onClick: () => setOffboardOpen(true) } ]}
+                />
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
-      <div className="superadmin-page__body acme-profile">
         {loading ? <div className="page-loader" aria-busy="true" /> : null}
         {error && !employee && errorCode === "not_found" ? (
-          <StatusPage
-            variant="not_found"
-            inset
-            title="Employee not found"
-            description="This person is not in the directory."
-            secondaryLabel="Back to Employees"
-            onSecondary={() => navigate("/employees")}
-          />
+          <p className="april-text-style april-text-style--text-md-regular">This person is not in the directory.</p>
         ) : null}
         {error && !employee && errorCode !== "not_found" ? (
           <PageLoadError title="Couldn't load employee" onRetry={() => setReloadToken((current) => current + 1)} />
         ) : null}
 
         {employee ? (
-          <div className="acme-profile__stack">
+          <div className="acme-profile__stack acme-profile-modal__stack">
             <section className="acme-profile__card" aria-labelledby="profile-details-title">
               <h2 id="profile-details-title" className="april-text-style april-text-style--text-lg-semibold">
                 Details
@@ -225,7 +210,47 @@ export default function EmployeeProfilePage() {
             </section>
           </div>
         ) : null}
-      </div>
-    </section>
+      </Modal>
+
+      {editOpen && employee ? (
+        <EditEmployeeModal
+          employee={employee}
+          onCancel={() => setEditOpen(false)}
+          onSuccess={() => {
+            setEditOpen(false)
+            setToast({ title: "Employee updated" })
+            refresh()
+          }}
+        />
+      ) : null}
+      {changeOpen && employee ? (
+        <CompensationChangeModal
+          employee={employee}
+          currentCompensation={current}
+          onCancel={() => setChangeOpen(false)}
+          onSuccess={() => {
+            setChangeOpen(false)
+            setToast({ title: "Compensation recorded" })
+            refresh()
+          }}
+        />
+      ) : null}
+      {offboardOpen && employee ? (
+        <OffboardEmployeeModal
+          employee={employee}
+          onCancel={() => setOffboardOpen(false)}
+          onSuccess={() => {
+            setOffboardOpen(false)
+            setToast({ title: "Marked as left" })
+            refresh()
+          }}
+        />
+      ) : null}
+      <PageToast
+        title={toast?.title}
+        color="green"
+        onDismiss={() => setToast(null)}
+      />
+    </>
   )
 }

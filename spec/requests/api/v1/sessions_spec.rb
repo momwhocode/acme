@@ -13,8 +13,8 @@ RSpec.describe "HR session" do
     expect(api_data.fetch("user")).to include(
       "id" => user.id,
       "email" => "hr@acme.test",
-      "first_name" => "HR",
-      "last_name" => "Manager"
+      "first_name" => "Sharvari",
+      "last_name" => "Potnis"
     )
   end
 
