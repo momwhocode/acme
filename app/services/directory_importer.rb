@@ -3,7 +3,8 @@ require "securerandom"
 
 # Spreadsheet import. Validates against Employee / CompensationRecord, then insert_all.
 class DirectoryImporter
-  class Error < StandardError; end
+  class Error < AppError; end
+  MAX_BYTES = 5.megabytes
 
   BATCH_SIZE = 1_000
   EMPLOYEE_HEADERS = %w[
@@ -20,12 +21,13 @@ class DirectoryImporter
   end
 
   def initialize(path)
-    @path = path
+    @path = path.respond_to?(:path) ? path.path : path
   end
 
   def call
-    raise Error, "FILE is required." if @path.blank?
+    raise Error, "file is required" if @path.blank?
     raise Error, "CSV not found: #{@path}" unless File.file?(@path)
+    raise Error, "file is too large" if File.size(@path) > MAX_BYTES
 
     persist(parse)
   end
@@ -67,7 +69,11 @@ class DirectoryImporter
     end
 
     write!(employees, compensations)
-    { employees: employees.size, compensation_records: compensations.size }
+    {
+      employees: employees.size,
+      compensation_records: compensations.size,
+      skipped: grouped.size - employees.size
+    }
   end
 
   def records_from(rows, email, now)

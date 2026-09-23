@@ -61,7 +61,7 @@ export function compensationChangeErrors(compensation = {}) {
   return errors
 }
 
-export function onboardErrors(payload = {}) {
+export function employeeIdentityErrors(payload = {}) {
   const errors = {}
   if (!present(payload.first_name)) errors.first_name = "Enter a first name"
   if (!present(payload.last_name)) errors.last_name = "Enter a last name"
@@ -81,6 +81,11 @@ export function onboardErrors(payload = {}) {
   if (!present(payload.started_on)) errors.started_on = "Enter a start date"
   else if (!ISO_DATE.test(present(payload.started_on))) errors.started_on = "started_on is invalid"
 
+  return errors
+}
+
+export function onboardErrors(payload = {}) {
+  const errors = employeeIdentityErrors(payload)
   if (!payload.compensation || Object.keys(payload.compensation).length === 0) {
     errors.compensation = "compensation is required"
   } else {
@@ -89,11 +94,38 @@ export function onboardErrors(payload = {}) {
   return errors
 }
 
-export function offboardErrors({ left_on: leftOn } = {}) {
+export function offboardErrors({ left_on: leftOn, started_on: startedOn } = {}) {
   const errors = {}
   if (!present(leftOn)) errors.left_on = "left_on is required"
   else if (!ISO_DATE.test(present(leftOn))) errors.left_on = "left_on is invalid"
+  else if (present(startedOn) && present(leftOn) < present(startedOn)) {
+    errors.left_on = "must be on or after started_on"
+  }
   return errors
+}
+
+export const MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+function csvFile(file) {
+  const name = present(file?.name).toLowerCase()
+  const type = present(file?.type).toLowerCase()
+  return name.endsWith(".csv") || type.includes("csv")
+}
+
+export function importErrors(file) {
+  if (!file) return { file: "Choose a CSV file" }
+  if (!csvFile(file)) return { file: "upload a CSV file" }
+  if (file.size > MAX_IMPORT_BYTES) return { file: "file is too large" }
+  return {}
+}
+
+export function importToastTitle(payload = {}) {
+  const data = payload.data || payload
+  const employees = Number(data.employees) || 0
+  const skipped = Number(data.skipped) || 0
+  const people = employees === 1 ? "employee" : "employees"
+  if (skipped) return `Imported ${employees} ${people} · ${skipped} already on file`
+  return `Imported ${employees} ${people}`
 }
 
 function queryString(params = {}) {
@@ -145,6 +177,20 @@ export async function onboardEmployee(payload) {
   )
 }
 
+export async function updateEmployee(employeeId, payload) {
+  if (!present(employeeId)) throw new Error("Employee is required")
+  const errors = employeeIdentityErrors(payload)
+  if (Object.keys(errors).length) throw new Error(firstError(errors))
+
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    }),
+    "Could not update employee"
+  )
+}
+
 export async function addCompensation(employeeId, payload) {
   const errors = compensationChangeErrors(payload)
   if (Object.keys(errors).length) throw new Error(firstError(errors))
@@ -158,8 +204,17 @@ export async function addCompensation(employeeId, payload) {
   )
 }
 
-export async function offboardEmployee(employeeId, { left_on: leftOn } = {}) {
-  const errors = offboardErrors({ left_on: leftOn })
+export async function importEmployees(file) {
+  const errors = importErrors(file)
+  if (Object.keys(errors).length) throw new Error(firstError(errors))
+
+  const body = new FormData()
+  body.append("file", file)
+  return readJson(await apiFetch("/api/v1/employees/import", { method: "POST", body }), "Could not import employees")
+}
+
+export async function offboardEmployee(employeeId, { left_on: leftOn, started_on: startedOn } = {}) {
+  const errors = offboardErrors({ left_on: leftOn, started_on: startedOn })
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
   return readJson(

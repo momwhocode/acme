@@ -35,4 +35,11 @@ RSpec.describe "GET /" do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('id="root"')
   end
+
+  it "renders unknown SPA paths so the client can show 404" do
+    get "/missing-route"
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('id="root"')
+  end
 end

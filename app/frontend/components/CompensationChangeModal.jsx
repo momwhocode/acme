@@ -1,5 +1,7 @@
 import { useState } from "react"
+import { Alert } from "../april/components/Alert"
 import { FormFieldRow } from "../april/components/FormFieldRow"
+import { FormSection } from "../april/components/FormSection"
 import { Modal } from "../april/components/Modal"
 import { TextInput } from "../april/components/TextInput"
 import CompensationFields from "./CompensationFields"
@@ -65,7 +67,7 @@ export default function CompensationChangeModal({ employee, currentCompensation,
   return (
     <Modal
       backdrop
-      size="md"
+      size="lg"
       icon="payments"
       title="Record pay change"
       description="Adds an effective-dated raise or promotion. Previous records stay on the timeline."
@@ -80,23 +82,32 @@ export default function CompensationChangeModal({ employee, currentCompensation,
     >
       <div className="april-modal__container" data-april-modal-container>
         {submitError ? (
-          <p className="april-text-style april-text-style--text-sm-regular">{submitError}</p>
-        ) : null}
-        <FormFieldRow label="Level">
-          <TextInput
-            id="comp-change-level"
-            showLabel={false}
-            fullWidth
-            value={form.level}
-            onChange={(event) => setField("level", event.target.value)}
+          <Alert
+            color="red"
+            inline
+            title={submitError}
+            showDescription={false}
+            showButtons={false}
+            dismissible={false}
           />
-        </FormFieldRow>
-        <CompensationFields
-          idPrefix="comp-change"
-          values={form}
-          errors={errors}
-          onChange={setField}
-        />
+        ) : null}
+        <FormSection title="Compensation">
+          <FormFieldRow label="Level">
+            <TextInput
+              id="comp-change-level"
+              showLabel={false}
+              fullWidth
+              value={form.level}
+              onChange={(event) => setField("level", event.target.value)}
+            />
+          </FormFieldRow>
+          <CompensationFields
+            idPrefix="comp-change"
+            values={form}
+            errors={errors}
+            onChange={setField}
+          />
+        </FormSection>
       </div>
     </Modal>
   )

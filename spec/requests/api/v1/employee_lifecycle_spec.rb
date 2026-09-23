@@ -151,6 +151,144 @@ RSpec.describe "Employee lifecycle API" do
     end
   end
 
+  describe "PATCH /api/v1/employees/:id" do
+    it "requires login" do
+      patch "/api/v1/employees/#{create(:employee).id}", params: { first_name: "Grace" }, as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "updates employee identity and returns the profile" do
+      sign_in_hr
+      employee = create(:employee, first_name: "Ada", department: "engineering")
+      create(:compensation_record, employee: employee, change_reason: "hire")
+
+      patch "/api/v1/employees/#{employee.id}",
+            params: { first_name: "Grace", department: "sales", email: "grace@acme.test" },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(api_data).to include(
+        "employee" => include(
+          "id" => employee.id,
+          "first_name" => "Grace",
+          "department" => "sales",
+          "email" => "grace@acme.test"
+        ),
+        "compensation_records" => [ include("change_reason" => "hire") ]
+      )
+    end
+
+    it "does not change status or leave date" do
+      sign_in_hr
+      employee = create(:employee, :left)
+
+      patch "/api/v1/employees/#{employee.id}",
+            params: { first_name: "Grace", status: "active", left_on: nil },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(api_data.fetch("employee")).to include("first_name" => "Grace", "status" => "left")
+    end
+
+    it "returns not found for an unknown employee" do
+      sign_in_hr
+      patch "/api/v1/employees/#{SecureRandom.uuid}", params: { first_name: "Grace" }, as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "rejects an empty update" do
+      sign_in_hr
+      patch "/api/v1/employees/#{create(:employee).id}", params: {}, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("code" => "invalid_request", "message" => "no employee fields to update")
+    end
+
+    it "rejects a duplicate email" do
+      sign_in_hr
+      create(:employee, email: "taken@acme.test")
+      employee = create(:employee, email: "ada@acme.test")
+
+      patch "/api/v1/employees/#{employee.id}", params: { email: "taken@acme.test" }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include(
+        "code" => "validation_failed",
+        "details" => include("email" => [ "has already been taken" ])
+      )
+    end
+
+    it "rejects a start date after the earliest compensation" do
+      sign_in_hr
+      employee = create(:employee, started_on: Date.new(2024, 1, 1))
+      create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1))
+
+      patch "/api/v1/employees/#{employee.id}", params: { started_on: "2024-06-01" }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error.fetch("details")).to include("started_on")
+    end
+  end
+
+  describe "POST /api/v1/employees/import" do
+    def upload_csv(path = Rails.root.join("spec/fixtures/files/directory.csv"))
+      Rack::Test::UploadedFile.new(path, "text/csv")
+    end
+
+    it "requires login" do
+      post "/api/v1/employees/import", params: { file: upload_csv }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "imports unique employees from the spreadsheet" do
+      sign_in_hr
+      post "/api/v1/employees/import", params: { file: upload_csv }
+
+      expect(response).to have_http_status(:ok)
+      expect(api_data).to include("employees" => 2, "compensation_records" => 3, "skipped" => 0)
+    end
+
+    it "skips emails that already exist" do
+      sign_in_hr
+      post "/api/v1/employees/import", params: { file: upload_csv }
+      post "/api/v1/employees/import", params: { file: upload_csv }
+
+      expect(response).to have_http_status(:ok)
+      expect(api_data).to include("employees" => 0, "skipped" => 2)
+    end
+
+    it "rejects a missing file" do
+      sign_in_hr
+      post "/api/v1/employees/import"
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("code" => "invalid_request", "message" => "file is required")
+    end
+
+    it "rejects a non-CSV upload" do
+      sign_in_hr
+      path = Rails.root.join("tmp/directory_import.txt")
+      File.write(path, "nope")
+      post "/api/v1/employees/import", params: { file: upload_csv(path) }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("code" => "invalid_request", "message" => "upload a CSV file")
+    end
+
+    it "rejects a spreadsheet that fails validation" do
+      sign_in_hr
+      path = Rails.root.join("tmp/directory_import_bad.csv")
+      File.write(path, "first_name,email\nAda,ada@acme.test\n")
+      post "/api/v1/employees/import", params: { file: upload_csv(path) }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("code" => "invalid_request", "message" => a_string_including("missing columns"))
+    end
+  end
+
   describe "PATCH /api/v1/employees/:id/offboard" do
     it "requires login" do
       patch "/api/v1/employees/#{create(:employee).id}/offboard",

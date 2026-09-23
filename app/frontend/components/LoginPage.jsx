@@ -5,7 +5,7 @@ import { Button } from "../april/components/Button"
 import { TextInput } from "../april/components/TextInput"
 import { loginFormErrors, signIn } from "../lib/session"
 
-export default function LoginPage({ onSignedIn }) {
+export default function LoginPage({ onSignedIn, titleTag = "h1", showWordmark = true }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,7 +35,12 @@ export default function LoginPage({ onSignedIn }) {
 
   return (
     <form className="superadmin-auth-form" onSubmit={handleSubmit} noValidate>
-      <AuthBrand title="Sign in" subtitle="Sign in as the HR manager." />
+      <AuthBrand
+        title="Sign in"
+        titleTag={titleTag}
+        showWordmark={showWordmark}
+        subtitle="Sign in as the HR manager."
+      />
 
       <div className="superadmin-auth-form__fields">
         <TextInput

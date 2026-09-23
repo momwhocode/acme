@@ -1,3 +1,5 @@
+import { avatarColorForId } from "../april/renderers/avatar.js"
+
 export const USER_ENTITY_TYPE = "user"
 
 export function isUserAvatarEntity(entity) {
@@ -23,10 +25,12 @@ export function resolveAvatarUser(entity) {
   if (!entity || typeof entity !== "object") return null
 
   const resolved = String(rawAvatarUrl(entity)).trim()
+  const colorSeed = entity.id || entity.email || entity.name
 
   return {
     ...withUserEntityType(entity),
     imageUrl: resolved,
     src: resolved,
+    color: entity.color || avatarColorForId(colorSeed),
   }
 }

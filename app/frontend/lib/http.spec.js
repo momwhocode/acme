@@ -71,6 +71,17 @@ describe("apiFetch", () => {
     )
   })
 
+  it("omits the JSON content type for FormData", async () => {
+    stubDocument("csrf-token")
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await apiFetch("/api/v1/employees/import", { method: "POST", body: new FormData() })
+
+    expect(fetchMock.mock.calls[0][1].headers["Content-Type"]).toBeUndefined()
+    expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBe("csrf-token")
+  })
+
   it("omits the JSON content type on a GET", async () => {
     stubDocument("csrf-token")
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))

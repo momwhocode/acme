@@ -136,5 +136,7 @@ RSpec.describe "API exception handler" do
 
     expect(status).to eq(404)
     expect(headers["content-type"]).to include("text/html")
+    expect(_raw).to include("Page not found")
+    expect(_raw).to include("Acme")
   end
 end

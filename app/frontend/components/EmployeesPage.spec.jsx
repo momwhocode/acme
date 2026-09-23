@@ -15,9 +15,9 @@ vi.mock("../lib/employees", async () => {
 
 import { listEmployees } from "../lib/employees"
 
-function renderDirectory() {
+function renderDirectory(path = "/employees") {
   return render(
-    <MemoryRouter initialEntries={[ "/employees" ]}>
+    <MemoryRouter initialEntries={[ path ]}>
       <Routes>
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/employees/:id" element={<p>Profile</p>} />
@@ -82,5 +82,23 @@ describe("EmployeesPage", () => {
     await user.click(screen.getByRole("button", { name: "Onboard" }))
 
     expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
+  })
+
+  it("opens onboard from the landing query", async () => {
+    renderDirectory("/employees?onboard=1")
+    await screen.findByRole("heading", { name: "Employees" })
+
+    expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
+  })
+
+  it("opens the import modal from the page header", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByRole("heading", { name: "Employees" })
+
+    await user.click(screen.getByRole("button", { name: "Import" }))
+
+    expect(screen.getByRole("heading", { name: "Import employees" })).toBeTruthy()
+    expect(screen.getByText("Download the column template")).toBeTruthy()
   })
 })

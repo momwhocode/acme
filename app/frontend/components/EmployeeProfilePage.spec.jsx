@@ -77,10 +77,47 @@ describe("EmployeeProfilePage", () => {
     )
 
     expect(await screen.findByRole("heading", { name: "Ada Lovelace" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Details" })).toBeTruthy()
     expect(screen.getByRole("heading", { name: "Current compensation" })).toBeTruthy()
     expect(screen.getByText("Current")).toBeTruthy()
     expect(screen.getByText("Promotion")).toBeTruthy()
     expect(screen.getByText("Hire")).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "More actions" })).toBeTruthy()
+  })
+
+  it("opens the offboard modal from more actions", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("button", { name: "More actions" }))
+    await user.click(screen.getByRole("menuitem", { name: "Mark as left" }))
+
+    expect(screen.getByRole("heading", { name: "Mark as left" })).toBeTruthy()
+  })
+
+  it("opens the edit modal with the current profile", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("button", { name: "Edit" }))
+
+    expect(screen.getByRole("heading", { name: "Edit employee" })).toBeTruthy()
+    expect(document.getElementById("edit-first-name").value).toBe("Ada")
   })
 
   it("opens the pay-change modal for an active employee", async () => {
@@ -130,5 +167,23 @@ describe("EmployeeProfilePage", () => {
 
     await screen.findByRole("heading", { name: "Ada Lovelace" })
     expect(screen.queryByRole("button", { name: "Record pay change" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "More actions" })).toBeNull()
+    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
+  })
+
+  it("shows a styled missing-employee state", async () => {
+    const error = new Error("not found")
+    error.code = "not_found"
+    getEmployee.mockRejectedValue(error)
+
+    render(
+      <MemoryRouter initialEntries={[ "/employees/missing" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByRole("heading", { name: "Employee not found" })).toBeTruthy()
   })
 })

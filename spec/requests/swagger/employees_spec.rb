@@ -283,6 +283,164 @@ RSpec.describe "Employees", type: :request do
         run_test!
       end
     end
+
+    patch "Update employee identity" do
+      tags "Employees"
+      consumes "application/json"
+      produces "application/json"
+      description "Edits profile fields. Status and leave date stay on offboard. Compensation stays on the pay-change endpoint."
+      parameter name: :body, in: :body, schema: { "$ref" => "#/components/schemas/EmployeeUpdateRequest" }
+
+      response "200", "updated profile" do
+        schema "$ref" => "#/components/schemas/EmployeeProfile"
+        let(:employee) { create(:employee, first_name: "Ada") }
+        let(:id) { employee.id }
+        let(:body) { { first_name: "Grace", department: "sales" } }
+        before do
+          sign_in_hr
+          ExchangeRate.seed!(on: Date.new(2024, 1, 1))
+          create(:compensation_record, employee: employee, change_reason: "hire")
+        end
+
+        run_test! do |response|
+          expect(api_data.fetch("employee")).to include(
+            "id" => employee.id, "first_name" => "Grace", "department" => "sales"
+          )
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { create(:employee).id }
+        let(:body) { { first_name: "Grace" } }
+        run_test!
+      end
+
+      response "404", "unknown employee" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { SecureRandom.uuid }
+        let(:body) { { first_name: "Grace" } }
+        before { sign_in_hr }
+
+        run_test!
+      end
+
+      response "422", "cannot update" do
+        schema "$ref" => "#/components/schemas/ValidationError"
+        before { sign_in_hr }
+
+        context "when no employee fields are sent" do
+          let(:id) { create(:employee).id }
+          let(:body) { {} }
+
+          run_test! do |response|
+            expect(api_error).to include("code" => "invalid_request", "message" => "no employee fields to update")
+          end
+        end
+
+        context "when the email is taken" do
+          let(:id) { create(:employee, email: "ada@acme.test").id }
+          let(:body) { { email: "taken@acme.test" } }
+          before { create(:employee, email: "taken@acme.test") }
+
+          run_test! do |response|
+            expect(api_error).to include("code" => "validation_failed")
+          end
+        end
+
+        context "when first_name is blank" do
+          let(:id) { create(:employee).id }
+          let(:body) { { first_name: "" } }
+
+          run_test! do |response|
+            expect(api_error.fetch("details")).to include("first_name")
+          end
+        end
+
+        context "when started_on is after the earliest compensation" do
+          let(:employee) { create(:employee, started_on: Date.new(2024, 1, 1)) }
+          let(:id) { employee.id }
+          let(:body) { { started_on: "2024-06-01" } }
+          before { create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1)) }
+
+          run_test! do |response|
+            expect(api_error.fetch("details")).to include("started_on")
+          end
+        end
+
+        context "when the country is not ISO-2" do
+          let(:id) { create(:employee).id }
+          let(:body) { { country: "USA" } }
+
+          run_test! do |response|
+            expect(api_error.fetch("details")).to include("country")
+          end
+        end
+      end
+    end
+  end
+
+  path "/api/v1/employees/import" do
+    post "Import a directory CSV" do
+      tags "Employees"
+      consumes "multipart/form-data"
+      produces "application/json"
+      description "Creates employees and effective-dated compensation. Existing emails are skipped. Max 5 MB."
+      parameter name: :file, in: :formData, schema: { type: :string, format: :binary }, required: true
+
+      response "200", "imported" do
+        schema "$ref" => "#/components/schemas/ImportResponse"
+        let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/directory.csv"), "text/csv") }
+        before { sign_in_hr }
+
+        run_test! do |response|
+          expect(api_data).to include("employees" => 2, "compensation_records" => 3, "skipped" => 0)
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/directory.csv"), "text/csv") }
+        run_test!
+      end
+
+      response "422", "cannot import" do
+        schema "$ref" => "#/components/schemas/Error"
+        before { sign_in_hr }
+
+        context "when the file is missing" do
+          let(:file) { nil }
+
+          run_test! do |response|
+            expect(api_error).to include("message" => "file is required")
+          end
+        end
+
+        context "when the file is not a CSV" do
+          let(:file) do
+            path = Rails.root.join("tmp/swagger_import.txt")
+            File.write(path, "nope")
+            Rack::Test::UploadedFile.new(path, "text/plain")
+          end
+
+          run_test! do |response|
+            expect(api_error).to include("message" => "upload a CSV file")
+          end
+        end
+
+        context "when the spreadsheet is missing columns" do
+          let(:file) do
+            path = Rails.root.join("tmp/swagger_import_bad.csv")
+            File.write(path, "first_name,email\nAda,ada@acme.test\n")
+            Rack::Test::UploadedFile.new(path, "text/csv")
+          end
+
+          run_test! do |response|
+            expect(api_error.fetch("message")).to include("missing columns")
+          end
+        end
+      end
+    end
   end
 
   path "/api/v1/employees/{id}/offboard" do

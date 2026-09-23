@@ -6,7 +6,11 @@ export function createEmployeesTableExtensions({ onDetails }) {
       if (column.kind === "lead") {
         return renderTableLead({
           name: row.name,
-          user: { name: row.name, initials: `${row.first_name?.[0] || ""}${row.last_name?.[0] || ""}` },
+          user: {
+            id: row.id,
+            name: row.name,
+            initials: `${row.first_name?.[0] || ""}${row.last_name?.[0] || ""}`.toUpperCase()
+          },
           onClick: () => onDetails?.(row)
         })
       }

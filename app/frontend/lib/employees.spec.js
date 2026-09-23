@@ -4,14 +4,19 @@ import {
   compensationChangeErrors,
   compensationErrors,
   directoryFilterErrors,
+  employeeIdentityErrors,
   fieldErrorText,
   firstApiFieldError,
   getEmployee,
+  importErrors,
+  importToastTitle,
   listEmployees,
+  importEmployees,
   offboardEmployee,
   offboardErrors,
   onboardEmployee,
-  onboardErrors
+  onboardErrors,
+  updateEmployee
 } from "./employees.js"
 
 describe("directoryFilterErrors", () => {
@@ -91,10 +96,63 @@ describe("fieldErrorText", () => {
   })
 })
 
+describe("employeeIdentityErrors", () => {
+  const valid = {
+    first_name: "Ada",
+    last_name: "Lovelace",
+    email: "ada@acme.test",
+    country: "GB",
+    department: "engineering",
+    employment_type: "full-time",
+    started_on: "2024-01-01"
+  }
+
+  it("accepts identity fields without compensation", () => {
+    expect(employeeIdentityErrors(valid)).toEqual({})
+  })
+
+  it("requires name, email, and start date", () => {
+    expect(employeeIdentityErrors({})).toMatchObject({
+      first_name: "Enter a first name",
+      email: "Enter an email",
+      started_on: "Enter a start date"
+    })
+  })
+})
+
 describe("offboardErrors", () => {
   it("requires an ISO leave date", () => {
     expect(offboardErrors({})).toEqual({ left_on: "left_on is required" })
     expect(offboardErrors({ left_on: "June 1" })).toEqual({ left_on: "left_on is invalid" })
+  })
+
+  it("rejects a leave date before started_on", () => {
+    expect(offboardErrors({ left_on: "2023-12-01", started_on: "2024-01-01" })).toEqual({
+      left_on: "must be on or after started_on"
+    })
+  })
+})
+
+describe("importErrors", () => {
+  it("requires a CSV under the size cap", () => {
+    expect(importErrors()).toEqual({ file: "Choose a CSV file" })
+    expect(importErrors(new File([ "x" ], "people.txt", { type: "text/plain" }))).toEqual({
+      file: "upload a CSV file"
+    })
+    expect(importErrors(new File([ "a" ], "people.csv", { type: "text/csv" }))).toEqual({})
+  })
+
+  it("rejects a file over the size cap", () => {
+    expect(importErrors({ name: "people.csv", type: "text/csv", size: 5 * 1024 * 1024 + 1 })).toEqual({
+      file: "file is too large"
+    })
+  })
+})
+
+describe("importToastTitle", () => {
+  it("names imported and skipped counts", () => {
+    expect(importToastTitle({ data: { employees: 2, skipped: 0 } })).toBe("Imported 2 employees")
+    expect(importToastTitle({ employees: 1, skipped: 3 })).toBe("Imported 1 employee · 3 already on file")
   })
 })
 
@@ -216,6 +274,35 @@ describe("employee requests", () => {
     })
   })
 
+  it("updates an employee", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const payload = {
+      first_name: "Grace",
+      last_name: "Hopper",
+      email: "grace@acme.test",
+      country: "US",
+      department: "sales",
+      employment_type: "full-time",
+      started_on: "2024-01-01"
+    }
+
+    await updateEmployee("emp-1", payload)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/emp-1",
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify(payload) })
+    )
+  })
+
+  it("does not call the API when an update is missing a name", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(updateEmployee("emp-1", { last_name: "Hopper" })).rejects.toThrow("Enter a first name")
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it("records a compensation change", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 201 }))
     vi.stubGlobal("fetch", fetchMock)
@@ -227,6 +314,30 @@ describe("employee requests", () => {
       "/api/v1/employees/emp-1/compensation_records",
       expect.objectContaining({ method: "POST", body: JSON.stringify(payload) })
     )
+  })
+
+  it("imports a CSV without forcing a JSON content type", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: { employees: 1, skipped: 0 } }), { status: 200 })
+    )
+    vi.stubGlobal("fetch", fetchMock)
+    const file = new File([ "first_name\nAda" ], "people.csv", { type: "text/csv" })
+
+    await importEmployees(file)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/import",
+      expect.objectContaining({ method: "POST", body: expect.any(FormData) })
+    )
+    expect(fetchMock.mock.calls[0][1].headers["Content-Type"]).toBeUndefined()
+  })
+
+  it("does not call the API when no file is chosen", async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(importEmployees()).rejects.toThrow("Choose a CSV file")
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it("offboards an employee", async () => {

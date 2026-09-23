@@ -18,6 +18,8 @@
 }
 
 .april-modal {
+  display: flex;
+  flex-direction: column;
   width: 400px;
   max-width: 100%;
   max-height: calc(100dvh - 2 * var(--spacing-spacing-lg));
@@ -40,6 +42,8 @@
 .april-modal__inner {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
   max-height: inherit;
   min-height: 0;
 }
@@ -99,22 +103,37 @@
 }
 
 .april-modal__container {
-  min-height: 0;
-}
-
-.april-modal__container:has(> .april-form-row) {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--spacing-spacing-lg);
   min-width: 0;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Side-by-side form rows need a tighter label column inside 400–600px modals. */
-.april-modal__container > .april-form-row {
-  grid-template-columns: minmax(104px, 132px) minmax(0, 1fr);
+.april-modal__container .april-form-section__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.april-modal__container .april-form-row {
+  grid-template-columns: minmax(112px, 140px) minmax(0, 1fr);
+  align-items: start;
   min-width: 0;
+  padding-block: 12px;
+  border-top: 1px solid var(--color-border-border-gray-light);
+}
+
+.april-modal__container > .april-form-row:first-child,
+.april-modal__container .april-form-section__body > .april-form-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.april-modal__container > .april-form-row:last-child,
+.april-modal__container .april-form-section__body > .april-form-row:last-child {
+  padding-bottom: 0;
 }
 
 .april-modal__container .april-form-row__field .april-text-input,
@@ -237,6 +256,15 @@
 }
 
 @media (max-width: 768px) {
+  .april-modal__container .april-form-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-spacing-sm);
+  }
+
+  .april-modal__form-grid {
+    grid-template-columns: 1fr;
+  }
+
   .april-modal-backdrop,
   .april-modal-backdrop--fixed {
     padding: var(--spacing-spacing-sm, 8px);

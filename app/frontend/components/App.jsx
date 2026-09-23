@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { AuthBrand } from "../april/components/AuthBrand"
 import { readSession } from "../lib/session"
 import AppLayout from "./AppLayout"
 import AuthLayout from "./AuthLayout"
 import EmployeeProfilePage from "./EmployeeProfilePage"
 import EmployeesPage from "./EmployeesPage"
 import HomePage from "./HomePage"
-import LoginPage from "./LoginPage"
+import LandingPage from "./LandingPage"
 import LogoutPage from "./LogoutPage"
+import NotFoundPage from "./NotFoundPage"
 
 function AppRoutes() {
   const [user, setUser] = useState(null)
@@ -23,31 +25,51 @@ function AppRoutes() {
   if (!ready) {
     return (
       <AuthLayout>
-        <p className="superadmin-auth-form__lead april-text-style april-text-style--text-md-regular">Loading…</p>
+        <AuthBrand title="Loading…" subtitle="Checking your session." />
       </AuthLayout>
     )
   }
+
+  const clearUser = () => setUser(null)
+  const landing = <LandingPage onSignedIn={setUser} />
 
   return (
     <Routes>
       <Route element={<AuthLayout />}>
         <Route
-          path="/sign_in"
-          element={user ? <Navigate to="/" replace /> : <LoginPage onSignedIn={setUser} />}
-        />
-        <Route
           path="/sign_out"
-          element={user ? <LogoutPage onSignedOut={() => setUser(null)} /> : <Navigate to="/sign_in" replace />}
+          element={user ? <LogoutPage onSignedOut={clearUser} /> : <Navigate to="/" replace />}
         />
       </Route>
+      {!user ? (
+        <>
+          <Route path="/" element={landing} />
+          <Route path="/sign_in" element={landing} />
+        </>
+      ) : (
+        <Route path="/sign_in" element={<Navigate to="/" replace />} />
+      )}
       <Route
-        element={user ? <AppLayout user={user} onSignedOut={() => setUser(null)} /> : <Navigate to="/sign_in" replace />}
+        element={user ? <AppLayout user={user} onSignedOut={clearUser} /> : <Navigate to="/sign_in" replace />}
       >
-        <Route path="/" element={<HomePage user={user} />} />
+        {user ? <Route path="/" element={<HomePage user={user} />} /> : null}
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/employees/:id" element={<EmployeeProfilePage />} />
       </Route>
-      <Route path="*" element={<Navigate to={user ? "/" : "/sign_in"} replace />} />
+      <Route
+        path="*"
+        element={
+          user ? (
+            <AppLayout user={user} onSignedOut={clearUser}>
+              <NotFoundPage signedIn />
+            </AppLayout>
+          ) : (
+            <AuthLayout>
+              <NotFoundPage />
+            </AuthLayout>
+          )
+        }
+      />
     </Routes>
   )
 }

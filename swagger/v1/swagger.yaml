@@ -17,9 +17,11 @@ tags:
 - name: Session
   description: HR login, current user, logout.
 - name: Employees
-  description: Directory, onboard, and offboard.
+  description: Directory, onboard, import, and offboard.
 - name: Compensation
   description: Effective-dated raises and promotions.
+- name: Analytics
+  description: SQL-aggregated payroll, headcount mix, and compensation stats.
 - name: Errors
   description: Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400
     invalid_request. Unexpected failures are 500 internal_error and never leak the
@@ -327,6 +329,27 @@ components:
               "$ref": "#/components/schemas/CompensationRecord"
             employee:
               "$ref": "#/components/schemas/Employee"
+    ImportResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - employees
+          - compensation_records
+          - skipped
+          properties:
+            employees:
+              type: integer
+              example: 2
+            compensation_records:
+              type: integer
+              example: 3
+            skipped:
+              type: integer
+              example: 0
     OffboardResponse:
       type: object
       required:
@@ -434,6 +457,41 @@ components:
           level:
             type: string
             example: IC3
+    EmployeeUpdateRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Grace
+        last_name:
+          type: string
+          example: Hopper
+        email:
+          type: string
+          format: email
+          example: grace@acme.test
+        country:
+          type: string
+          example: US
+        department:
+          type: string
+          example: sales
+        employment_type:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+        level:
+          type: string
+          nullable: true
+          example: IC3
+        started_on:
+          type: string
+          format: date
+          example: '2024-01-01'
     OffboardRequest:
       type: object
       required:
@@ -443,6 +501,108 @@ components:
           type: string
           format: date
           example: '2025-06-01'
+    AnalyticsMix:
+      type: object
+      required:
+      - headcount
+      properties:
+        employment_type:
+          type: string
+          example: full-time
+        department:
+          type: string
+          example: engineering
+        country:
+          type: string
+          example: GB
+        currency:
+          type: string
+          example: GBP
+        headcount:
+          type: integer
+          example: 120
+        payroll_usd:
+          "$ref": "#/components/schemas/Decimal"
+        payroll_local:
+          "$ref": "#/components/schemas/Decimal"
+    Analytics:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - annualised_usd
+          - by_type
+          - by_department
+          properties:
+            headcount:
+              type: integer
+            annualised_usd:
+              "$ref": "#/components/schemas/Decimal"
+            average_usd:
+              allOf:
+              - "$ref": "#/components/schemas/Decimal"
+              nullable: true
+            median_usd:
+              allOf:
+              - "$ref": "#/components/schemas/Decimal"
+              nullable: true
+            monthly_usd:
+              "$ref": "#/components/schemas/Decimal"
+            by_type:
+              type: array
+              items:
+                "$ref": "#/components/schemas/AnalyticsMix"
+            by_department:
+              type: array
+              items:
+                "$ref": "#/components/schemas/AnalyticsMix"
+            by_country:
+              type: array
+              items:
+                "$ref": "#/components/schemas/AnalyticsMix"
+            by_currency:
+              type: array
+              items:
+                "$ref": "#/components/schemas/AnalyticsMix"
+            fx_rates:
+              type: array
+              items:
+                type: object
+                required:
+                - currency
+                - to_usd
+                properties:
+                  currency:
+                    type: string
+                    example: GBP
+                  to_usd:
+                    "$ref": "#/components/schemas/Decimal"
+    AnalyticsAsk:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - answer
+          properties:
+            question:
+              type: string
+            answer:
+              type: string
+    AnalyticsAskRequest:
+      type: object
+      required:
+      - question
+      properties:
+        question:
+          type: string
+          maxLength: 255
+          example: What is the total annualised payroll?
     LoginRequest:
       type: object
       required:
@@ -459,6 +619,58 @@ components:
           minLength: 8
           maxLength: 72
 paths:
+  "/api/v1/analytics":
+    get:
+      summary: HR analytics snapshot
+      tags:
+      - Analytics
+      description: SQL aggregations over current active compensation. Returns annualised
+        payroll in USD, average and median pay, and headcount mix by type and department.
+      responses:
+        '200':
+          description: metrics
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Analytics"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/analytics/ask":
+    post:
+      summary: Ask a payroll question
+      tags:
+      - Analytics
+      description: Answers payroll, average, median, headcount mix, and this month
+        including leavers from the SQL snapshot.
+      parameters: []
+      responses:
+        '200':
+          description: answered
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AnalyticsAsk"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: invalid question
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AnalyticsAskRequest"
   "/api/v1/employees/{employee_id}/compensation_records":
     parameters:
     - name: employee_id
@@ -669,6 +881,77 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
+    patch:
+      summary: Update employee identity
+      tags:
+      - Employees
+      description: Edits profile fields. Status and leave date stay on offboard. Compensation
+        stays on the pay-change endpoint.
+      parameters: []
+      responses:
+        '200':
+          description: updated profile
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/EmployeeProfile"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '404':
+          description: unknown employee
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: cannot update
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/EmployeeUpdateRequest"
+  "/api/v1/employees/import":
+    post:
+      summary: Import a directory CSV
+      tags:
+      - Employees
+      description: Creates employees and effective-dated compensation. Existing emails
+        are skipped. Max 5 MB.
+      parameters: []
+      responses:
+        '200':
+          description: imported
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ImportResponse"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: cannot import
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              format: binary
+        required: true
   "/api/v1/employees/{id}/offboard":
     parameters:
     - name: id

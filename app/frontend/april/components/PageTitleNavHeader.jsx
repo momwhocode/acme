@@ -16,6 +16,7 @@ export function PageTitleNavHeader({
   pageTitle = "Page Title",
   showLeadingIcon = false,
   showTag = false,
+  tagType = "info",
   showCreatedOn,
   showUserName = false,
   metaBeforeTitle = false,
@@ -113,7 +114,7 @@ export function PageTitleNavHeader({
         ) : (
           <h1 className="april-page-title-nav-header__title">{pageTitle}</h1>
         )}
-        {showTag ? <Tag type="info" label={tagLabel} leadingIcon trailingIcon /> : null}
+        {showTag ? <Tag type={tagType} label={tagLabel} leadingIcon={false} trailingIcon={false} /> : null}
         {!metaBeforeTitle ? metaBlock : null}
       </div>
       {showActions ? (

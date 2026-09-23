@@ -1,0 +1,77 @@
+/** @vitest-environment jsdom */
+import { cleanup, render, screen } from "@testing-library/react"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import App from "./App"
+
+vi.mock("../lib/session", () => ({
+  readSession: vi.fn()
+}))
+
+vi.mock("../lib/employees", async () => {
+  const actual = await vi.importActual("../lib/employees")
+  return { ...actual, listEmployees: vi.fn() }
+})
+
+vi.mock("../lib/analytics", async () => {
+  const actual = await vi.importActual("../lib/analytics")
+  return { ...actual, getAnalytics: vi.fn() }
+})
+
+import { getAnalytics } from "../lib/analytics"
+import { listEmployees } from "../lib/employees"
+import { readSession } from "../lib/session"
+
+describe("App routes", () => {
+  beforeEach(() => {
+    window.matchMedia = vi.fn().mockImplementation(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    }))
+    listEmployees.mockResolvedValue({
+      data: { employees: [] },
+      meta: { pagination: { count: 0 }, facets: { countries: [], departments: [] } }
+    })
+    getAnalytics.mockResolvedValue({
+      data: {
+        headcount: 0,
+        annualised_usd: 0,
+        by_type: [],
+        by_department: [],
+        by_country: [],
+        by_currency: [],
+        fx_rates: []
+      }
+    })
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.clearAllMocks()
+    window.history.replaceState({}, "", "/")
+  })
+
+  it("shows the public landing when there is no session", async () => {
+    readSession.mockResolvedValue(null)
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Salary management" })).toBeTruthy()
+  })
+
+  it("shows a styled 404 for an unknown public path", async () => {
+    readSession.mockResolvedValue(null)
+    window.history.replaceState({}, "", "/missing-route")
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy()
+  })
+
+  it("shows the signed-in home for the HR session", async () => {
+    readSession.mockResolvedValue({ first_name: "Ada", last_name: "Lovelace", email: "hr@acme.test" })
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Home" })).toBeTruthy()
+    expect(screen.getByLabelText("HR navigation")).toBeTruthy()
+  })
+})

@@ -10,10 +10,11 @@ export function setCsrfToken(token) {
 }
 
 export function apiFetch(path, options = {}) {
+  const form = typeof FormData !== "undefined" && options.body instanceof FormData
   const headers = {
     Accept: "application/json",
     "X-CSRF-Token": csrfToken(),
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(options.body && !form ? { "Content-Type": "application/json" } : {}),
     ...options.headers
   }
 

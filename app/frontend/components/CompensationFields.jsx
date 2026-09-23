@@ -19,65 +19,67 @@ export default function CompensationFields({
 
   return (
     <>
-      <FormFieldRow label="Amount" required>
-        <TextInput
-          id={`${idPrefix}-amount`}
-          showLabel={false}
-          fullWidth
-          type="number"
-          inputMode="decimal"
-          min="0"
-          step="0.01"
-          value={values.base_amount}
-          onChange={(event) => onChange("base_amount", event.target.value)}
-          state={fieldErrorText(errors.base_amount) ? "error" : "default"}
-          description={fieldErrorText(errors.base_amount)}
-          showDescription={Boolean(fieldErrorText(errors.base_amount))}
-        />
-      </FormFieldRow>
-      <FormFieldRow label="Currency" required>
-        <FormSelectField
-          id={`${idPrefix}-currency`}
-          value={values.currency}
-          options={CURRENCY_OPTIONS}
-          onChange={(value) => onChange("currency", value)}
-          state={fieldErrorText(errors.currency) ? "error" : "default"}
-          description={fieldErrorText(errors.currency)}
-          showDescription={Boolean(fieldErrorText(errors.currency))}
-        />
-      </FormFieldRow>
-      <FormFieldRow label="Pay period" required>
-        <FormSelectField
-          id={`${idPrefix}-pay-period`}
-          value={values.pay_period}
-          options={PERIOD_OPTIONS}
-          onChange={(value) => onChange("pay_period", value)}
-          state={fieldErrorText(errors.pay_period) ? "error" : "default"}
-          description={fieldErrorText(errors.pay_period)}
-          showDescription={Boolean(fieldErrorText(errors.pay_period))}
-        />
-      </FormFieldRow>
-      {hourly ? (
-        <FormFieldRow label="Hours / week" required>
+      <FormFieldRow label="Pay" required>
+        <div className="april-modal__form-grid">
           <TextInput
-            id={`${idPrefix}-hours`}
+            id={`${idPrefix}-amount`}
             showLabel={false}
             fullWidth
             type="number"
             inputMode="decimal"
-            min="0.01"
-            max="168"
-            step="0.25"
-            value={values.hours_per_week}
-            onChange={(event) => onChange("hours_per_week", event.target.value)}
-            state={fieldErrorText(errors.hours_per_week) ? "error" : "default"}
-            description={fieldErrorText(errors.hours_per_week)}
-            showDescription={Boolean(fieldErrorText(errors.hours_per_week))}
+            min="0"
+            step="0.01"
+            placeholder="Amount"
+            value={values.base_amount}
+            onChange={(event) => onChange("base_amount", event.target.value)}
+            state={fieldErrorText(errors.base_amount) ? "error" : "default"}
+            description={fieldErrorText(errors.base_amount)}
+            showDescription={Boolean(fieldErrorText(errors.base_amount))}
           />
-        </FormFieldRow>
-      ) : null}
+          <FormSelectField
+            id={`${idPrefix}-currency`}
+            value={values.currency}
+            options={CURRENCY_OPTIONS}
+            onChange={(value) => onChange("currency", value)}
+            state={fieldErrorText(errors.currency) ? "error" : "default"}
+            description={fieldErrorText(errors.currency)}
+            showDescription={Boolean(fieldErrorText(errors.currency))}
+          />
+        </div>
+      </FormFieldRow>
+      <FormFieldRow label="Period" required>
+        <div className={hourly ? "april-modal__form-grid" : undefined}>
+          <FormSelectField
+            id={`${idPrefix}-pay-period`}
+            value={values.pay_period}
+            options={PERIOD_OPTIONS}
+            onChange={(value) => onChange("pay_period", value)}
+            state={fieldErrorText(errors.pay_period) ? "error" : "default"}
+            description={fieldErrorText(errors.pay_period)}
+            showDescription={Boolean(fieldErrorText(errors.pay_period))}
+          />
+          {hourly ? (
+            <TextInput
+              id={`${idPrefix}-hours`}
+              showLabel={false}
+              fullWidth
+              type="number"
+              inputMode="decimal"
+              min="0.01"
+              max="168"
+              step="0.25"
+              placeholder="Hours / week"
+              value={values.hours_per_week}
+              onChange={(event) => onChange("hours_per_week", event.target.value)}
+              state={fieldErrorText(errors.hours_per_week) ? "error" : "default"}
+              description={fieldErrorText(errors.hours_per_week)}
+              showDescription={Boolean(fieldErrorText(errors.hours_per_week))}
+            />
+          ) : null}
+        </div>
+      </FormFieldRow>
       {showEffectiveDate ? (
-        <FormFieldRow label="Effective date" required>
+        <FormFieldRow label="Effective" required>
           <FormDateField
             id={`${idPrefix}-effective-date`}
             value={values.effective_date}

@@ -8,10 +8,14 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get "health", to: "health#show"
+      resource :analytics, only: :show do
+        post :ask
+      end
       resource :session, only: %i[show create destroy]
-      resources :employees, only: %i[index show create] do
+      resources :employees, only: %i[index show create update] do
         resources :compensation_records, only: %i[create]
         member { patch :offboard }
+        collection { post :import }
       end
     end
 

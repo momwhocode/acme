@@ -6,6 +6,9 @@ import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { PageToast } from "../april/components/PageToast"
 import { Tag } from "../april/components/Tag"
 import CompensationChangeModal from "./CompensationChangeModal"
+import EditEmployeeModal from "./EditEmployeeModal"
+import OffboardEmployeeModal from "./OffboardEmployeeModal"
+import StatusPage from "./StatusPage"
 import { getEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
 import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
@@ -14,7 +17,7 @@ function Field({ label, value }) {
   return (
     <div className="acme-profile__field">
       <dt className="april-text-style april-text-style--text-sm-regular">{label}</dt>
-      <dd className="april-text-style april-text-style--text-md-regular">{value || "—"}</dd>
+      <dd className="april-text-style april-text-style--text-md-semibold">{value || "—"}</dd>
     </div>
   )
 }
@@ -30,20 +33,25 @@ export default function EmployeeProfilePage() {
   const navigate = useNavigate()
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState("")
+  const [errorCode, setErrorCode] = useState("")
   const [loading, setLoading] = useState(true)
   const [reloadToken, setReloadToken] = useState(0)
+  const [editOpen, setEditOpen] = useState(false)
   const [changeOpen, setChangeOpen] = useState(false)
+  const [offboardOpen, setOffboardOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true)
     setError("")
+    setErrorCode("")
     getEmployee(id, { signal: controller.signal })
       .then((body) => setPayload(apiData(body)))
       .catch((caught) => {
         if (caught.name === "AbortError") return
         setError(caught.message || "Could not load employee")
+        setErrorCode(caught.code || "")
         setPayload(null)
       })
       .finally(() => {
@@ -55,9 +63,10 @@ export default function EmployeeProfilePage() {
   const employee = payload?.employee
   const current = payload?.current_compensation
   const history = payload?.compensation_records || []
+  const left = employee?.status === "left"
 
   return (
-    <section className="acme-profile">
+    <section className="superadmin-page superadmin-page--profile">
       <BreadcrumbHeader
         id="employee-profile-crumbs"
         items={[
@@ -71,12 +80,33 @@ export default function EmployeeProfilePage() {
         showLeadingIcon
         onBack={() => navigate("/employees")}
         showTag={Boolean(employee)}
-        tagLabel={employee?.status === "left" ? "Left" : "Active"}
+        tagLabel={left ? "Left" : "Active"}
+        tagType={left ? "default" : "success"}
+        showSecondaryButton={Boolean(employee)}
+        secondaryButtonLabel="Edit"
+        secondaryIcon="edit"
+        onSecondary={() => setEditOpen(true)}
         showPrimaryButton={employee?.status === "active"}
         primaryButtonLabel="Record pay change"
         primaryIcon="payments"
         onPrimary={() => setChangeOpen(true)}
+        moreMenuItems={
+          employee?.status === "active"
+            ? [ { label: "Mark as left", onClick: () => setOffboardOpen(true) } ]
+            : []
+        }
       />
+      {editOpen && employee ? (
+        <EditEmployeeModal
+          employee={employee}
+          onCancel={() => setEditOpen(false)}
+          onSuccess={() => {
+            setEditOpen(false)
+            setToast({ title: "Employee updated" })
+            setReloadToken((token) => token + 1)
+          }}
+        />
+      ) : null}
       {changeOpen && employee ? (
         <CompensationChangeModal
           employee={employee}
@@ -89,85 +119,113 @@ export default function EmployeeProfilePage() {
           }}
         />
       ) : null}
+      {offboardOpen && employee ? (
+        <OffboardEmployeeModal
+          employee={employee}
+          onCancel={() => setOffboardOpen(false)}
+          onSuccess={() => {
+            setOffboardOpen(false)
+            setToast({ title: "Marked as left" })
+            setReloadToken((token) => token + 1)
+          }}
+        />
+      ) : null}
       <PageToast
         title={toast?.title}
         color="green"
         onDismiss={() => setToast(null)}
       />
 
-      {loading ? <div className="pattern-page__scroll" aria-busy="true" /> : null}
-      {error && !employee ? (
-        <PageLoadError title="Couldn't load employee" onRetry={() => setReloadToken((current) => current + 1)} />
-      ) : null}
+      <div className="superadmin-page__body acme-profile">
+        {loading ? <div className="page-loader" aria-busy="true" /> : null}
+        {error && !employee && errorCode === "not_found" ? (
+          <StatusPage
+            variant="not_found"
+            inset
+            title="Employee not found"
+            description="This person is not in the directory."
+            secondaryLabel="Back to Employees"
+            onSecondary={() => navigate("/employees")}
+          />
+        ) : null}
+        {error && !employee && errorCode !== "not_found" ? (
+          <PageLoadError title="Couldn't load employee" onRetry={() => setReloadToken((current) => current + 1)} />
+        ) : null}
 
-      {employee ? (
-        <>
-          <dl className="acme-profile__grid">
-            <Field label="Email" value={employee.email} />
-            <Field label="Department" value={titleCase(employee.department)} />
-            <Field label="Country" value={employee.country} />
-            <Field label="Type" value={employee.employment_type} />
-            <Field label="Level" value={employee.level} />
-            <Field label="Started" value={employee.started_on} />
-            <Field label="Left" value={employee.left_on} />
-          </dl>
+        {employee ? (
+          <div className="acme-profile__stack">
+            <section className="acme-profile__card" aria-labelledby="profile-details-title">
+              <h2 id="profile-details-title" className="april-text-style april-text-style--text-lg-semibold">
+                Details
+              </h2>
+              <dl className="acme-profile__grid">
+                <Field label="Email" value={employee.email} />
+                <Field label="Department" value={titleCase(employee.department)} />
+                <Field label="Country" value={employee.country} />
+                <Field label="Type" value={titleCase(employee.employment_type)} />
+                <Field label="Level" value={employee.level} />
+                <Field label="Started" value={employee.started_on} />
+                <Field label="Left" value={employee.left_on} />
+              </dl>
+            </section>
 
-          <section className="acme-profile__comp" aria-labelledby="current-comp-title">
-            <h2 id="current-comp-title" className="april-text-style april-text-style--text-lg-semibold">
-              Current compensation
-            </h2>
-            {current ? (
-              <>
-                <p className="april-text-style april-text-style--display-xs-semibold">
-                  {formatUsd(current.annualised_usd)}
-                  <span className="acme-profile__comp-meta april-text-style april-text-style--text-md-regular">
-                    {" "}annualised USD
-                  </span>
-                </p>
-                <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(current)}</p>
-                <p className="april-text-style april-text-style--text-sm-regular">
-                  Effective {current.effective_date}
-                  {current.change_reason ? ` · ${current.change_reason}` : ""}
-                </p>
-              </>
-            ) : (
-              <p className="april-text-style april-text-style--text-md-regular">No compensation on file.</p>
-            )}
-          </section>
+            <section className="acme-profile__card acme-profile__comp" aria-labelledby="current-comp-title">
+              <h2 id="current-comp-title" className="april-text-style april-text-style--text-lg-semibold">
+                Current compensation
+              </h2>
+              {current ? (
+                <>
+                  <p className="april-text-style april-text-style--display-xs-semibold">
+                    {formatUsd(current.annualised_usd)}
+                    <span className="acme-profile__comp-meta april-text-style april-text-style--text-md-regular">
+                      {" "}annualised USD
+                    </span>
+                  </p>
+                  <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(current)}</p>
+                  <p className="april-text-style april-text-style--text-sm-regular">
+                    Effective {current.effective_date}
+                    {current.change_reason ? ` · ${titleCase(current.change_reason)}` : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="april-text-style april-text-style--text-md-regular">No compensation on file.</p>
+              )}
+            </section>
 
-          <section aria-labelledby="comp-history-title">
-            <h2 id="comp-history-title" className="april-text-style april-text-style--text-lg-semibold">
-              Compensation history
-            </h2>
-            {history.length === 0 ? (
-              <p className="april-text-style april-text-style--text-md-regular">No effective-dated changes yet.</p>
-            ) : (
-              <ol className="acme-profile__timeline">
-                {history.map((record) => {
-                  const currentItem = current && record.id === current.id
-                  return (
-                    <li key={record.id} className="acme-profile__timeline-item">
-                      <div className="acme-profile__timeline-when">
-                        <p className="april-text-style april-text-style--text-sm-semibold">{record.effective_date}</p>
-                        {currentItem ? <Tag type="success" label="Current" leadingIcon={false} trailingIcon={false} /> : null}
-                      </div>
-                      <div>
-                        <p className="april-text-style april-text-style--text-md-semibold">
-                          {titleCase(record.change_reason || "Compensation change")}
-                        </p>
-                        <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(record)}</p>
-                        <p className="april-text-style april-text-style--text-sm-regular">
-                          {formatUsd(record.annualised_usd)} annualised USD
-                        </p>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            )}
-          </section>
-        </>
-      ) : null}
+            <section className="acme-profile__card acme-profile__history" aria-labelledby="comp-history-title">
+              <h2 id="comp-history-title" className="april-text-style april-text-style--text-lg-semibold">
+                Compensation history
+              </h2>
+              {history.length === 0 ? (
+                <p className="april-text-style april-text-style--text-md-regular">No effective-dated changes yet.</p>
+              ) : (
+                <ol className="acme-profile__timeline">
+                  {history.map((record) => {
+                    const currentItem = current && record.id === current.id
+                    return (
+                      <li key={record.id} className="acme-profile__timeline-item">
+                        <div className="acme-profile__timeline-when">
+                          <p className="april-text-style april-text-style--text-sm-semibold">{record.effective_date}</p>
+                          {currentItem ? <Tag type="success" label="Current" leadingIcon={false} trailingIcon={false} /> : null}
+                        </div>
+                        <div>
+                          <p className="april-text-style april-text-style--text-md-semibold">
+                            {titleCase(record.change_reason || "Compensation change")}
+                          </p>
+                          <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(record)}</p>
+                          <p className="april-text-style april-text-style--text-sm-regular">
+                            {formatUsd(record.annualised_usd)} annualised USD
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+              )}
+            </section>
+          </div>
+        ) : null}
+      </div>
     </section>
   )
 }

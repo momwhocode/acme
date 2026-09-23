@@ -1,0 +1,2 @@
+first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason
+Ada,Lovelace,ada.import@acme.test,GB,engineering,full-time,active,IC2,2024-01-01,,80000,GBP,annual,,2024-01-01,hire

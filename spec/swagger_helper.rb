@@ -22,8 +22,9 @@ RSpec.configure do |config|
       tags: [
         { name: "Health", description: "Liveness. No session." },
         { name: "Session", description: "HR login, current user, logout." },
-        { name: "Employees", description: "Directory, onboard, and offboard." },
+        { name: "Employees", description: "Directory, onboard, import, and offboard." },
         { name: "Compensation", description: "Effective-dated raises and promotions." },
+        { name: "Analytics", description: "SQL-aggregated payroll, headcount mix, and compensation stats." },
         {
           name: "Errors",
           description: "Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400 invalid_request. Unexpected failures are 500 internal_error and never leak the exception."
@@ -238,6 +239,21 @@ RSpec.configure do |config|
               }
             }
           },
+          ImportResponse: {
+            type: :object,
+            required: %w[data],
+            properties: {
+              data: {
+                type: :object,
+                required: %w[employees compensation_records skipped],
+                properties: {
+                  employees: { type: :integer, example: 2 },
+                  compensation_records: { type: :integer, example: 3 },
+                  skipped: { type: :integer, example: 0 }
+                }
+              }
+            }
+          },
           OffboardResponse: {
             type: :object,
             required: %w[data],
@@ -291,11 +307,90 @@ RSpec.configure do |config|
               }
             ]
           },
+          EmployeeUpdateRequest: {
+            type: :object,
+            properties: {
+              first_name: { type: :string, example: "Grace" },
+              last_name: { type: :string, example: "Hopper" },
+              email: { type: :string, format: :email, example: "grace@acme.test" },
+              country: { type: :string, example: "US" },
+              department: { type: :string, example: "sales" },
+              employment_type: { type: :string, enum: %w[full-time part-time contractor freelancer intern] },
+              level: { type: :string, nullable: true, example: "IC3" },
+              started_on: { type: :string, format: :date, example: "2024-01-01" }
+            }
+          },
           OffboardRequest: {
             type: :object,
             required: %w[left_on],
             properties: {
               left_on: { type: :string, format: :date, example: "2025-06-01" }
+            }
+          },
+          AnalyticsMix: {
+            type: :object,
+            required: %w[headcount],
+            properties: {
+              employment_type: { type: :string, example: "full-time" },
+              department: { type: :string, example: "engineering" },
+              country: { type: :string, example: "GB" },
+              currency: { type: :string, example: "GBP" },
+              headcount: { type: :integer, example: 120 },
+              payroll_usd: { "$ref" => "#/components/schemas/Decimal" },
+              payroll_local: { "$ref" => "#/components/schemas/Decimal" }
+            }
+          },
+          Analytics: {
+            type: :object,
+            required: %w[data],
+            properties: {
+              data: {
+                type: :object,
+                required: %w[annualised_usd by_type by_department],
+                properties: {
+                  headcount: { type: :integer },
+                  annualised_usd: { "$ref" => "#/components/schemas/Decimal" },
+                  average_usd: { allOf: [ { "$ref" => "#/components/schemas/Decimal" } ], nullable: true },
+                  median_usd: { allOf: [ { "$ref" => "#/components/schemas/Decimal" } ], nullable: true },
+                  monthly_usd: { "$ref" => "#/components/schemas/Decimal" },
+                  by_type: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
+                  by_department: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
+                  by_country: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
+                  by_currency: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
+                  fx_rates: {
+                    type: :array,
+                    items: {
+                      type: :object,
+                      required: %w[currency to_usd],
+                      properties: {
+                        currency: { type: :string, example: "GBP" },
+                        to_usd: { "$ref" => "#/components/schemas/Decimal" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          AnalyticsAsk: {
+            type: :object,
+            required: %w[data],
+            properties: {
+              data: {
+                type: :object,
+                required: %w[answer],
+                properties: {
+                  question: { type: :string },
+                  answer: { type: :string }
+                }
+              }
+            }
+          },
+          AnalyticsAskRequest: {
+            type: :object,
+            required: %w[question],
+            properties: {
+              question: { type: :string, maxLength: 255, example: "What is the total annualised payroll?" }
             }
           },
           LoginRequest: {

@@ -64,7 +64,7 @@ FORCE=1 COUNT=10000 bin/rails directory:seed
 bin/rails directory:import FILE=tmp/employees.csv
 ```
 
-CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are skipped. Import does not write FX rates.
+CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are skipped. Import does not write FX rates. HR can also import from Employees → Import (template at `/templates/acme-employees.csv`) or `POST /api/v1/employees/import`.
 
 - App: http://localhost:3000 — sign in as `hr@acme.test` / `whiteaeroplane`
 - API: http://localhost:3000/api/v1/health
@@ -73,7 +73,8 @@ CSV columns: `first_name,last_name,email,country,department,employment_type,stat
 - Directory: `GET /api/v1/employees?page=1&per_page=25&country=GB&department=engineering&type=full-time&status=active&q=ada` (HR session)
 - Onboard: `POST /api/v1/employees` with nested `compensation`
 - Raise / promotion: `POST /api/v1/employees/:id/compensation_records` (optional `level`)
-- Offboard: `PATCH /api/v1/employees/:id/offboard` with `left_on`
+- Offboard: `PATCH /api/v1/employees/:id/offboard` with `left_on`. Profile → More actions → Mark as left.
+- Import: `POST /api/v1/employees/import` (`file` multipart CSV, max 5 MB)
 - Storybook: `npm run storybook` → http://localhost:6006
 
 Production must set `HR_PASSWORD` (and optionally `HR_EMAIL`) before the first seed. The default password is development/test only.

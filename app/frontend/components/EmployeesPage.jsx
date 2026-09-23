@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { PageToast } from "../april/components/PageToast"
+import ImportEmployeesModal from "./ImportEmployeesModal"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
+import { importToastTitle } from "../lib/employees"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
 import {
   EMPLOYEES_TABLE_COLUMNS,
@@ -16,9 +18,18 @@ import { useEmployeesDirectory } from "../lib/useEmployeesDirectory"
 
 export default function EmployeesPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const directory = useEmployeesDirectory()
-  const [onboardOpen, setOnboardOpen] = useState(false)
+  const [onboardOpen, setOnboardOpen] = useState(() => searchParams.get("onboard") === "1")
+  const [importOpen, setImportOpen] = useState(false)
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    if (searchParams.get("onboard") !== "1") return
+    const next = new URLSearchParams(searchParams)
+    next.delete("onboard")
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
   const extensions = useMemo(
     () => createEmployeesTableExtensions({ onDetails: (row) => navigate(`/employees/${row.id}`) }),
     [navigate]
@@ -29,15 +40,29 @@ export default function EmployeesPage() {
   )
 
   return (
-    <section className="acme-listing">
+    <section className="superadmin-page superadmin-page--listing acme-listing">
       <PageTitleNavHeader
         pageTitle="Employees"
         id="employees-title"
+        showSecondaryButton
+        secondaryButtonLabel="Import"
+        secondaryIcon="upload"
+        onSecondary={() => setImportOpen(true)}
         showPrimaryButton
         primaryButtonLabel="Onboard"
         primaryIcon="person_add"
         onPrimary={() => setOnboardOpen(true)}
       />
+      {importOpen ? (
+        <ImportEmployeesModal
+          onCancel={() => setImportOpen(false)}
+          onSuccess={(result) => {
+            setImportOpen(false)
+            setToast({ title: importToastTitle(result) })
+            directory.retry()
+          }}
+        />
+      ) : null}
       {onboardOpen ? (
         <OnboardEmployeeModal
           onCancel={() => setOnboardOpen(false)}
@@ -53,38 +78,40 @@ export default function EmployeesPage() {
         color="green"
         onDismiss={() => setToast(null)}
       />
-      {directory.error && !directory.rows.length ? (
-        <PageLoadError title="Couldn't load employees" onRetry={directory.retry} />
-      ) : (
-        <ListingTableCard
-          id="employees-table"
-          filterChips={directory.filterChips}
-          filterValues={directory.filterValues}
-          searchValue={directory.searchValue}
-          searchPlaceholder="Search name or email"
-          columnOptions={employeeColumnOptions()}
-          visibleColumnIds={directory.visibleColumnIds}
-          onFilterChange={directory.handleFilterChange}
-          onSearchChange={directory.handleSearchChange}
-          onClearAll={directory.handleClearAll}
-          onColumnToggle={onColumnToggle}
-          clearGeneration={directory.clearGeneration}
-          rows={directory.rows}
-          isDatasetEmpty={directory.isDatasetEmpty}
-          hasActiveFilters={directory.hasActiveFilters}
-          tableColumns={visibleEmployeeColumns(directory.visibleColumnIds)}
-          tableType={directory.loading ? "loading" : "default"}
-          tableExtensions={extensions}
-          skeletonRows={8}
-          pagination={{
-            page: directory.pagination.page,
-            totalPages: directory.pagination.pages,
-            totalCount: directory.pagination.count,
-            perPage: directory.pagination.limit
-          }}
-          onPageChange={directory.handlePageChange}
-        />
-      )}
+      <div className="superadmin-page__table">
+        {directory.error && !directory.rows.length ? (
+          <PageLoadError title="Couldn't load employees" onRetry={directory.retry} />
+        ) : (
+          <ListingTableCard
+            id="employees-table"
+            filterChips={directory.filterChips}
+            filterValues={directory.filterValues}
+            searchValue={directory.searchValue}
+            searchPlaceholder="Search name or email"
+            columnOptions={employeeColumnOptions()}
+            visibleColumnIds={directory.visibleColumnIds}
+            onFilterChange={directory.handleFilterChange}
+            onSearchChange={directory.handleSearchChange}
+            onClearAll={directory.handleClearAll}
+            onColumnToggle={onColumnToggle}
+            clearGeneration={directory.clearGeneration}
+            rows={directory.rows}
+            isDatasetEmpty={directory.isDatasetEmpty}
+            hasActiveFilters={directory.hasActiveFilters}
+            tableColumns={visibleEmployeeColumns(directory.visibleColumnIds)}
+            tableType={directory.loading ? "loading" : "default"}
+            tableExtensions={extensions}
+            skeletonRows={8}
+            pagination={{
+              page: directory.pagination.page,
+              totalPages: directory.pagination.pages,
+              totalCount: directory.pagination.count,
+              perPage: directory.pagination.limit
+            }}
+            onPageChange={directory.handlePageChange}
+          />
+        )}
+      </div>
     </section>
   )
 }
