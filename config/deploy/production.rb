@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 set :stage, :production
-set :branch, ENV.fetch("CAPISTRANO_BRANCH", "production")
+set :branch, ENV.fetch("CAPISTRANO_BRANCH", "main")
 
 server "15.252.167.21", user: "deploy", roles: %w[web app db]
 set :rails_env, :production
 set :ssh_options, {
-  forward_agent: true,
+  user: "deploy",
   auth_methods: %w[publickey]
 }
 

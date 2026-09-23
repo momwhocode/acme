@@ -1,6 +1,6 @@
-# Copy to local.rb (gitignored). Point at the SSH key on this laptop — never commit the key.
+# Copy to local.rb (gitignored) only if you need extra SSH options.
+# Default is the deploy user with your Mac keys from ~/.ssh — no PEM.
 # set :ssh_options, {
-#   keys: [ File.expand_path("~/.ssh/YOUR_DEPLOY_KEY") ],
-#   forward_agent: true,
+#   user: "deploy",
 #   auth_methods: %w[publickey]
 # }

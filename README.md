@@ -122,13 +122,14 @@ scp config/deploy/templates/database.yml deploy@15.252.167.21:/var/www/acme/shar
 # set the database password in that server file, chmod 600 both files
 ```
 
-Point SSH at your local key via `~/.ssh/config` or `cp config/deploy/local.rb.example config/deploy/local.rb` (gitignored).
+Only a developer who can SSH as `deploy` (Mac key on the server, no PEM) can deploy:
 
 ```sh
+ssh deploy@15.252.167.21
 bundle exec cap production deploy
 ```
 
-A push to `production` runs `cap production deploy` (`.github/workflows/deploy.yml`). Add the repo secret `SSH_PRIVATE_KEY` (the deploy user’s private key). The server must already have a GitHub deploy key so it can clone `git@github.com:momwhocode/acme.git`. Do not commit keys.
+GitHub Actions on `main` push/PR — frontend and backend lint + specs in parallel (`.github/workflows/ci.yml`). Deploy is only from a machine that can SSH as `deploy`.
 
 ## Test and lint
 

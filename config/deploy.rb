@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# Capistrano: nginx → Puma. Secrets stay on the laptop and in /var/www/acme/shared —
-# this file never uploads keys or passwords.
+# Capistrano: nginx → Puma. Only a developer who can SSH as deploy can run
+# `bundle exec cap production deploy` from their machine. Secrets stay local
+# and in /var/www/acme/shared — this file never uploads keys or passwords.
 
 lock "~> 3.20.0"
 

@@ -1,0 +1,43 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  backend:
+    name: Backend lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: RuboCop
+        run: bin/rubocop -f github
+
+      - name: Brakeman
+        run: bin/brakeman --no-pager
+
+  frontend:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
