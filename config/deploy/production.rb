@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 set :stage, :production
-set :branch, "main"
+set :branch, ENV.fetch("CAPISTRANO_BRANCH", "production")
 
 server "15.252.167.21", user: "deploy", roles: %w[web app db]
 set :rails_env, :production

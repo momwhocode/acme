@@ -128,6 +128,8 @@ Point SSH at your local key via `~/.ssh/config` or `cp config/deploy/local.rb.ex
 bundle exec cap production deploy
 ```
 
+A push to `production` runs `cap production deploy` (`.github/workflows/deploy.yml`). Add the repo secret `SSH_PRIVATE_KEY` (the deploy user’s private key). The server must already have a GitHub deploy key so it can clone `git@github.com:momwhocode/acme.git`. Do not commit keys.
+
 ## Test and lint
 
 ```sh
