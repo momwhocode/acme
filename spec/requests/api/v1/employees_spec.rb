@@ -119,4 +119,25 @@ RSpec.describe "GET /api/v1/employees" do
     expect(response).to have_http_status(:unprocessable_content)
     expect(api_error).to include("code" => "invalid_request", "message" => "q is too long")
   end
+
+  it "filters by multiple statuses" do
+    sign_in_hr
+    active = create(:employee, status: "active")
+    left = create(:employee, :left, email: "left@acme.test")
+
+    get "/api/v1/employees", params: { status: "active,left" }
+
+    expect(api_data.fetch("employees").pluck("id")).to contain_exactly(active.id, left.id)
+  end
+
+  it "filters by multiple types" do
+    sign_in_hr
+    intern = create(:employee, employment_type: "intern")
+    contractor = create(:employee, employment_type: "contractor", email: "c@acme.test")
+    create(:employee, employment_type: "full-time", email: "ft@acme.test")
+
+    get "/api/v1/employees", params: { type: "intern,contractor" }
+
+    expect(api_data.fetch("employees").pluck("id")).to contain_exactly(intern.id, contractor.id)
+  end
 end

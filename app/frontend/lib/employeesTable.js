@@ -147,7 +147,7 @@ export function employeeTableRow(employee) {
     email: employee.email,
     department: titleCase(employee.department),
     country: employee.country,
-    employment_type: employee.employment_type,
+    employment_type: titleCase(employee.employment_type),
     status: employee.status === "left" ? "Left" : "Active",
     statusType: employee.status === "left" ? "default" : "success",
     level: employee.level || "—",

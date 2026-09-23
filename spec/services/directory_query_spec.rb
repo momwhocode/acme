@@ -97,4 +97,20 @@ RSpec.describe DirectoryQuery do
 
     expect(relation_for(country: "gb,us")).to contain_exactly(gb, us)
   end
+
+  it "filters by a comma-separated status list" do
+    active = create(:employee, status: "active")
+    left = create(:employee, :left, email: "left@acme.test")
+
+    expect(relation_for(status: "active,left")).to contain_exactly(active, left)
+  end
+
+  it "filters by a comma-separated type list" do
+    intern = create(:employee, employment_type: "intern")
+    contractor = create(:employee, employment_type: "contractor", email: "c@acme.test")
+    create(:employee, employment_type: "full-time", email: "ft@acme.test")
+
+    expect(relation_for(type: "intern,contractor")).to contain_exactly(intern, contractor)
+  end
 end
+

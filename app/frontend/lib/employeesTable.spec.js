@@ -47,6 +47,7 @@ describe("employeesTable", () => {
       id: "1",
       name: "Ada Lovelace",
       department: "Engineering",
+      employment_type: "Full Time",
       status: "Active",
       pay: "$100,000",
       initials: "AL"

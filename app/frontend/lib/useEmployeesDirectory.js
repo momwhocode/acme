@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useLocation, useSearchParams } from "react-router-dom"
 import { apiData, apiMeta } from "./http.js"
 import { listEmployees } from "./employees.js"
 import { defaultVisibleColumnIds } from "./tableColumns.js"
@@ -31,6 +31,7 @@ function filtersFromParams(searchParams) {
 }
 
 export function useEmployeesDirectory() {
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchValue, setSearchValue] = useState(() => searchParams.get("q") || "")
   const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get("q") || "")
@@ -59,7 +60,7 @@ export function useEmployeesDirectory() {
       if (selected.length) next.set(key, selected.join(","))
     })
     setSearchParams(next, { replace: true })
-  }, [debouncedSearch, filterValues, page, setSearchParams])
+  }, [debouncedSearch, filterValues, location.pathname, page, setSearchParams])
 
   useEffect(() => {
     const controller = new AbortController()

@@ -2,7 +2,7 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import EmployeesPage from "./EmployeesPage"
 
 vi.mock("../lib/employees", async () => {
@@ -14,13 +14,24 @@ vi.mock("../lib/employees", async () => {
 })
 
 import { listEmployees } from "../lib/employees"
+import { downloadSelectedEmployees } from "../lib/employeesTable"
+
+vi.mock("../lib/employeesTable", async () => {
+  const actual = await vi.importActual("../lib/employeesTable")
+  return { ...actual, downloadSelectedEmployees: vi.fn() }
+})
+
+function LocationEcho({ prefix }) {
+  const location = useLocation()
+  return <p>{`${prefix} ${location.pathname}${location.search}`}</p>
+}
 
 function renderDirectory(path = "/employees") {
   return render(
     <MemoryRouter initialEntries={[ path ]}>
       <Routes>
         <Route path="/employees" element={<EmployeesPage />}>
-          <Route path=":id" element={<p>Profile</p>} />
+          <Route path=":id" element={<LocationEcho prefix="Profile" />} />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -122,5 +133,54 @@ describe("EmployeesPage", () => {
 
     expect(screen.getByRole("heading", { name: "Import employees" })).toBeTruthy()
     expect(screen.getByText("Download the column template")).toBeTruthy()
+  })
+
+  it("loads filters from the URL", async () => {
+    renderDirectory("/employees?status=active&type=full-time")
+    await screen.findByText("Ada Lovelace")
+
+    expect(listEmployees).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "active", type: "full-time", page: 1 }),
+      expect.any(Object)
+    )
+  })
+
+  it("keeps directory filters when opening a profile", async () => {
+    const user = userEvent.setup()
+    renderDirectory("/employees?status=active")
+    await screen.findByText("Ada Lovelace")
+
+    await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
+    await user.click(screen.getByRole("menuitem", { name: "View profile" }))
+
+    expect(screen.getByText("Profile /employees/emp-1?status=active")).toBeTruthy()
+  })
+
+  it("exports the selected rows", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByText("Ada Lovelace")
+
+    await user.click(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" }))
+    await user.click(screen.getByRole("button", { name: "Export" }))
+
+    expect(downloadSelectedEmployees).toHaveBeenCalledWith(
+      expect.arrayContaining([ expect.objectContaining({ id: "emp-1", name: "Ada Lovelace" }) ])
+    )
+  })
+
+  it("fetches the next page", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByText("Ada Lovelace")
+
+    await user.click(screen.getByRole("button", { name: "Next page" }))
+
+    await waitFor(() => {
+      expect(listEmployees).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(Object)
+      )
+    })
   })
 })

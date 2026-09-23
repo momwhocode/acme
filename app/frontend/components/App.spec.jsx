@@ -9,7 +9,7 @@ vi.mock("../lib/session", () => ({
 
 vi.mock("../lib/employees", async () => {
   const actual = await vi.importActual("../lib/employees")
-  return { ...actual, listEmployees: vi.fn() }
+  return { ...actual, listEmployees: vi.fn(), getEmployee: vi.fn() }
 })
 
 vi.mock("../lib/analytics", async () => {
@@ -19,7 +19,7 @@ vi.mock("../lib/analytics", async () => {
 
 import { SESSION_EXPIRED_EVENT } from "../lib/http"
 import { getAnalytics } from "../lib/analytics"
-import { listEmployees } from "../lib/employees"
+import { getEmployee, listEmployees } from "../lib/employees"
 import { readSession } from "../lib/session"
 
 describe("App routes", () => {
@@ -32,6 +32,23 @@ describe("App routes", () => {
     listEmployees.mockResolvedValue({
       data: { employees: [] },
       meta: { pagination: { count: 0 }, facets: { countries: [], departments: [] } }
+    })
+    getEmployee.mockResolvedValue({
+      data: {
+        employee: {
+          id: "emp-1",
+          first_name: "Ada",
+          last_name: "Lovelace",
+          email: "ada@acme.test",
+          department: "engineering",
+          country: "GB",
+          employment_type: "full-time",
+          status: "active",
+          started_on: "2024-01-01"
+        },
+        current_compensation: null,
+        compensation_records: []
+      }
     })
     getAnalytics.mockResolvedValue({
       data: {
@@ -99,5 +116,14 @@ describe("App routes", () => {
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Salary management" })).toBeTruthy()
     })
+  })
+
+  it("opens a nested employee profile over the directory", async () => {
+    readSession.mockResolvedValue({ first_name: "Ada", last_name: "Lovelace", email: "hr@acme.test" })
+    window.history.replaceState({}, "", "/employees/emp-1")
+    render(<App />)
+
+    expect(await screen.findByRole("heading", { name: "Ada Lovelace" })).toBeTruthy()
+    expect(screen.getByLabelText("HR navigation")).toBeTruthy()
   })
 })

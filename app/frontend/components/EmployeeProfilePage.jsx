@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate, useOutletContext, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { Button } from "../april/components/Button"
 import { IconMenuDropdown } from "../april/components/IconMenuDropdown"
 import { Modal } from "../april/components/Modal"
@@ -11,7 +11,9 @@ import EditEmployeeModal from "./EditEmployeeModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import { getEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
+import { formatAprilShortDate } from "../april/renderers/date-time"
 import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
+import { renderCountryCell } from "../lib/tableCellRenderers"
 
 function Field({ label, value }) {
   return (
@@ -31,6 +33,7 @@ function compensationCopy(record) {
 export default function EmployeeProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { onEmployeeChanged } = useOutletContext() || {}
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState("")
@@ -42,7 +45,7 @@ export default function EmployeeProfilePage() {
   const [offboardOpen, setOffboardOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
-  const close = () => navigate("/employees")
+  const close = () => navigate({ pathname: "/employees", search: location.search })
   const refresh = () => {
     setReloadToken((token) => token + 1)
     onEmployeeChanged?.()
@@ -146,11 +149,11 @@ export default function EmployeeProfilePage() {
               <dl className="acme-profile__grid">
                 <Field label="Email" value={employee.email} />
                 <Field label="Department" value={titleCase(employee.department)} />
-                <Field label="Country" value={employee.country} />
+                <Field label="Country" value={renderCountryCell(employee.country)} />
                 <Field label="Type" value={titleCase(employee.employment_type)} />
                 <Field label="Level" value={employee.level} />
-                <Field label="Started" value={employee.started_on} />
-                <Field label="Left" value={employee.left_on} />
+                <Field label="Started" value={formatAprilShortDate(employee.started_on)} />
+                <Field label="Left" value={formatAprilShortDate(employee.left_on)} />
               </dl>
             </section>
 
@@ -168,7 +171,7 @@ export default function EmployeeProfilePage() {
                   </p>
                   <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(current)}</p>
                   <p className="april-text-style april-text-style--text-sm-regular">
-                    Effective {current.effective_date}
+                    Effective {formatAprilShortDate(current.effective_date)}
                     {current.change_reason ? ` · ${titleCase(current.change_reason)}` : ""}
                   </p>
                 </>
@@ -190,7 +193,7 @@ export default function EmployeeProfilePage() {
                     return (
                       <li key={record.id} className="acme-profile__timeline-item">
                         <div className="acme-profile__timeline-when">
-                          <p className="april-text-style april-text-style--text-sm-semibold">{record.effective_date}</p>
+                          <p className="april-text-style april-text-style--text-sm-semibold">{formatAprilShortDate(record.effective_date)}</p>
                           {currentItem ? <Tag type="success" label="Current" leadingIcon={false} trailingIcon={false} /> : null}
                         </div>
                         <div>

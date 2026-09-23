@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import EmployeeProfilePage from "./EmployeeProfilePage"
 
 vi.mock("../lib/employees", async () => {
@@ -77,6 +77,8 @@ describe("EmployeeProfilePage", () => {
     )
 
     expect(await screen.findByRole("heading", { name: "Ada Lovelace" })).toBeTruthy()
+    expect(screen.getByText("United Kingdom")).toBeTruthy()
+    expect(screen.getAllByText("1 Jan-2024").length).toBeGreaterThan(0)
     expect(screen.getByRole("heading", { name: "Details" })).toBeTruthy()
     expect(screen.getByRole("heading", { name: "Current compensation" })).toBeTruthy()
     expect(screen.getByText("Current")).toBeTruthy()
@@ -202,5 +204,26 @@ describe("EmployeeProfilePage", () => {
     await screen.findByRole("heading", { name: "Ada Lovelace" })
     await user.click(screen.getByRole("button", { name: "Close" }))
     expect(screen.getByText("Directory")).toBeTruthy()
+  })
+
+  it("keeps directory filters when closing", async () => {
+    function DirectoryEcho() {
+      const location = useLocation()
+      return <p>{`Directory ${location.pathname}${location.search}`}</p>
+    }
+
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1?status=active&q=ada" ]}>
+        <Routes>
+          <Route path="/employees" element={<DirectoryEcho />} />
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("button", { name: "Close" }))
+    expect(screen.getByText("Directory /employees?status=active&q=ada")).toBeTruthy()
   })
 })

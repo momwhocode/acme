@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Outlet, useNavigate, useSearchParams } from "react-router-dom"
+import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { FloatingBar } from "../april/components/FloatingBar"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
@@ -22,6 +22,7 @@ import { useEmployeesDirectory } from "../lib/useEmployeesDirectory"
 
 export default function EmployeesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const directory = useEmployeesDirectory()
   const [onboardOpen, setOnboardOpen] = useState(() => searchParams.get("onboard") === "1")
@@ -46,10 +47,10 @@ export default function EmployeesPage() {
   const extensions = useMemo(
     () =>
       createEmployeesTableExtensions({
-        onDetails: (row) => navigate(`/employees/${row.id}`),
+        onDetails: (row) => navigate({ pathname: `/employees/${row.id}`, search: location.search }),
         onOffboard: setOffboardRow
       }),
-    [navigate]
+    [location.search, navigate]
   )
   const onColumnToggle = useMemo(
     () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, directory.setVisibleColumnIds),
