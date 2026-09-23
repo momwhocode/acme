@@ -1,3 +1,5 @@
+/** HR session form. Validation stays client-side until the request is sent. */
+
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AuthBrand } from "../april/components/AuthBrand"

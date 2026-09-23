@@ -15,12 +15,18 @@
 #  status          :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  manager_id      :uuid
 #
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
 #  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
+#  index_employees_on_manager_id         (manager_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (manager_id => employees.id)
 #
 FactoryBot.define do
   factory :employee do

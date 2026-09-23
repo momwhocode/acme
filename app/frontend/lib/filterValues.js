@@ -25,10 +25,6 @@ export function readFilterSelection(value) {
   return [value];
 }
 
-export function normalizeFilterSelection(value) {
-  return readFilterSelection(value);
-}
-
 export function isNoneFilterSelected(value) {
   return readFilterSelection(value).length === 0;
 }
@@ -92,22 +88,6 @@ export function filterOptionsToSelectGroups(options, value) {
       }),
     },
   ];
-}
-
-export function serializeFilterParams(filters = {}) {
-  const params = {};
-  for (const [key, value] of Object.entries(filters)) {
-    const selected = readFilterSelection(value);
-    if (selected.length > 0) params[key] = selected.join(",");
-  }
-  return params;
-}
-
-export function matchesFilterValue(userValue, filterValue, options = null) {
-  const selected = readFilterSelection(filterValue);
-  if (selected.length === 0) return true;
-  if (options && isAllFilterSelected(filterValue, options)) return true;
-  return selected.includes(userValue);
 }
 
 export function countActiveFilters(filterKeys, filterValues = {}) {

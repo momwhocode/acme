@@ -55,14 +55,20 @@ class DirectoryImporter
 
   def persist(grouped)
     now = Time.current
-    existing = Employee.where(email: grouped.keys).pluck(:email).to_set
+    existing = Employee.where(email: grouped.keys).index_by(&:email)
     employees = []
     compensations = []
+    updated = 0
+    updated_comps = 0
 
     grouped.each do |email, rows|
-      next if existing.include?(email)
-
       employee_attrs, compensation_attrs = records_from(rows, email, now)
+      if (employee = existing[email])
+        updated += 1
+        updated_comps += upsert_existing!(employee, employee_attrs, compensation_attrs)
+        next
+      end
+
       validate!(employee_attrs, compensation_attrs, email)
       employees << employee_attrs
       compensations.concat(compensation_attrs)
@@ -71,9 +77,19 @@ class DirectoryImporter
     write!(employees, compensations)
     {
       employees: employees.size,
-      compensation_records: compensations.size,
-      skipped: grouped.size - employees.size
+      updated: updated,
+      compensation_records: compensations.size + updated_comps,
+      skipped: 0
     }
+  end
+
+  def upsert_existing!(employee, employee_attrs, compensation_attrs)
+    employee.update!(employee_attrs.except(:id, :email, :created_at, :updated_at))
+    compensation_attrs.count do |attrs|
+      record = employee.compensation_records.find_or_initialize_by(effective_date: attrs[:effective_date])
+      record.assign_attributes(attrs.except(:id, :employee_id, :created_at, :updated_at))
+      record.save!
+    end
   end
 
   def records_from(rows, email, now)

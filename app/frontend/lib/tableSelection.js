@@ -1,3 +1,5 @@
+/** Checkbox selection for listing tables. Excluded ids stay unselectable. */
+
 import { useMemo } from "react";
 
 /** Shared row selection state for data tables with checkbox column */

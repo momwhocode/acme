@@ -1,3 +1,5 @@
+/** Edit identity and employment fields for an existing hire. */
+
 import { useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { FormDateField } from "../april/components/FormDateField"
@@ -11,8 +13,10 @@ import {
   employeeIdentityErrors,
   fieldErrorText,
   firstApiFieldError,
+  listEmployees,
   updateEmployee
 } from "../lib/employees"
+import { apiData } from "../lib/http"
 
 const TYPE_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({ value, label: value }))
 
@@ -25,7 +29,8 @@ function formFromEmployee(employee = {}) {
     department: employee.department || "",
     employment_type: employee.employment_type || "full-time",
     level: employee.level || "",
-    started_on: employee.started_on || ""
+    started_on: employee.started_on || "",
+    manager_email: ""
   }
 }
 
@@ -64,6 +69,19 @@ export default function EditEmployeeModal({ employee, onCancel, onSuccess }) {
 
     setSubmitting(true)
     try {
+      const managerEmail = form.manager_email.trim().toLowerCase()
+      if (managerEmail) {
+        const listed = await listEmployees({ q: managerEmail, per_page: 5 })
+        const match = (apiData(listed)?.employees || []).find((row) => row.email === managerEmail)
+        if (!match) {
+          setErrors({ manager_id: "Manager not found" })
+          setSubmitError("Manager not found")
+          return
+        }
+        payload.manager_id = match.id
+      } else {
+        payload.manager_id = employee.manager_id || null
+      }
       onSuccess?.(await updateEmployee(employee.id, payload))
     } catch (caught) {
       setErrors(caught.details || {})
@@ -188,6 +206,20 @@ export default function EditEmployeeModal({ employee, onCancel, onSuccess }) {
                 onChange={(event) => setField("level", event.target.value)}
               />
             </div>
+          </FormFieldRow>
+          <FormFieldRow label="Manager">
+            <TextInput
+              id="edit-manager-email"
+              showLabel={false}
+              fullWidth
+              type="email"
+              placeholder={employee.manager_name ? `Current: ${employee.manager_name}` : "Manager email"}
+              value={form.manager_email}
+              onChange={(event) => setField("manager_email", event.target.value)}
+              state={fieldErrorText(errors.manager_id) ? "error" : "default"}
+              description={fieldErrorText(errors.manager_id) || (employee.manager_name ? `Reports to ${employee.manager_name}` : "Optional")}
+              showDescription
+            />
           </FormFieldRow>
           <FormFieldRow label="Start date" required>
             <FormDateField

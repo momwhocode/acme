@@ -1,3 +1,5 @@
+/** Shared pay fields for onboard and compensation change modals. Hours show only for hourly. */
+
 import { FormDateField } from "../april/components/FormDateField"
 import { FormFieldRow } from "../april/components/FormFieldRow"
 import { FormSelectField } from "../april/components/FormSelectField"

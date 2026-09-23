@@ -1,3 +1,5 @@
+/** Signed-in shell — desktop sidebar, mobile drawer, and main content. */
+
 import { useEffect, useRef, useState } from "react"
 import { useLocation } from "react-router-dom"
 import { IconButton } from "../april/components/IconButton"

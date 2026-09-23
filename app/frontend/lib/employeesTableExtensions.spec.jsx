@@ -48,6 +48,7 @@ describe("createEmployeesTableExtensions", () => {
 
     await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
     expect(screen.getByRole("menuitem", { name: "View profile" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Rehire" })).toBeTruthy()
     expect(screen.queryByRole("menuitem", { name: "Mark as left" })).toBeNull()
   })
 })

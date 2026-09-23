@@ -2,6 +2,7 @@ module Api
   module V1
     class EmployeesController < BaseController
       include ::Pagy::Backend
+      include ActionController::DataStreaming
 
       def index
         query = DirectoryQuery.new(params)
@@ -19,21 +20,46 @@ module Api
 
       def create
         employee, record = EmployeeOnboarder.call(employee_params)
+        audit!("onboard", employee)
         render_success(employee_payload(employee, record), status: :created)
       end
 
       def update
         employee = EmployeeUpdater.call(employee: Employee.find(params[:id]), params: employee_update_params)
+        audit!("update", employee, employee_update_params.to_h)
         render_success(EmployeeProfile.call(employee))
       end
 
       def offboard
         employee = EmployeeOffboarder.call(employee: Employee.find(params[:id]), left_on: params[:left_on])
+        audit!("offboard", employee, { left_on: employee.left_on })
         render_success({ employee: employee.as_directory_json })
       end
 
+      def rehire
+        employee = EmployeeRehirer.call(employee: Employee.find(params[:id]))
+        audit!("rehire", employee)
+        render_success(EmployeeProfile.call(employee))
+      end
+
+      def destroy
+        employee = Employee.find(params[:id])
+        audit!("destroy", employee, { email: employee.email })
+        EmployeeDestroyer.call(employee: employee)
+        render_success({})
+      end
+
       def import
-        render_success(DirectoryImporter.call(import_file))
+        result = DirectoryImporter.call(import_file)
+        audit!("import", current_user, result)
+        render_success(result)
+      end
+
+      def export
+        query = DirectoryQuery.new(params)
+        send_data DirectoryExporter.call(query.relation),
+                  filename: "employees.csv",
+                  type: "text/csv"
       end
 
       private
@@ -63,6 +89,10 @@ module Api
 
       def employee_update_params
         params.permit(*EmployeeUpdater::ATTR_KEYS)
+      end
+
+      def audit!(action, record, payload = {})
+        AuditRecorder.record(actor: current_user, action: action, record: record, payload: payload)
       end
 
       def import_file

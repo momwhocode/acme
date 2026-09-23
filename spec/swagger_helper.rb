@@ -249,6 +249,7 @@ RSpec.configure do |config|
                 properties: {
                   employees: { type: :integer, example: 2 },
                   compensation_records: { type: :integer, example: 3 },
+                  updated: { type: :integer, example: 0 },
                   skipped: { type: :integer, example: 0 }
                 }
               }

@@ -8,18 +8,18 @@ One Rails application serves both `/api/*` JSON and the compiled React UI — on
 
 **Persona:** HR manager (single org, ACME).
 
-The app is the source of truth for compensation: who is paid, how much, in which currency and employment type, and how that has changed over time. Analytics and an AI chat answer payroll questions in place.
+The app is the source of truth for compensation: who is paid, how much, in which currency and employment type, and how that has changed over time. Home is an Overview snapshot — annualised run-rate, headcount, median, contingent mix, and action queues — compared with the previous period.
 
 ## Scope
 
 ### In scope
 
-1. **Employee directory** — Server-paginated, searchable, and filterable by country, department, employment type, and status. Built to stay fast at 10k rows.
-2. **Employee profile** — Current compensation plus a full effective-dated change history timeline.
-3. **Compensation management** — Add or edit an employee; record a comp change (raise, promotion) as a new effective-dated record; onboard hires; mark leavers.
+1. **Employee directory** — Server-paginated, searchable, sortable, and filterable by country, department, type, status, and manager. Export the current view. Saved views persist locally.
+2. **Employee profile** — Current compensation, pay band / compa-ratio, effective-dated history (including corrections), and an audit trail. Opened as a modal over the directory.
+3. **Compensation management** — Onboard, edit identity, append or correct pay, mark leavers, rehire, or delete a hire.
 4. **Multi-currency, multi-type engine** — Supports full-time, part-time, contractor, freelancer, and intern. Every record is normalised to an annualised amount and to a base reporting currency (USD) for cross-country comparison.
-5. **Analytics dashboard** — Total annualised payroll cost (USD), headcount mix, average and median compensation, breakdowns by country, department, and type. Currency toggle (local ↔ USD). An AI chat answers questions in plain language — for example, "what is the total payout this month allowing for employees who have left."
-6. **CSV import** — Bring old records in from the spreadsheets the HR team is migrating off.
+5. **Overview** — Snapshot as-of a month, quarter, or year: annualised cost, headcount, median, contingent ratio, type mix, level medians, spend by country/department/type, and action queues. Currency toggle (local ↔ USD).
+6. **CSV import** — Bring old records in from the spreadsheets the HR team is migrating off. Existing emails are upserted.
 7. **Seed data** — 10,000 realistic employees across countries, currencies, and types, so the app can be demonstrated at full scale.
 8. **HR login** — One HR manager account. Cookie session, no signup, no RBAC.
 
@@ -33,7 +33,6 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Multi-tenancy | Single org (ACME). Avoids premature abstraction. |
 | Full RBAC | One persona (HR manager). Access control is a first-class production concern; a real build would gate salary visibility by role. |
 | Live FX in tests / default path | Seeds stay deterministic. `FX_SOURCE=live` is opt-in Frankfurter/ECB; CI and specs never hit the network. |
-| Pay bands and compa-ratio | High-value pay-equity feature, but a stretch. The data model leaves room (level field) so it is additive later. |
 
 ## Tech stack
 
@@ -64,7 +63,7 @@ FORCE=1 COUNT=10000 bin/rails directory:seed
 bin/rails directory:import FILE=tmp/employees.csv
 ```
 
-CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are skipped. Import does not write FX rates. HR can also import from Employees → Import (template at `/templates/acme-employees.csv`) or `POST /api/v1/employees/import`.
+CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are updated. Import does not write FX rates. HR can also import from Employees → Import (template at `/templates/acme-employees.csv`) or `POST /api/v1/employees/import`.
 
 - App: http://localhost:3000 — sign in as `hr@acme.test` / `whiteaeroplane`
 - API: http://localhost:3000/api/v1/health

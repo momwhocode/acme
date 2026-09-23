@@ -1,3 +1,5 @@
+/** CSV import modal — upserts existing emails and creates missing hires. */
+
 import { useRef, useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { Button } from "../april/components/Button"
@@ -40,7 +42,7 @@ export default function ImportEmployeesModal({ onCancel, onSuccess }) {
       size="md"
       icon="upload"
       title="Import employees"
-      description="Bring records over from the spreadsheet ACME is retiring. Existing emails are skipped."
+      description="Bring records over from the spreadsheet ACME is retiring. Existing emails are updated."
       showConfirmInput={false}
       showReset={false}
       showDescription

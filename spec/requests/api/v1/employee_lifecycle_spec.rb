@@ -251,13 +251,13 @@ RSpec.describe "Employee lifecycle API" do
       expect(api_data).to include("employees" => 2, "compensation_records" => 3, "skipped" => 0)
     end
 
-    it "skips emails that already exist" do
+    it "updates emails that already exist" do
       sign_in_hr
       post "/api/v1/employees/import", params: { file: upload_csv }
       post "/api/v1/employees/import", params: { file: upload_csv }
 
       expect(response).to have_http_status(:ok)
-      expect(api_data).to include("employees" => 0, "skipped" => 2)
+      expect(api_data).to include("employees" => 0, "updated" => 2, "skipped" => 0)
     end
 
     it "rejects a missing file" do
@@ -356,6 +356,94 @@ RSpec.describe "Employee lifecycle API" do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(api_error.fetch("details")).to include("left_on")
+    end
+  end
+
+  describe "PATCH /api/v1/employees/:id/rehire" do
+    it "reactivates a leaver" do
+      sign_in_hr
+      employee = create(:employee, :left)
+      create(:compensation_record, employee: employee)
+
+      patch "/api/v1/employees/#{employee.id}/rehire", as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(api_data.fetch("employee")).to include("id" => employee.id, "status" => "active", "left_on" => nil)
+    end
+
+    it "rejects an active employee" do
+      sign_in_hr
+      patch "/api/v1/employees/#{create(:employee).id}/rehire", as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("message" => "already active")
+    end
+  end
+
+  describe "DELETE /api/v1/employees/:id" do
+    it "deletes a mistaken hire" do
+      sign_in_hr
+      employee = create(:employee)
+      create(:compensation_record, employee: employee)
+
+      delete "/api/v1/employees/#{employee.id}", as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(Employee.find_by(id: employee.id)).to be_nil
+    end
+  end
+
+  describe "compensation corrections" do
+    it "updates a pay row" do
+      sign_in_hr
+      employee = create(:employee)
+      record = create(:compensation_record, employee: employee, base_amount: 80_000)
+
+      patch "/api/v1/employees/#{employee.id}/compensation_records/#{record.id}",
+            params: { base_amount: 81_000, currency: "USD", pay_period: "annual", effective_date: "2024-01-01" },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(record.reload.base_amount).to eq(81_000)
+    end
+
+    it "deletes a pay row when more than one exists" do
+      sign_in_hr
+      employee = create(:employee)
+      create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1))
+      later = create(:compensation_record, employee: employee, effective_date: Date.new(2025, 1, 1),
+                                           base_amount: 90_000)
+
+      delete "/api/v1/employees/#{employee.id}/compensation_records/#{later.id}", as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(CompensationRecord.find_by(id: later.id)).to be_nil
+    end
+
+    it "does not delete the only pay row" do
+      sign_in_hr
+      employee = create(:employee)
+      record = create(:compensation_record, employee: employee)
+
+      delete "/api/v1/employees/#{employee.id}/compensation_records/#{record.id}", as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(api_error).to include("message" => "cannot delete the only pay record")
+    end
+  end
+
+  describe "GET /api/v1/employees/export" do
+    it "exports the filtered directory as csv" do
+      sign_in_hr
+      create(:employee, first_name: "Ada", last_name: "Lovelace", country: "GB")
+      create(:employee, first_name: "Grace", last_name: "Hopper", country: "US", email: "grace@acme.test")
+
+      get "/api/v1/employees/export", params: { country: "GB" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("text/csv")
+      expect(response.body).to include("Ada Lovelace")
+      expect(response.body).not_to include("Grace Hopper")
     end
   end
 end

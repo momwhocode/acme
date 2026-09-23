@@ -1,3 +1,5 @@
+/** Today's ISO date in the local calendar — used as default start/leave dates. */
+
 export function todayIso(now = new Date()) {
   const month = String(now.getMonth() + 1).padStart(2, "0")
   const day = String(now.getDate()).padStart(2, "0")

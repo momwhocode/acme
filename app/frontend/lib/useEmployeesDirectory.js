@@ -1,9 +1,18 @@
+/** Employees listing: URL + localStorage session, sort, and filtered fetch. */
+
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { apiData, apiMeta } from "./http.js"
 import { listEmployees } from "./employees.js"
 import { defaultVisibleColumnIds } from "./tableColumns.js"
+import { nextSortState } from "./tableSort.js"
 import { hasSelectedListingFilters, readFilterSelection } from "./filterValues.js"
+import {
+  readStoredColumns,
+  readStoredDirectorySession,
+  writeStoredColumns,
+  writeStoredDirectorySession
+} from "./directoryPrefs.js"
 import {
   EMPLOYEES_TABLE_COLUMNS,
   directoryQueryFromFilters,
@@ -13,6 +22,7 @@ import {
 
 const SEARCH_DEBOUNCE_MS = 300
 const PER_PAGE = 25
+const URL_STATE_KEYS = [ "status", "type", "country", "department", "manager", "level", "q", "sort", "direction" ]
 
 function parseList(value) {
   return String(value || "")
@@ -26,24 +36,40 @@ function filtersFromParams(searchParams) {
     status: parseList(searchParams.get("status")),
     type: parseList(searchParams.get("type")),
     country: parseList(searchParams.get("country")),
-    department: parseList(searchParams.get("department"))
+    department: parseList(searchParams.get("department")),
+    manager: parseList(searchParams.get("manager")),
+    level: parseList(searchParams.get("level"))
   }
+}
+
+function sortFromParams(searchParams) {
+  const columnId = searchParams.get("sort")
+  if (!columnId) return { columnId: null, direction: "desc" }
+  return { columnId, direction: searchParams.get("direction") === "asc" ? "asc" : "desc" }
+}
+
+function hasUrlDirectoryState(searchParams) {
+  return URL_STATE_KEYS.some((key) => searchParams.get(key))
 }
 
 export function useEmployeesDirectory() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [searchValue, setSearchValue] = useState(() => searchParams.get("q") || "")
-  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get("q") || "")
-  const [filterValues, setFilterValues] = useState(() => filtersFromParams(searchParams))
+  const stored = !hasUrlDirectoryState(searchParams) ? readStoredDirectorySession() : null
+  const [searchValue, setSearchValue] = useState(() => (stored ? stored.q : searchParams.get("q")) || "")
+  const [debouncedSearch, setDebouncedSearch] = useState(() => (stored ? stored.q : searchParams.get("q")) || "")
+  const [filterValues, setFilterValues] = useState(() => stored?.filterValues || filtersFromParams(searchParams))
+  const [sort, setSort] = useState(() => stored?.sort || sortFromParams(searchParams))
   const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get("page")) || 1))
   const [rows, setRows] = useState([])
   const [pagination, setPagination] = useState({ page: 1, pages: 1, count: 0, limit: PER_PAGE })
-  const [facets, setFacets] = useState({ departments: [], countries: [] })
+  const [facets, setFacets] = useState({ departments: [], countries: [], managers: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [clearGeneration, setClearGeneration] = useState(0)
-  const [visibleColumnIds, setVisibleColumnIds] = useState(() => defaultVisibleColumnIds(EMPLOYEES_TABLE_COLUMNS))
+  const [visibleColumnIds, setVisibleColumnIds] = useState(
+    () => readStoredColumns() || defaultVisibleColumnIds(EMPLOYEES_TABLE_COLUMNS)
+  )
   const [reloadToken, setReloadToken] = useState(0)
 
   useEffect(() => {
@@ -55,12 +81,21 @@ export function useEmployeesDirectory() {
     const next = new URLSearchParams()
     if (debouncedSearch) next.set("q", debouncedSearch)
     if (page > 1) next.set("page", String(page))
+    if (sort.columnId) {
+      next.set("sort", sort.columnId)
+      next.set("direction", sort.direction || "desc")
+    }
     Object.entries(filterValues).forEach(([ key, value ]) => {
       const selected = readFilterSelection(value)
       if (selected.length) next.set(key, selected.join(","))
     })
     setSearchParams(next, { replace: true })
-  }, [debouncedSearch, filterValues, location.pathname, page, setSearchParams])
+    writeStoredDirectorySession({ filterValues, q: debouncedSearch, sort })
+  }, [debouncedSearch, filterValues, location.pathname, page, setSearchParams, sort])
+
+  useEffect(() => {
+    writeStoredColumns(visibleColumnIds)
+  }, [visibleColumnIds])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -68,7 +103,8 @@ export function useEmployeesDirectory() {
       filterValues,
       q: debouncedSearch,
       page,
-      perPage: PER_PAGE
+      perPage: PER_PAGE,
+      sort
     })
 
     setLoading(true)
@@ -90,7 +126,7 @@ export function useEmployeesDirectory() {
       })
 
     return () => controller.abort()
-  }, [debouncedSearch, filterValues, page, reloadToken])
+  }, [debouncedSearch, filterValues, page, reloadToken, sort])
 
   const handleFilterChange = useCallback((key, value) => {
     setFilterValues((current) => ({ ...current, [key]: value }))
@@ -102,6 +138,11 @@ export function useEmployeesDirectory() {
     setPage(1)
   }, [])
 
+  const handleSort = useCallback((columnId) => {
+    setSort((current) => nextSortState(current, columnId))
+    setPage(1)
+  }, [])
+
   const handleClearAll = useCallback(() => {
     setFilterValues({})
     setSearchValue("")
@@ -110,10 +151,31 @@ export function useEmployeesDirectory() {
     setClearGeneration((current) => current + 1)
   }, [])
 
+  const retry = useCallback(() => setReloadToken((current) => current + 1), [])
+
+  const applySavedView = useCallback((view) => {
+    setFilterValues(view.filterValues || {})
+    setSearchValue(view.q || "")
+    setDebouncedSearch(view.q || "")
+    if (view.sort) setSort(view.sort)
+    if (view.columns?.length) setVisibleColumnIds(view.columns)
+    setPage(1)
+    setClearGeneration((current) => current + 1)
+  }, [])
+
   const hasActiveFilters = Boolean(debouncedSearch) || hasSelectedListingFilters(filterValues)
   const filterChips = useMemo(
     () => employeesFilterChips(facets),
     [facets]
+  )
+  const exportQuery = useMemo(
+    () => directoryQueryFromFilters({
+      filterValues,
+      q: debouncedSearch,
+      sort,
+      paginate: false
+    }),
+    [debouncedSearch, filterValues, sort]
   )
 
   return {
@@ -127,12 +189,16 @@ export function useEmployeesDirectory() {
     clearGeneration,
     visibleColumnIds,
     setVisibleColumnIds,
+    sort,
     hasActiveFilters,
     isDatasetEmpty: !loading && !hasActiveFilters && pagination.count === 0,
+    exportQuery,
     handleFilterChange,
     handleSearchChange,
     handleClearAll,
+    handleSort,
     handlePageChange: setPage,
-    retry: () => setReloadToken((current) => current + 1)
+    applySavedView,
+    retry
   }
 }

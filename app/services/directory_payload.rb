@@ -1,6 +1,7 @@
 class DirectoryPayload
   def self.employees(records, normalizer: CurrencyNormalizer.new)
     list = Array(records)
+    ActiveRecord::Associations::Preloader.new(records: list, associations: :manager).call if list.any?
     current = current_by_employee_id(list)
     list.map do |employee|
       employee.as_directory_json.merge(
@@ -12,7 +13,10 @@ class DirectoryPayload
   def self.facets
     {
       departments: Employee.distinct.order(:department).pluck(:department),
-      countries: Employee.distinct.order(:country).pluck(:country)
+      countries: Employee.distinct.order(:country).pluck(:country),
+      managers: Employee.where(id: Employee.where.not(manager_id: nil).select(:manager_id))
+                        .order(:last_name, :first_name)
+                        .map { |manager| { id: manager.id, name: manager.display_name } }
     }
   end
 

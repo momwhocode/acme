@@ -1,3 +1,5 @@
+/** Calendar grid and ISO range selection for April date pickers. */
+
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTH_NAMES = [
   "January",

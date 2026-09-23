@@ -3,4 +3,6 @@
 #   FORCE=1 bin/rails directory:seed
 #   bin/rails directory:import FILE=tmp/employees.csv
 User.seed_hr!
+ExchangeRate.seed!
+PayBand.seed!
 DirectorySeeder.call

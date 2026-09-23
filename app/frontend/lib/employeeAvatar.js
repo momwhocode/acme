@@ -1,3 +1,5 @@
+/** Deterministic employee avatar color or portrait from the seed portraits. */
+
 import { AVATAR_COLORS, avatarColorForId } from "../april/renderers/avatar.js"
 
 export const EMPLOYEE_PORTRAITS = [

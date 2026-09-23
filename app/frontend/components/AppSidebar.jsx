@@ -1,3 +1,5 @@
+/** Signed-in HR chrome — Home / Employees plus account sign-out. */
+
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Sidebar } from "../april/components/Sidebar"

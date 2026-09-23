@@ -1,3 +1,5 @@
+/** Optional Places lookup for April address fields. No key → loader rejects. */
+
 import { getApiBaseUrl } from "../config/api.js";
 
 let mapsPromise = null;

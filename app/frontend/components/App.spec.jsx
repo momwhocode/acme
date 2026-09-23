@@ -57,8 +57,13 @@ describe("App routes", () => {
         by_type: [],
         by_department: [],
         by_country: [],
-        by_currency: [],
-        fx_rates: []
+        by_level: [],
+        actions: {
+          onboarding: { count: 0, employees: [] },
+          offboarding: { count: 0, employees: [] },
+          contracts: { count: 0, employees: [] },
+          recent: { count: 0, employees: [] }
+        }
       }
     })
   })

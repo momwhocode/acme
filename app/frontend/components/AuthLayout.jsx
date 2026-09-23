@@ -1,3 +1,5 @@
+/** Signed-out chrome for landing, sign-in, and sign-out. */
+
 import { Outlet } from "react-router-dom"
 import { APP_CHROME_SCROLL, useAppDocumentChrome } from "../lib/appDocumentChrome"
 

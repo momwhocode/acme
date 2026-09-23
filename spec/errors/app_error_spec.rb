@@ -4,6 +4,7 @@ RSpec.describe AppError do
   it "is the base for API domain errors" do
     expect([
       DirectoryQuery::Error,
+      DirectoryImporter::Error,
       EmployeeOnboarder::Error,
       EmployeeOffboarder::Error,
       CompensationAppender::Error
@@ -12,7 +13,6 @@ RSpec.describe AppError do
 
   it "is not used by seed and FX jobs" do
     expect([
-      DirectoryImporter::Error,
       CurrencyNormalizer::Error,
       Fx::Sync::Error,
       Fx::FrankfurterSource::Error

@@ -3,12 +3,17 @@ class AnalyticsQuery
     new(...).call
   end
 
-  def initialize(as_of: Date.current)
+  def initialize(as_of: Date.current, country: nil, department: nil, type: nil, level: nil)
     @as_of = as_of.to_date
+    @countries = list_values(country).map(&:upcase)
+    @departments = list_values(department).map { |value| value.gsub(/\s+/, " ").downcase }
+    @types = list_values(type)
+    @levels = Employee.levels_in_bucket(list_values(level))
   end
 
   def call
-    rows = query(mix_sql, @as_of, @as_of, @as_of, @as_of, @as_of, name: "AnalyticsMix")
+    predicate, filter_binds = employee_predicate
+    rows = query(mix_sql(predicate), @as_of, @as_of, *filter_binds, @as_of, @as_of, @as_of, name: "AnalyticsMix")
     total = rows.find { |row| row["bucket"] == "total" } || {}
 
     {
@@ -21,6 +26,8 @@ class AnalyticsQuery
       by_department: mix_rows(rows, "department", :department),
       by_country: mix_rows(rows, "country", :country),
       by_currency: mix_rows(rows, "currency", :currency, local: true),
+      by_level: mix_rows(rows, "level", :level),
+      actions: actions,
       fx_rates: fx_rates
     }
   end
@@ -30,11 +37,17 @@ class AnalyticsQuery
   def monthly_usd
     month_start = @as_of.beginning_of_month
     month_end = @as_of.end_of_month
-    row = query(monthly_sql, @as_of, @as_of, @as_of, month_end, month_start, name: "AnalyticsMonthly").first || {}
+    predicate, filter_binds = employee_predicate
+    row = query(
+      monthly_sql(predicate),
+      @as_of, @as_of, *filter_binds, @as_of,
+      month_end, month_end, month_start, month_end, month_end, month_start,
+      name: "AnalyticsMonthly"
+    ).first || {}
     money(row["monthly_usd"]) || 0
   end
 
-  def current_comp_sql
+  def current_comp_sql(predicate)
     <<~SQL.squish
       SELECT DISTINCT ON (employees.id)
         employees.status,
@@ -43,6 +56,7 @@ class AnalyticsQuery
         employees.country,
         employees.started_on,
         employees.left_on,
+        employees.level,
         compensation_records.base_amount,
         compensation_records.currency,
         compensation_records.pay_period,
@@ -51,6 +65,7 @@ class AnalyticsQuery
       LEFT JOIN compensation_records
         ON compensation_records.employee_id = employees.id
         AND compensation_records.effective_date <= LEAST(COALESCE(employees.left_on, ?::date), ?::date)
+      WHERE #{predicate}
       ORDER BY employees.id, compensation_records.effective_date DESC, compensation_records.id DESC
     SQL
   end
@@ -70,6 +85,7 @@ class AnalyticsQuery
         current_comp.currency,
         current_comp.started_on,
         current_comp.left_on,
+        current_comp.level,
         pay.payroll_local,
         (pay.payroll_local * fx.rate)::numeric AS annualised_usd
       FROM current_comp
@@ -95,9 +111,9 @@ class AnalyticsQuery
     SQL
   end
 
-  def mix_sql
+  def mix_sql(predicate)
     <<~SQL.squish
-      WITH current_comp AS (#{current_comp_sql}),
+      WITH current_comp AS (#{current_comp_sql(predicate)}),
       valued AS (#{valued_sql})
       SELECT
         CASE
@@ -105,13 +121,16 @@ class AnalyticsQuery
           WHEN GROUPING(department) = 0 THEN 'department'
           WHEN GROUPING(country) = 0 THEN 'country'
           WHEN GROUPING(currency) = 0 THEN 'currency'
+          WHEN GROUPING(level) = 0 THEN 'level'
           ELSE 'total'
         END AS bucket,
         employment_type,
         department,
         country,
-        currency,
+        level,
+        CASE WHEN COUNT(DISTINCT currency) = 1 THEN MIN(currency) ELSE currency END AS currency,
         COUNT(*)::bigint AS headcount,
+        COUNT(DISTINCT currency)::bigint AS currency_count,
         COALESCE(ROUND(SUM(annualised_usd), 2), 0) AS payroll_usd,
         COALESCE(ROUND(SUM(payroll_local), 2), 0) AS payroll_local,
         ROUND(AVG(annualised_usd), 2) AS average_usd,
@@ -119,15 +138,21 @@ class AnalyticsQuery
       FROM valued
       WHERE started_on <= ?::date
         AND (left_on IS NULL OR left_on >= ?::date)
-      GROUP BY GROUPING SETS ((employment_type), (department), (country), (currency), ())
+      GROUP BY GROUPING SETS ((employment_type), (department), (country), (currency), (level), ())
     SQL
   end
 
-  def monthly_sql
+  def monthly_sql(predicate)
     <<~SQL.squish
-      WITH current_comp AS (#{current_comp_sql}),
+      WITH current_comp AS (#{current_comp_sql(predicate)}),
       valued AS (#{valued_sql})
-      SELECT COALESCE(ROUND(SUM(annualised_usd) / 12, 2), 0) AS monthly_usd
+      SELECT COALESCE(ROUND(SUM(
+        annualised_usd / 12.0 *
+        GREATEST(
+          0,
+          (LEAST(COALESCE(left_on, ?::date), ?::date) - GREATEST(started_on, ?::date) + 1)
+        ) / EXTRACT(DAY FROM ?::date)
+      ), 2), 0) AS monthly_usd
       FROM valued
       WHERE started_on <= ?::date
         AND (left_on IS NULL OR left_on >= ?::date)
@@ -141,15 +166,63 @@ class AnalyticsQuery
           item = {
             key => row[key.to_s],
             headcount: row["headcount"].to_i,
-            payroll_usd: money(row["payroll_usd"]) || 0
+            payroll_usd: money(row["payroll_usd"]) || 0,
+            payroll_local: money(row["payroll_local"]) || 0,
+            median_usd: money(row["median_usd"])
           }
-          item[:payroll_local] = money(row["payroll_local"]) || 0 if local
+          currency = row["currency"].presence
+          item[:currency] = currency if local || (currency && row["currency_count"].to_i == 1)
           item
         end
   end
 
   def query(sql, *binds, name:)
     ApplicationRecord.connection.select_all(ApplicationRecord.sanitize_sql_array([ sql, *binds ]), name)
+  end
+
+  def actions
+    window = (@as_of - 29.days)..@as_of
+    upcoming = (@as_of + 1.day)..(@as_of + 90.days)
+    people = filtered_employees
+
+    {
+      onboarding: action_group(people.where(started_on: window).order(started_on: :desc), :started_on),
+      offboarding: action_group(people.where(left_on: window).order(left_on: :desc), :left_on),
+      contracts: action_group(
+        people.where(employment_type: %w[contractor freelancer intern], status: "active")
+              .where(left_on: upcoming)
+              .order(:left_on),
+        :left_on
+      ),
+      recent: recent_changes(window, people)
+    }
+  end
+
+  def action_group(scope, date_key)
+    {
+      count: scope.unscope(:order).count,
+      employees: scope.limit(7).map { |employee| action_employee(employee, employee.public_send(date_key)) }
+    }
+  end
+
+  def recent_changes(window, people)
+    records = CompensationRecord.includes(:employee).where(employee_id: people.select(:id))
+                                .where(effective_date: window).order(effective_date: :desc, id: :desc)
+    {
+      count: records.unscope(:order).count,
+      employees: records.limit(7).filter_map do |record|
+        next unless record.employee
+
+        action_employee(record.employee, record.effective_date)
+      end
+    }
+  end
+
+  def action_employee(employee, event_on)
+    employee.as_directory_json.merge(
+      event_on: event_on,
+      missing_comp: employee.current_compensation_record(as_of: @as_of).blank?
+    )
   end
 
   def fx_rates
@@ -165,5 +238,44 @@ class AnalyticsQuery
     return if value.nil?
 
     BigDecimal(value.to_s)
+  end
+
+  def filtered_employees
+    scope = Employee.all
+    scope = scope.where(country: @countries) if @countries.any?
+    scope = scope.where(department: @departments) if @departments.any?
+    scope = scope.where(employment_type: @types) if @types.any?
+    scope = scope.where(level: @levels) if @levels.any?
+    scope
+  end
+
+  def employee_predicate
+    clauses = [ "TRUE" ]
+    binds = []
+    if @countries.any?
+      clauses << "employees.country IN (#{placeholders(@countries)})"
+      binds.concat(@countries)
+    end
+    if @departments.any?
+      clauses << "employees.department IN (#{placeholders(@departments)})"
+      binds.concat(@departments)
+    end
+    if @types.any?
+      clauses << "employees.employment_type IN (#{placeholders(@types)})"
+      binds.concat(@types)
+    end
+    if @levels.any?
+      clauses << "employees.level IN (#{placeholders(@levels)})"
+      binds.concat(@levels)
+    end
+    [ clauses.join(" AND "), binds ]
+  end
+
+  def placeholders(values)
+    values.map { "?" }.join(", ")
+  end
+
+  def list_values(value)
+    Array(value).flat_map { |entry| entry.to_s.split(",") }.map(&:strip).reject(&:blank?)
   end
 end

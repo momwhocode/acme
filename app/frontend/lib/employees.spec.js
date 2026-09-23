@@ -16,7 +16,12 @@ import {
   offboardErrors,
   onboardEmployee,
   onboardErrors,
-  updateEmployee
+  updateCompensation,
+  updateEmployee,
+  deleteCompensation,
+  destroyEmployee,
+  exportEmployees,
+  rehireEmployee
 } from "./employees.js"
 
 describe("directoryFilterErrors", () => {
@@ -150,8 +155,9 @@ describe("importErrors", () => {
 })
 
 describe("importToastTitle", () => {
-  it("names imported and skipped counts", () => {
+  it("names imported, updated, and skipped counts", () => {
     expect(importToastTitle({ data: { employees: 2, skipped: 0 } })).toBe("Imported 2 employees")
+    expect(importToastTitle({ employees: 0, updated: 2 })).toBe("Imported 0 employees · updated 2")
     expect(importToastTitle({ employees: 1, skipped: 3 })).toBe("Imported 1 employee · 3 already on file")
   })
 })
@@ -338,6 +344,67 @@ describe("employee requests", () => {
 
     await expect(importEmployees()).rejects.toThrow("Choose a CSV file")
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("corrects a pay row", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const payload = { base_amount: 81000, currency: "GBP", pay_period: "annual", effective_date: "2024-01-01" }
+
+    await updateCompensation("emp-1", "comp-1", payload)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/emp-1/compensation_records/comp-1",
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify(payload) })
+    )
+  })
+
+  it("deletes a pay row", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await deleteCompensation("emp-1", "comp-1")
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/emp-1/compensation_records/comp-1",
+      expect.objectContaining({ method: "DELETE" })
+    )
+  })
+
+  it("rehires and deletes an employee", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await rehireEmployee("emp-1")
+    await destroyEmployee("emp-1")
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/employees/emp-1/rehire",
+      expect.objectContaining({ method: "PATCH" })
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/employees/emp-1",
+      expect.objectContaining({ method: "DELETE" })
+    )
+  })
+
+  it("exports the filtered directory", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response("Name,Email\nAda,ada@acme.test", { status: 200, headers: { "Content-Type": "text/csv" } })
+    )
+    vi.stubGlobal("fetch", fetchMock)
+    vi.stubGlobal("URL", { createObjectURL: () => "blob:export", revokeObjectURL: vi.fn() })
+
+    await exportEmployees({ country: "GB" })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/employees/export?country=GB",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Accept: "text/csv" })
+      })
+    )
   })
 
   it("offboards an employee", async () => {

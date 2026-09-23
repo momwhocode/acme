@@ -347,6 +347,9 @@ components:
             compensation_records:
               type: integer
               example: 3
+            updated:
+              type: integer
+              example: 0
             skipped:
               type: integer
               example: 0
@@ -877,7 +880,7 @@ paths:
       tags:
       - Employees
       description: Creates employees and effective-dated compensation. Existing emails
-        are skipped. Max 5 MB.
+        are updated. Max 5 MB.
       parameters: []
       responses:
         '200':

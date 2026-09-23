@@ -15,12 +15,18 @@
 #  status          :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  manager_id      :uuid
 #
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
 #  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
+#  index_employees_on_manager_id         (manager_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (manager_id => employees.id)
 #
 require "rails_helper"
 
@@ -218,11 +224,12 @@ RSpec.describe Employee do
   end
 
   describe "associations" do
-    it "does not destroy an employee who has compensation records" do
+    it "destroys compensation records with the employee" do
       employee = create(:employee)
       create(:compensation_record, employee: employee)
 
-      expect(employee.destroy).to be(false)
+      expect { employee.destroy! }.to change(CompensationRecord, :count).by(-1)
+      expect(described_class.find_by(id: employee.id)).to be_nil
     end
 
     it "destroys an employee with no compensation records" do

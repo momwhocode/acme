@@ -1,3 +1,5 @@
+/** Dissolve transition when listing columns are shown or hidden. */
+
 import { useLayoutEffect, useRef, useState, useCallback } from "react";
 
 export const TABLE_COLUMN_TRANSITION_MS = 220;

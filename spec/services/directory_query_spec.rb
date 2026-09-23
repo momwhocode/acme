@@ -112,5 +112,34 @@ RSpec.describe DirectoryQuery do
 
     expect(relation_for(type: "intern,contractor")).to contain_exactly(intern, contractor)
   end
+
+  it "filters by level bucket" do
+    ic2 = create(:employee, level: "IC2", email: "ic2@acme.test")
+    create(:employee, level: "IC4", email: "ic4@acme.test")
+
+    expect(relation_for(level: "L2")).to eq([ ic2 ])
+  end
+
+  it "filters by manager" do
+    manager = create(:employee, first_name: "Priya", last_name: "Shah", email: "priya@acme.test")
+    report = create(:employee, manager: manager, email: "eng@acme.test")
+    create(:employee, email: "other@acme.test")
+
+    expect(relation_for(manager: manager.id)).to eq([ report ])
+  end
+
+  it "sorts by name descending" do
+    zeta = create(:employee, first_name: "Zed", last_name: "Zeta", email: "z@acme.test")
+    alpha = create(:employee, first_name: "Ann", last_name: "Alpha", email: "a@acme.test")
+
+    expect(relation_for(sort: "lead", direction: "desc").pluck(:id)).to eq([ zeta.id, alpha.id ])
+  end
+
+  it "sorts by start date" do
+    later = create(:employee, started_on: Date.new(2025, 1, 1), email: "later@acme.test")
+    earlier = create(:employee, started_on: Date.new(2023, 1, 1), email: "earlier@acme.test")
+
+    expect(relation_for(sort: "started_on", direction: "asc").pluck(:id)).to eq([ earlier.id, later.id ])
+  end
 end
 

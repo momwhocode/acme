@@ -1,7 +1,11 @@
+/** Directory row cells — lead, country, pay, and row actions. */
+
 import { employeeRowMenuItems } from "./employeesTable.js"
 import { renderCountryCell, renderTableActions, renderTableLead } from "./tableCellRenderers.jsx"
 
-export function createEmployeesTableExtensions({ onDetails, onOffboard }) {
+/** Directory row cells — lead, country, pay, and row actions. */
+
+export function createEmployeesTableExtensions({ onDetails, onOffboard, onRehire, onDelete }) {
   return {
     renderBodyContent(column, row) {
       if (column.id === "country") return renderCountryCell(row.country)
@@ -19,7 +23,7 @@ export function createEmployeesTableExtensions({ onDetails, onOffboard }) {
       return renderTableActions({
         id: `employee-row-${row.id}`,
         name: row.name,
-        items: employeeRowMenuItems(row, { onDetails, onOffboard })
+        items: employeeRowMenuItems(row, { onDetails, onOffboard, onRehire, onDelete })
       })
     }
   }

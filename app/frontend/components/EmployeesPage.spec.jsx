@@ -9,17 +9,14 @@ vi.mock("../lib/employees", async () => {
   const actual = await vi.importActual("../lib/employees")
   return {
     ...actual,
-    listEmployees: vi.fn()
+    listEmployees: vi.fn(),
+    exportEmployees: vi.fn(),
+    destroyEmployee: vi.fn(),
+    rehireEmployee: vi.fn()
   }
 })
 
-import { listEmployees } from "../lib/employees"
-import { downloadSelectedEmployees } from "../lib/employeesTable"
-
-vi.mock("../lib/employeesTable", async () => {
-  const actual = await vi.importActual("../lib/employeesTable")
-  return { ...actual, downloadSelectedEmployees: vi.fn() }
-})
+import { exportEmployees, listEmployees } from "../lib/employees"
 
 function LocationEcho({ prefix }) {
   const location = useLocation()
@@ -40,6 +37,7 @@ function renderDirectory(path = "/employees") {
 
 describe("EmployeesPage", () => {
   beforeEach(() => {
+    localStorage.clear()
     window.matchMedia = vi.fn().mockImplementation(() => ({
       matches: false,
       addEventListener: vi.fn(),
@@ -101,6 +99,7 @@ describe("EmployeesPage", () => {
     await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
     expect(screen.getByRole("menuitem", { name: "View profile" })).toBeTruthy()
     expect(screen.getByRole("menuitem", { name: "Mark as left" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Delete hire" })).toBeTruthy()
 
     await user.click(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" }))
     expect(screen.getByRole("toolbar", { name: "Bulk actions" })).toBeTruthy()
@@ -156,17 +155,15 @@ describe("EmployeesPage", () => {
     expect(screen.getByText("Profile /employees/emp-1?status=active")).toBeTruthy()
   })
 
-  it("exports the selected rows", async () => {
+  it("exports the filtered view", async () => {
     const user = userEvent.setup()
+    exportEmployees.mockResolvedValue(new Blob([ "csv" ]))
     renderDirectory()
     await screen.findByText("Ada Lovelace")
 
-    await user.click(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" }))
     await user.click(screen.getByRole("button", { name: "Export" }))
 
-    expect(downloadSelectedEmployees).toHaveBeenCalledWith(
-      expect.arrayContaining([ expect.objectContaining({ id: "emp-1", name: "Ada Lovelace" }) ])
-    )
+    expect(exportEmployees).toHaveBeenCalledWith(expect.objectContaining({}))
   })
 
   it("fetches the next page", async () => {

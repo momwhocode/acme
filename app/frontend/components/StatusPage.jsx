@@ -1,3 +1,5 @@
+/** Shared empty/error page used by 404 and session-expired states. */
+
 import { Button } from "../april/components/Button"
 
 const COPY = {

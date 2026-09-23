@@ -1,3 +1,5 @@
+/** HR session: login validation plus cookie session read/sign-in/sign-out. */
+
 import { apiData, apiErrorMessage, apiFetch, apiMeta, setCsrfToken } from "./http.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

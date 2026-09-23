@@ -1,3 +1,5 @@
+/** GET /api/v1/analytics — current and compare snapshots, optional mix filters. */
+
 import { apiErrorMessage, apiFetch } from "./http.js"
 
 function throwPayloadError(payload, fallback) {
@@ -14,9 +16,13 @@ async function readJson(response, fallback) {
 }
 
 export async function getAnalytics(options = {}) {
-  const { as_of: asOf, ...request } = options
+  const { as_of: asOf, country, department, type, level, ...request } = options
   const params = new URLSearchParams()
   if (asOf) params.set("as_of", asOf)
+  if (country) params.set("country", country)
+  if (department) params.set("department", department)
+  if (type) params.set("type", type)
+  if (level) params.set("level", level)
   const query = params.toString()
   return readJson(await apiFetch(`/api/v1/analytics${query ? `?${query}` : ""}`, request), "Could not load analytics")
 }

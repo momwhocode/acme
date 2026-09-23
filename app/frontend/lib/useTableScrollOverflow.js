@@ -1,3 +1,5 @@
+/** Measures listing tables and adds overflow classes when columns exceed the shell. */
+
 import { useLayoutEffect } from "react";
 
 const SCROLL_OVERFLOW_CLASS = "april-table-shell__scroll--overflow";

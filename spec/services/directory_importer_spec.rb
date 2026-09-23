@@ -57,11 +57,11 @@ RSpec.describe DirectoryImporter do
     expect(ada.compensation_records.count).to eq(2)
   end
 
-  it "skips emails that already exist" do
+  it "updates emails that already exist" do
     import_fixture
     result = import_fixture
 
-    expect(result).to include(employees: 0, skipped: 2)
+    expect(result).to include(employees: 0, updated: 2, skipped: 0)
   end
 
   it "imports the published column template" do
@@ -83,7 +83,7 @@ RSpec.describe DirectoryImporter do
     expect { described_class.call(path) }.to raise_error(described_class::Error, /too large/)
   end
 
-  it "does not add compensation for an existing email" do
+  it "refreshes compensation for an existing email without duplicating rows" do
     import_fixture
 
     expect { import_fixture }.not_to change(CompensationRecord, :count)

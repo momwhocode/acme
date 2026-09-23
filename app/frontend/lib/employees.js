@@ -1,8 +1,11 @@
+/** Employees API client and form validation for onboard, pay, and lifecycle actions. */
+
 import { apiErrorMessage, apiFetch } from "./http.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const COUNTRY_PATTERN = /^[A-Za-z]{2}$/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const EMPLOYMENT_TYPES = [ "full-time", "part-time", "contractor", "freelancer", "intern" ]
 export const STATUSES = [ "active", "left" ]
 export const PAY_PERIODS = [ "hourly", "daily", "monthly", "annual" ]
@@ -19,13 +22,14 @@ function listValues(value) {
   return present(value).split(",").map((entry) => entry.trim()).filter(Boolean)
 }
 
-export function directoryFilterErrors({ country, type, employment_type: employmentType, status, q } = {}) {
+export function directoryFilterErrors({ country, type, employment_type: employmentType, status, manager, q } = {}) {
   const errors = {}
   if (listValues(country).some((code) => !COUNTRY_PATTERN.test(code))) errors.country = "unknown country"
   const types = listValues(type || employmentType).map((entry) => entry.toLowerCase())
   if (types.some((entry) => !EMPLOYMENT_TYPES.includes(entry))) errors.type = "unknown type"
   const statuses = listValues(status).map((entry) => entry.toLowerCase())
   if (statuses.some((entry) => !STATUSES.includes(entry))) errors.status = "unknown status"
+  if (listValues(manager).some((id) => !UUID_PATTERN.test(id))) errors.manager = "unknown manager"
   if (present(q).length > MAX_QUERY) errors.q = "q is too long"
   return errors
 }
@@ -122,10 +126,22 @@ export function importErrors(file) {
 export function importToastTitle(payload = {}) {
   const data = payload.data || payload
   const employees = Number(data.employees) || 0
+  const updated = Number(data.updated) || 0
   const skipped = Number(data.skipped) || 0
   const people = employees === 1 ? "employee" : "employees"
+  if (updated) return `Imported ${employees} ${people} · updated ${updated}`
   if (skipped) return `Imported ${employees} ${people} · ${skipped} already on file`
   return `Imported ${employees} ${people}`
+}
+
+function downloadBlob(blob, filename) {
+  if (typeof document === "undefined" || typeof URL === "undefined") return
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 function queryString(params = {}) {
@@ -202,6 +218,64 @@ export async function addCompensation(employeeId, payload) {
     }),
     "Could not record compensation"
   )
+}
+
+export async function updateCompensation(employeeId, recordId, payload) {
+  if (!present(employeeId) || !present(recordId)) throw new Error("Compensation is required")
+  const errors = compensationChangeErrors(payload)
+  if (Object.keys(errors).length) throw new Error(firstError(errors))
+
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}/compensation_records/${recordId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    }),
+    "Could not update compensation"
+  )
+}
+
+export async function deleteCompensation(employeeId, recordId) {
+  if (!present(employeeId) || !present(recordId)) throw new Error("Compensation is required")
+
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}/compensation_records/${recordId}`, { method: "DELETE" }),
+    "Could not delete compensation"
+  )
+}
+
+export async function rehireEmployee(employeeId) {
+  if (!present(employeeId)) throw new Error("Employee is required")
+
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}/rehire`, { method: "PATCH" }),
+    "Could not rehire employee"
+  )
+}
+
+export async function destroyEmployee(employeeId) {
+  if (!present(employeeId)) throw new Error("Employee is required")
+
+  return readJson(
+    await apiFetch(`/api/v1/employees/${employeeId}`, { method: "DELETE" }),
+    "Could not delete employee"
+  )
+}
+
+export async function exportEmployees(params = {}) {
+  const errors = directoryFilterErrors(params)
+  if (Object.keys(errors).length) throw new Error(firstError(errors))
+
+  const response = await apiFetch(`/api/v1/employees/export${queryString(params)}`, {
+    headers: { Accept: "text/csv" }
+  })
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}))
+    throwPayloadError(payload, "Could not export employees")
+  }
+
+  const blob = await response.blob()
+  downloadBlob(blob, "employees.csv")
+  return blob
 }
 
 export async function importEmployees(file) {

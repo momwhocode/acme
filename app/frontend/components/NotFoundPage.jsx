@@ -1,3 +1,5 @@
+/** Unknown route — Home when signed in, sign-in when signed out. */
+
 import { useNavigate } from "react-router-dom"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import StatusPage from "./StatusPage"

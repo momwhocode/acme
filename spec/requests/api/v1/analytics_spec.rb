@@ -28,9 +28,11 @@ RSpec.describe "GET /api/v1/analytics" do
       "annualised_usd" => "100000.0",
       "average_usd" => "100000.0",
       "median_usd" => "100000.0",
-      "by_type" => [ include("employment_type" => "full-time", "headcount" => 1) ],
-      "by_department" => [ include("department" => "engineering", "headcount" => 1) ],
-      "by_country" => [ include("country" => "GB", "headcount" => 1) ],
+      "by_type" => [ include("employment_type" => "full-time", "headcount" => 1, "currency" => "GBP") ],
+      "by_department" => [ include("department" => "engineering", "headcount" => 1, "currency" => "GBP") ],
+      "by_country" => [ include("country" => "GB", "headcount" => 1, "currency" => "GBP", "payroll_local" => "80000.0") ],
+      "by_level" => be_an(Array),
+      "actions" => include("onboarding", "offboarding", "contracts", "recent"),
       "fx_rates" => include(include("currency" => "GBP"))
     )
   end
@@ -47,6 +49,21 @@ RSpec.describe "GET /api/v1/analytics" do
 
     expect(response).to have_http_status(:ok)
     expect(api_data).to include("annualised_usd" => "70000.0")
+  end
+
+  it "filters the snapshot by mix slice" do
+    sign_in_hr
+    create(:compensation_record,
+           employee: create(:employee, email: "eng@acme.test", department: "engineering"),
+           base_amount: 80_000, currency: "USD")
+    create(:compensation_record,
+           employee: create(:employee, email: "sales@acme.test", department: "sales"),
+           base_amount: 50_000, currency: "USD")
+
+    get "/api/v1/analytics", params: { department: "engineering" }
+
+    expect(response).to have_http_status(:ok)
+    expect(api_data).to include("headcount" => 1, "annualised_usd" => "80000.0")
   end
 
   it "rejects an invalid as_of" do

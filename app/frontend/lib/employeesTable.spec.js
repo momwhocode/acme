@@ -4,9 +4,9 @@ import {
   countryLabel,
   directoryQueryFromFilters,
   employeeRowMenuItems,
+  employeesFilterChips,
   employeeTableRow,
   formatUsd,
-  selectedEmployeesCsv,
   titleCase
 } from "./employeesTable.js"
 
@@ -14,17 +14,21 @@ describe("employeesTable", () => {
   it("builds directory query params from chips and search", () => {
     expect(
       directoryQueryFromFilters({
-        filterValues: { status: [ "active" ], country: [ "GB", "US" ], type: [], department: [] },
+        filterValues: { status: [ "active" ], country: [ "GB", "US" ], type: [], department: [], manager: [ "mgr-1" ] },
         q: " ada ",
         page: 2,
-        perPage: 25
+        perPage: 25,
+        sort: { columnId: "pay", direction: "asc" }
       })
     ).toEqual({
       page: 2,
       per_page: 25,
       q: "ada",
       status: "active",
-      country: "GB,US"
+      country: "GB,US",
+      manager: "mgr-1",
+      sort: "pay",
+      direction: "asc"
     })
   })
 
@@ -71,21 +75,20 @@ describe("employeesTable", () => {
     const onOffboard = vi.fn()
     const items = employeeRowMenuItems(row, { onDetails, onOffboard })
 
-    expect(items.map((item) => item.label)).toEqual([ "View profile", "Mark as left" ])
+    expect(items.map((item) => item.label)).toEqual([ "View profile", "Mark as left", "Delete hire" ])
     items[0].onClick()
     items[1].onClick()
     expect(onDetails).toHaveBeenCalledWith(row)
     expect(onOffboard).toHaveBeenCalledWith(row)
   })
 
-  it("exports selected rows as csv", () => {
-    expect(selectedEmployeesCsv([ { name: "Ada Lovelace", email: "ada@acme.test" } ])).toContain("Ada Lovelace")
-  })
-
   it("turns a country code into a flag and name", () => {
     expect(countryFlag("GB")).toBe("🇬🇧")
     expect(countryLabel("GB")).toBe("United Kingdom")
     expect(countryFlag("not-a-country")).toBe("")
+    expect(employeesFilterChips({ countries: [ "GB" ] })[2].dropdownOptions).toEqual([
+      { value: "GB", label: "United Kingdom" }
+    ])
   })
 
   it("formats missing USD as an em dash", () => {

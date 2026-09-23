@@ -1,3 +1,5 @@
+/** Cookie-session fetch helpers, CSRF header, and session-expired event. */
+
 import { getApiBaseUrl } from "../config/api.js"
 
 export const SESSION_EXPIRED_EVENT = "acme:session-expired"

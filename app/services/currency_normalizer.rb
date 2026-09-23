@@ -1,6 +1,5 @@
 class CurrencyNormalizer
   BASE_CURRENCY = "USD"
-  PAY_PERIODS = CompensationRecord::PAY_PERIODS
   WEEKS_PER_YEAR = 52
   MONTHS_PER_YEAR = 12
   # 5-day week, 52 weeks. Product rule for daily contractor/freelancer rates.
@@ -24,6 +23,10 @@ class CurrencyNormalizer
     )
 
     (annual_local * fx_rate(currency, as_of)).round(2)
+  end
+
+  def annualised_local(amount:, pay_period:, hours_per_week: nil)
+    annualise(parse_amount(amount), pay_period, hours_per_week).round(2)
   end
 
   private

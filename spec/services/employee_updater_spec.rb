@@ -19,6 +19,13 @@ RSpec.describe EmployeeUpdater do
     expect(update(employee, level: "").level).to be_nil
   end
 
+  it "assigns a manager" do
+    manager = create(:employee, first_name: "Priya", email: "priya@acme.test")
+    employee = create(:employee)
+
+    expect(update(employee, manager_id: manager.id).manager_id).to eq(manager.id)
+  end
+
   it "rejects an empty update" do
     expect { update(create(:employee), left_on: "2025-06-01") }.to raise_error(
       described_class::Error, "no employee fields to update"

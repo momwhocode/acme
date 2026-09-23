@@ -1,3 +1,5 @@
+/** Signed-in layout: shell chrome + sidebar around protected routes. */
+
 import { Outlet } from "react-router-dom"
 import { APP_CHROME_SHELL, useAppDocumentChrome } from "../lib/appDocumentChrome"
 import AppShell from "./AppShell"

@@ -1,3 +1,5 @@
+/** Append a new compensation record (raise, promotion, correction). */
+
 import { useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { FormFieldRow } from "../april/components/FormFieldRow"
@@ -5,18 +7,18 @@ import { FormSection } from "../april/components/FormSection"
 import { Modal } from "../april/components/Modal"
 import { TextInput } from "../april/components/TextInput"
 import CompensationFields from "./CompensationFields"
-import { addCompensation, compensationChangeErrors, firstApiFieldError } from "../lib/employees"
+import { addCompensation, compensationChangeErrors, firstApiFieldError, updateCompensation } from "../lib/employees"
 import { todayIso } from "../lib/formDates"
 
-function formFromCurrent(current = {}, employee = {}) {
+function formFromCurrent(current = {}, employee = {}, editing = false) {
   return {
     level: employee.level || "",
     base_amount: current.base_amount ?? "",
     currency: current.currency || "USD",
     pay_period: current.pay_period || "annual",
     hours_per_week: current.hours_per_week ?? "",
-    effective_date: todayIso(),
-    change_reason: ""
+    effective_date: editing ? (current.effective_date || todayIso()) : todayIso(),
+    change_reason: editing ? (current.change_reason || "") : ""
   }
 }
 
@@ -33,8 +35,9 @@ function payloadFromForm(form) {
   return payload
 }
 
-export default function CompensationChangeModal({ employee, currentCompensation, onCancel, onSuccess }) {
-  const [form, setForm] = useState(() => formFromCurrent(currentCompensation, employee))
+export default function CompensationChangeModal({ employee, currentCompensation, record, onCancel, onSuccess }) {
+  const editing = Boolean(record)
+  const [form, setForm] = useState(() => formFromCurrent(record || currentCompensation, employee, editing))
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -55,7 +58,11 @@ export default function CompensationChangeModal({ employee, currentCompensation,
 
     setSubmitting(true)
     try {
-      onSuccess?.(await addCompensation(employee.id, payload))
+      onSuccess?.(
+        await (editing
+          ? updateCompensation(employee.id, record.id, payload)
+          : addCompensation(employee.id, payload))
+      )
     } catch (caught) {
       setErrors(caught.details || {})
       setSubmitError(firstApiFieldError(caught.details) || caught.message)
@@ -69,8 +76,12 @@ export default function CompensationChangeModal({ employee, currentCompensation,
       backdrop
       size="lg"
       icon="payments"
-      title="Record pay change"
-      description="Adds an effective-dated raise or promotion. Previous records stay on the timeline."
+      title={editing ? "Correct pay row" : "Record pay change"}
+      description={
+        editing
+          ? "Fixes a typo or wrong date on this row. The rest of the timeline stays in place."
+          : "Adds an effective-dated raise or promotion. Previous records stay on the timeline."
+      }
       showConfirmInput={false}
       showReset={false}
       showDescription

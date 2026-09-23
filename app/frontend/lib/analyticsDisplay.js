@@ -1,34 +1,31 @@
-import { formatMoney, formatUsd, titleCase } from "./employeesTable.js"
+/** Maps a Home drill-down (type / department / country / level) onto API and directory query params. */
 
-export function analyticsShare(value, total) {
-  const amount = Number(value) || 0
-  const whole = Number(total) || 0
-  if (whole <= 0) return 0
-  return Math.round((amount / whole) * 100)
-}
-
-export function mixLabel(row, key) {
-  const raw = row?.[key]
-  if (key === "country" || key === "currency") return raw || "—"
-  return titleCase(raw)
-}
-
-export function mixMoney(row, currencyMode) {
-  if (currencyMode === "local") {
-    return formatMoney(row.payroll_local, row.currency)
-  }
-  return formatUsd(row.payroll_usd)
-}
-
-export function kpiMoney(value, currencyMode, currency = "USD") {
-  if (value == null || value === "") return "—"
-  return currencyMode === "local" ? formatMoney(value, currency) : formatUsd(value)
+const FOCUS_QUERY = {
+  country: "country",
+  department: "department",
+  employment_type: "type",
+  level: "level"
 }
 
 export function directoryPathFromMix(rowKey, row) {
   const params = new URLSearchParams({ status: "active" })
-  if (rowKey === "employment_type" && row.employment_type) params.set("type", row.employment_type)
-  if (rowKey === "department" && row.department) params.set("department", row.department)
-  if (rowKey === "country" && row.country) params.set("country", row.country)
+  const queryKey = FOCUS_QUERY[rowKey]
+  const value = row[rowKey]
+  if (queryKey && value) params.set(queryKey, value)
   return `/employees?${params}`
+}
+
+export function directoryPathFromFocus(focus) {
+  if (!focus) return "/employees?status=active"
+  return directoryPathFromMix(focus.key, { [focus.key]: focus.value })
+}
+
+export function analyticsParamsFromFocus(focus) {
+  if (!focus) return {}
+  const queryKey = FOCUS_QUERY[focus.key]
+  return queryKey ? { [queryKey]: focus.value } : {}
+}
+
+export function toggleFocus(current, next) {
+  return current?.key === next?.key && current?.value === next?.value ? null : next
 }

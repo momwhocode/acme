@@ -1,21 +1,26 @@
+/** Employees directory — filters, saved views, export, and profile modal outlet. */
+
 import { useEffect, useMemo, useState } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { Button } from "../april/components/Button"
 import { FloatingBar } from "../april/components/FloatingBar"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
 import { PageToast } from "../april/components/PageToast"
+import ConfirmModal from "./ConfirmModal"
 import ImportEmployeesModal from "./ImportEmployeesModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
-import { importToastTitle } from "../lib/employees"
+import SavedDirectoryViews from "./SavedDirectoryViews"
+import { destroyEmployee, exportEmployees, importToastTitle, rehireEmployee } from "../lib/employees"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
 import {
   EMPLOYEES_TABLE_COLUMNS,
-  downloadSelectedEmployees,
   employeeColumnOptions,
   visibleEmployeeColumns
 } from "../lib/employeesTable"
+import { applySortToColumns } from "../lib/tableSort"
 import { createColumnToggleHandler } from "../lib/tableColumns"
 import { useTableRowSelection } from "../lib/tableSelection"
 import { useEmployeesDirectory } from "../lib/useEmployeesDirectory"
@@ -25,10 +30,13 @@ export default function EmployeesPage() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const directory = useEmployeesDirectory()
+  const { retry, exportQuery, applySavedView, setVisibleColumnIds, handleSort, sort } = directory
   const [onboardOpen, setOnboardOpen] = useState(() => searchParams.get("onboard") === "1")
   const [importOpen, setImportOpen] = useState(false)
   const [offboardRow, setOffboardRow] = useState(null)
+  const [deleteRow, setDeleteRow] = useState(null)
   const [toast, setToast] = useState(null)
+  const [busy, setBusy] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const { selection, selectedCount } = useTableRowSelection(directory.rows, selectedIds, setSelectedIds)
 
@@ -48,15 +56,37 @@ export default function EmployeesPage() {
     () =>
       createEmployeesTableExtensions({
         onDetails: (row) => navigate({ pathname: `/employees/${row.id}`, search: location.search }),
-        onOffboard: setOffboardRow
+        onOffboard: setOffboardRow,
+        onRehire: async (row) => {
+          try {
+            await rehireEmployee(row.id)
+            setToast({ title: "Employee rehired" })
+            retry()
+          } catch (caught) {
+            setToast({ title: caught.message || "Could not rehire employee" })
+          }
+        },
+        onDelete: setDeleteRow
       }),
-    [location.search, navigate]
+    [location.search, navigate, retry]
   )
   const onColumnToggle = useMemo(
-    () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, directory.setVisibleColumnIds),
-    [directory.setVisibleColumnIds]
+    () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, setVisibleColumnIds),
+    [setVisibleColumnIds]
   )
-  const selectedRows = directory.rows.filter((row) => selectedIds.includes(row.id))
+
+  const exportView = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await exportEmployees(exportQuery)
+      setToast({ title: "Exported this view" })
+    } catch (caught) {
+      setToast({ title: caught.message || "Could not export employees" })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <section className="superadmin-page superadmin-page--listing acme-listing">
@@ -78,7 +108,7 @@ export default function EmployeesPage() {
           onSuccess={(result) => {
             setImportOpen(false)
             setToast({ title: importToastTitle(result) })
-            directory.retry()
+            retry()
           }}
         />
       ) : null}
@@ -88,7 +118,7 @@ export default function EmployeesPage() {
           onSuccess={() => {
             setOnboardOpen(false)
             setToast({ title: "Employee onboarded" })
-            directory.retry()
+            retry()
           }}
         />
       ) : null}
@@ -99,7 +129,30 @@ export default function EmployeesPage() {
           onSuccess={() => {
             setOffboardRow(null)
             setToast({ title: "Marked as left" })
-            directory.retry()
+            retry()
+          }}
+        />
+      ) : null}
+      {deleteRow ? (
+        <ConfirmModal
+          title="Delete hire"
+          description={`Removes ${deleteRow.name} and their pay history. This cannot be undone.`}
+          confirm="Delete hire"
+          confirmLoading={busy}
+          onCancel={() => setDeleteRow(null)}
+          onConfirm={async () => {
+            if (busy) return
+            setBusy(true)
+            try {
+              await destroyEmployee(deleteRow.id)
+              setDeleteRow(null)
+              setToast({ title: "Hire deleted" })
+              retry()
+            } catch (caught) {
+              setToast({ title: caught.message || "Could not delete employee" })
+            } finally {
+              setBusy(false)
+            }
           }}
         />
       ) : null}
@@ -110,7 +163,7 @@ export default function EmployeesPage() {
       />
       <div className="superadmin-page__table">
         {directory.error && !directory.rows.length ? (
-          <PageLoadError title="Couldn't load employees" onRetry={directory.retry} />
+          <PageLoadError title="Couldn't load employees" onRetry={retry} />
         ) : (
           <ListingTableCard
             id="employees-table"
@@ -124,11 +177,12 @@ export default function EmployeesPage() {
             onSearchChange={directory.handleSearchChange}
             onClearAll={directory.handleClearAll}
             onColumnToggle={onColumnToggle}
+            onSort={handleSort}
             clearGeneration={directory.clearGeneration}
             rows={directory.rows}
             isDatasetEmpty={directory.isDatasetEmpty}
             hasActiveFilters={directory.hasActiveFilters}
-            tableColumns={visibleEmployeeColumns(directory.visibleColumnIds)}
+            tableColumns={applySortToColumns(visibleEmployeeColumns(directory.visibleColumnIds), sort)}
             tableType={directory.loading ? "loading" : "default"}
             tableExtensions={extensions}
             skeletonRows={8}
@@ -140,9 +194,31 @@ export default function EmployeesPage() {
               perPage: directory.pagination.limit
             }}
             onPageChange={directory.handlePageChange}
+            endContent={
+              <>
+                <SavedDirectoryViews
+                  snapshot={{
+                    filterValues: directory.filterValues,
+                    q: directory.searchValue,
+                    columns: directory.visibleColumnIds,
+                    sort
+                  }}
+                  onApply={applySavedView}
+                />
+                <Button
+                  label="Export"
+                  variant="outlined"
+                  size="md"
+                  icon="download"
+                  leadingIcon
+                  trailingIcon={false}
+                  onClick={exportView}
+                />
+              </>
+            }
           />
         )}
-        <Outlet context={{ onEmployeeChanged: directory.retry }} />
+        <Outlet context={{ onEmployeeChanged: retry }} />
         {selectedCount > 0 ? (
           <div className="acme-listing__bulk-bar">
             <FloatingBar
@@ -152,7 +228,7 @@ export default function EmployeesPage() {
               showMore={false}
               onClearSelection={() => setSelectedIds([])}
               onActionClick={(action) => {
-                if (action.id === "export") downloadSelectedEmployees(selectedRows)
+                if (action.id === "export") exportView()
               }}
             />
           </div>

@@ -2,7 +2,15 @@ module Api
   module V1
     class AnalyticsController < BaseController
       def show
-        render_success(AnalyticsQuery.call(as_of: as_of_date))
+        render_success(
+          AnalyticsQuery.call(
+            as_of: as_of_date,
+            country: params[:country],
+            department: params[:department],
+            type: params[:type],
+            level: params[:level]
+          )
+        )
       end
 
       private

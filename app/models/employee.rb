@@ -15,18 +15,37 @@
 #  status          :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  manager_id      :uuid
 #
 # Indexes
 #
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
 #  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
+#  index_employees_on_manager_id         (manager_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (manager_id => employees.id)
 #
 class Employee < ApplicationRecord
   EMPLOYMENT_TYPES = %w[full-time part-time contractor freelancer intern].freeze
   STATUSES = %w[active left].freeze
+  LEVEL_BUCKETS = {
+    "L1" => %w[L1 IC1],
+    "L2" => %w[L2 IC2],
+    "L3" => %w[L3 IC3],
+    "L4" => %w[L4 IC4],
+    "L5+" => %w[L5 L6 L7 L8 IC5 IC6 IC7 IC8 M1 M2 M3 M4 M5]
+  }.freeze
 
-  has_many :compensation_records, dependent: :restrict_with_error, inverse_of: :employee
+  def self.levels_in_bucket(*values)
+    values.flatten.flat_map { |value| LEVEL_BUCKETS[value.to_s] || [ value.to_s ] }.uniq
+  end
+
+  has_many :compensation_records, dependent: :destroy, inverse_of: :employee
+  belongs_to :manager, class_name: "Employee", optional: true
+  has_many :direct_reports, class_name: "Employee", foreign_key: :manager_id, inverse_of: :manager, dependent: :nullify
 
   before_validation :normalize_attributes
 
@@ -38,17 +57,24 @@ class Employee < ApplicationRecord
   validates :employment_type, presence: true, inclusion: { in: EMPLOYMENT_TYPES }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :level, length: { maximum: 50 }, allow_nil: true
+  validate :manager_is_not_self
   validate :left_on_not_before_started_on
   validate :left_on_present_for_leavers
   validate :employment_dates_cover_compensation
 
   DIRECTORY_JSON_KEYS = %i[
     id first_name last_name email country department
-    employment_type status level started_on left_on
+    employment_type status level started_on left_on manager_id
   ].freeze
 
   def as_directory_json
-    DIRECTORY_JSON_KEYS.index_with { |key| public_send(key) }
+    DIRECTORY_JSON_KEYS.index_with { |key| public_send(key) }.merge(
+      manager_name: manager && "#{manager.first_name} #{manager.last_name}".strip
+    )
+  end
+
+  def display_name
+    "#{first_name} #{last_name}".strip
   end
 
   def current_compensation_record(as_of: Date.current)
@@ -73,6 +99,12 @@ class Employee < ApplicationRecord
     self.employment_type = employment_type.to_s.strip.downcase.presence
     self.status = status.to_s.strip.downcase.presence
     self.level = level.to_s.strip.presence
+  end
+
+  def manager_is_not_self
+    return if manager_id.blank? || manager_id != id
+
+    errors.add(:manager_id, "cannot manage themselves")
   end
 
   def left_on_not_before_started_on

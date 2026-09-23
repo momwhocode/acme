@@ -1,3 +1,5 @@
+/** Shared April table cells: lead + avatar, link, actions, country flag. */
+
 import { Button } from "../april/components/Button.jsx"
 import { TableRowActionsMenu } from "../april/components/TableRowActionsMenu.jsx"
 import { UserAvatar } from "../april/components/UserAvatar.jsx"

@@ -1,3 +1,5 @@
+/** HR SPA routes: session gate, Home, Employees, and profile modal. */
+
 import { useEffect, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthBrand } from "../april/components/AuthBrand"

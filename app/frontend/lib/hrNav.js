@@ -1,3 +1,5 @@
+/** Home / Employees sidebar items and active route for signed-in HR. */
+
 import { navItemToSidebar, resolveActiveNavItemId } from "./sidebarNav.js"
 
 export const HR_NAV_HOME = {

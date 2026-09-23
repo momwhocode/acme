@@ -385,7 +385,7 @@ RSpec.describe "Employees", type: :request do
       tags "Employees"
       consumes "multipart/form-data"
       produces "application/json"
-      description "Creates employees and effective-dated compensation. Existing emails are skipped. Max 5 MB."
+      description "Creates employees and effective-dated compensation. Existing emails are updated. Max 5 MB."
       parameter name: :file, in: :formData, schema: { type: :string, format: :binary }, required: true
 
       response "200", "imported" do

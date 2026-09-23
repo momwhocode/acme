@@ -1,3 +1,5 @@
+/** Explicit sign-out confirmation. Stay signed in returns to Home. */
+
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AuthBrand } from "../april/components/AuthBrand"

@@ -1,3 +1,5 @@
+/** Directory columns, row mapping, chips, and query params for Employees. */
+
 import { employeeAvatar } from "./employeeAvatar.js"
 import { filterTableColumns, toggleableColumns } from "./tableColumns.js"
 import { EMPLOYMENT_TYPES, STATUSES } from "./employees.js"
@@ -5,15 +7,16 @@ import { readFilterSelection } from "./filterValues.js"
 
 export const EMPLOYEES_TABLE_COLUMNS = [
   { id: "select", kind: "select", sticky: "start" },
-  { id: "lead", label: "Employee", kind: "lead", sticky: "start", showAvatar: true },
+  { id: "lead", label: "Employee", kind: "lead", sticky: "start", showAvatar: true, sortable: true },
   { id: "email", label: "Email", kind: "header", scroll: "start" },
   { id: "department", label: "Department", kind: "header", scroll: true },
+  { id: "manager", label: "Manager", kind: "header", scroll: true },
   { id: "country", label: "Country", kind: "header", scroll: true },
   { id: "employment_type", label: "Type", kind: "header", scroll: true },
   { id: "status", label: "Status", kind: "status", scroll: true },
   { id: "level", label: "Level", kind: "header", scroll: true },
-  { id: "pay", label: "Annual USD", kind: "header", scroll: true },
-  { id: "started_on", label: "Start date", kind: "date", scroll: true },
+  { id: "pay", label: "Annual USD", kind: "header", scroll: true, sortable: true },
+  { id: "started_on", label: "Start date", kind: "date", scroll: true, sortable: true },
   { id: "actions", kind: "actions", sticky: "end" }
 ]
 
@@ -55,13 +58,25 @@ export function facetOptions(values = []) {
   return values.filter(Boolean).map((value) => ({ value, label: titleCase(value) }))
 }
 
-export function employeesFilterChips({ departments = [], countries = [] } = {}) {
-  return [
+export function countryFacetOptions(values = []) {
+  return values.filter(Boolean).map((value) => ({ value, label: countryLabel(value) }))
+}
+
+export function employeesFilterChips({ departments = [], countries = [], managers = [] } = {}) {
+  const chips = [
     { filterLabel: "Status", filterKey: "status", dropdownOptions: STATUS_FILTER_OPTIONS },
     { filterLabel: "Type", filterKey: "type", dropdownOptions: TYPE_FILTER_OPTIONS },
-    { filterLabel: "Country", filterKey: "country", dropdownOptions: facetOptions(countries) },
+    { filterLabel: "Country", filterKey: "country", dropdownOptions: countryFacetOptions(countries) },
     { filterLabel: "Department", filterKey: "department", dropdownOptions: facetOptions(departments) }
   ]
+  if (managers.length) {
+    chips.push({
+      filterLabel: "Manager",
+      filterKey: "manager",
+      dropdownOptions: managers.map((manager) => ({ value: manager.id, label: manager.name }))
+    })
+  }
+  return chips
 }
 
 export function visibleEmployeeColumns(visibleColumnIds) {
@@ -90,47 +105,15 @@ export function formatMoney(amount, currency) {
   }
 }
 
-export function employeeRowMenuItems(row, { onDetails, onOffboard } = {}) {
+export function employeeRowMenuItems(row, { onDetails, onOffboard, onRehire, onDelete } = {}) {
   const items = [ { label: "View profile", onClick: () => onDetails?.(row) } ]
   if (row.employee?.status === "active") {
     items.push({ label: "Mark as left", onClick: () => onOffboard?.(row) })
+  } else {
+    items.push({ label: "Rehire", onClick: () => onRehire?.(row) })
   }
+  items.push({ label: "Delete hire", onClick: () => onDelete?.(row) })
   return items
-}
-
-export function selectedEmployeesCsv(rows = []) {
-  const header = [ "Name", "Email", "Department", "Country", "Type", "Status", "Level", "Pay", "Started" ]
-  const escape = (value) => {
-    const text = String(value ?? "")
-    return /[",\n]/.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text
-  }
-
-  return [
-    header,
-    ...rows.map((row) => [
-      row.name,
-      row.email,
-      row.department,
-      row.country,
-      row.employment_type,
-      row.status,
-      row.level,
-      row.pay,
-      row.started_on
-    ])
-  ]
-    .map((line) => line.map(escape).join(","))
-    .join("\n")
-}
-
-export function downloadSelectedEmployees(rows = []) {
-  const blob = new Blob([ selectedEmployeesCsv(rows) ], { type: "text/csv;charset=utf-8" })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = "employees.csv"
-  link.click()
-  URL.revokeObjectURL(url)
 }
 
 export function employeeTableRow(employee) {
@@ -146,6 +129,7 @@ export function employeeTableRow(employee) {
     avatarUrl: avatar.avatarUrl,
     email: employee.email,
     department: titleCase(employee.department),
+    manager: employee.manager_name || "—",
     country: employee.country,
     employment_type: titleCase(employee.employment_type),
     status: employee.status === "left" ? "Left" : "Active",
@@ -157,8 +141,15 @@ export function employeeTableRow(employee) {
   }
 }
 
-export function directoryQueryFromFilters({ filterValues = {}, q = "", page = 1, perPage = 25 } = {}) {
-  const params = { page, per_page: perPage }
+export function directoryQueryFromFilters({
+  filterValues = {},
+  q = "",
+  page = 1,
+  perPage = 25,
+  sort = null,
+  paginate = true
+} = {}) {
+  const params = paginate ? { page, per_page: perPage } : {}
   const search = String(q || "").trim()
   if (search) params.q = search
 
@@ -166,9 +157,17 @@ export function directoryQueryFromFilters({ filterValues = {}, q = "", page = 1,
   const department = readFilterSelection(filterValues.department)
   const type = readFilterSelection(filterValues.type)
   const status = readFilterSelection(filterValues.status)
+  const manager = readFilterSelection(filterValues.manager)
+  const level = readFilterSelection(filterValues.level)
   if (country.length) params.country = country.join(",")
   if (department.length) params.department = department.join(",")
   if (type.length) params.type = type.join(",")
   if (status.length) params.status = status.join(",")
+  if (manager.length) params.manager = manager.join(",")
+  if (level.length) params.level = level.join(",")
+  if (sort?.columnId) {
+    params.sort = sort.columnId
+    params.direction = sort.direction || "desc"
+  }
   return params
 }

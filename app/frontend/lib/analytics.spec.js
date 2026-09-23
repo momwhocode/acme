@@ -1,14 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { getAnalytics } from "./analytics.js"
-import { analyticsShare, directoryPathFromMix, mixLabel, mixMoney } from "./analyticsDisplay.js"
+import {
+  analyticsParamsFromFocus,
+  directoryPathFromFocus,
+  directoryPathFromMix,
+  toggleFocus
+} from "./analyticsDisplay.js"
 
-describe("analytics display", () => {
-  it("labels mix rows and formats local money", () => {
-    expect(mixLabel({ employment_type: "full-time" }, "employment_type")).toBe("Full Time")
-    expect(mixMoney({ payroll_local: 80000, currency: "GBP" }, "local")).toContain("£")
-    expect(analyticsShare(25, 100)).toBe(25)
-  })
-
+describe("directoryPathFromMix", () => {
   it("opens the directory on the active mix slice", () => {
     expect(directoryPathFromMix("employment_type", { employment_type: "contractor" })).toBe(
       "/employees?status=active&type=contractor"
@@ -17,6 +16,14 @@ describe("analytics display", () => {
       "/employees?status=active&department=engineering"
     )
     expect(directoryPathFromMix("country", { country: "GB" })).toBe("/employees?status=active&country=GB")
+  })
+
+  it("keeps only the active status when the slice has no filter value", () => {
+    expect(directoryPathFromMix("country", {})).toBe("/employees?status=active")
+  })
+
+  it("opens a level bucket in the directory", () => {
+    expect(directoryPathFromMix("level", { level: "L2" })).toBe("/employees?status=active&level=L2")
   })
 })
 
@@ -48,5 +55,28 @@ describe("analytics requests", () => {
       "/api/v1/analytics?as_of=2026-08-31",
       expect.objectContaining({ credentials: "same-origin" })
     )
+  })
+
+  it("loads a filtered snapshot", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: {} }), { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await getAnalytics({ as_of: "2026-08-31", type: "full-time", level: "L2" })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/analytics?as_of=2026-08-31&type=full-time&level=L2",
+      expect.objectContaining({ credentials: "same-origin" })
+    )
+  })
+})
+
+describe("home focus", () => {
+  it("maps a focus into analytics and directory params", () => {
+    const focus = { key: "department", value: "engineering", label: "Engineering" }
+    expect(analyticsParamsFromFocus(focus)).toEqual({ department: "engineering" })
+    expect(directoryPathFromFocus(focus)).toBe("/employees?status=active&department=engineering")
+    expect(directoryPathFromFocus(null)).toBe("/employees?status=active")
+    expect(toggleFocus(focus, focus)).toBeNull()
+    expect(toggleFocus(null, focus)).toEqual(focus)
   })
 })

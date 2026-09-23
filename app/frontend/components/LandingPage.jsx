@@ -1,3 +1,5 @@
+/** Marketing + sign-in split for signed-out visitors. */
+
 import { APP_CHROME_SCROLL, useAppDocumentChrome } from "../lib/appDocumentChrome"
 import LoginPage from "./LoginPage"
 

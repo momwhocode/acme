@@ -7,7 +7,13 @@ import EmployeeProfilePage from "./EmployeeProfilePage"
 
 vi.mock("../lib/employees", async () => {
   const actual = await vi.importActual("../lib/employees")
-  return { ...actual, getEmployee: vi.fn() }
+  return {
+    ...actual,
+    getEmployee: vi.fn(),
+    rehireEmployee: vi.fn(),
+    destroyEmployee: vi.fn(),
+    deleteCompensation: vi.fn()
+  }
 })
 
 import { getEmployee } from "../lib/employees"
@@ -86,6 +92,8 @@ describe("EmployeeProfilePage", () => {
     expect(screen.getByText("Hire")).toBeTruthy()
     expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
     expect(screen.getByRole("button", { name: "More actions" })).toBeTruthy()
+    expect(screen.getAllByRole("button", { name: "Correct" }).length).toBeGreaterThan(0)
+    expect(screen.getByRole("heading", { name: "Audit trail" })).toBeTruthy()
   })
 
   it("opens the offboard modal from more actions", async () => {
@@ -169,8 +177,12 @@ describe("EmployeeProfilePage", () => {
 
     await screen.findByRole("heading", { name: "Ada Lovelace" })
     expect(screen.queryByRole("button", { name: "Record pay change" })).toBeNull()
-    expect(screen.queryByRole("button", { name: "More actions" })).toBeNull()
+    expect(screen.getByRole("button", { name: "More actions" })).toBeTruthy()
     expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole("button", { name: "More actions" }))
+    expect(screen.getByRole("menuitem", { name: "Rehire" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Delete hire" })).toBeTruthy()
   })
 
   it("shows a styled missing-employee state", async () => {

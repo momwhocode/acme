@@ -1,3 +1,5 @@
+/** Record a leave date and optional last-day reason. */
+
 import { useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { FormDateField } from "../april/components/FormDateField"

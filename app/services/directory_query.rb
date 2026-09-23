@@ -5,6 +5,16 @@ class DirectoryQuery
   MAX_LIMIT = 100
   MAX_QUERY = 255
   SEARCH_SQL = "(first_name || ' ' || last_name || ' ' || email) ILIKE :q"
+  SORT_COLUMNS = {
+    "lead" => %i[last_name first_name id],
+    "email" => %i[email id],
+    "department" => %i[department last_name id],
+    "country" => %i[country last_name id],
+    "employment_type" => %i[employment_type last_name id],
+    "status" => %i[status last_name id],
+    "level" => %i[level last_name id],
+    "started_on" => %i[started_on last_name id]
+  }.freeze
 
   def initialize(params)
     @params = params
@@ -16,7 +26,9 @@ class DirectoryQuery
     scope = apply_equals(scope, :department, normalize_department)
     scope = apply_equals(scope, :employment_type, normalize_type)
     scope = apply_equals(scope, :status, normalize_status)
-    apply_search(scope).order(:last_name, :first_name, :id)
+    scope = apply_equals(scope, :level, normalize_level)
+    scope = apply_manager(scope)
+    apply_sort(apply_search(scope))
   end
 
   def page
@@ -64,6 +76,11 @@ class DirectoryQuery
     permitted(list_param(:status), Employee::STATUSES, "unknown status")
   end
 
+  def normalize_level
+    values = Employee.levels_in_bucket(list_param(:level))
+    values.presence
+  end
+
   def permitted(raw, allowed, error)
     values = Array(raw).map { |value| value.to_s.strip.downcase }.reject(&:blank?)
     return if values.empty?
@@ -77,6 +94,41 @@ class DirectoryQuery
         .flat_map { |value| value.to_s.split(",") }
         .map(&:strip)
         .reject(&:blank?)
+  end
+
+  def apply_manager(scope)
+    ids = list_param(:manager)
+    return scope if ids.empty?
+
+    ids.each { |id| raise Error, "unknown manager" unless id.match?(/\A[0-9a-f-]{36}\z/i) }
+    scope.where(manager_id: ids)
+  end
+
+  def apply_sort(scope)
+    key = @params[:sort].to_s
+    return scope.order(last_name: :asc, first_name: :asc, id: :asc) if key.blank?
+
+    direction = @params[:direction].to_s == "asc" ? :asc : :desc
+    return apply_pay_sort(scope, direction) if key == "pay"
+
+    columns = SORT_COLUMNS[key] || %i[last_name first_name id]
+    order = columns.index_with { |column| column == :id ? :asc : direction }
+    scope.order(order)
+  end
+
+  def apply_pay_sort(scope, direction)
+    quoted = direction == :asc ? "ASC" : "DESC"
+    scope.joins(<<~SQL.squish)
+      LEFT JOIN LATERAL (
+        SELECT compensation_records.base_amount
+        FROM compensation_records
+        WHERE compensation_records.employee_id = employees.id
+          AND compensation_records.effective_date <= LEAST(COALESCE(employees.left_on, CURRENT_DATE), CURRENT_DATE)
+        ORDER BY compensation_records.effective_date DESC, compensation_records.id DESC
+        LIMIT 1
+      ) current_pay ON TRUE
+    SQL
+      .order(Arel.sql("current_pay.base_amount #{quoted} NULLS LAST, employees.last_name ASC"))
   end
 
   def integer_param(key)

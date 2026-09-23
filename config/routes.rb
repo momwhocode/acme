@@ -10,10 +10,16 @@ Rails.application.routes.draw do
       get "health", to: "health#show"
       resource :analytics, only: :show
       resource :session, only: %i[show create destroy]
-      resources :employees, only: %i[index show create update] do
-        resources :compensation_records, only: %i[create]
-        member { patch :offboard }
-        collection { post :import }
+      resources :employees, only: %i[index show create update destroy] do
+        resources :compensation_records, only: %i[create update destroy]
+        member do
+          patch :offboard
+          patch :rehire
+        end
+        collection do
+          post :import
+          get :export
+        end
       end
     end
 

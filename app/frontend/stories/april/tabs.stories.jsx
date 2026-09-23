@@ -11,7 +11,7 @@ export default {
     docs: {
       description: {
         component:
-          "Transparent page tabs (Figma 857:7100). Structure: `.april-tabs-group` → `.april-tabs-group__base-rail` (flex, gap-sm, no padding, start-aligned) → `.april-tab-wrapper` (48px, no padding) → ghost `sm` Button. Active tab uses ghost `active-pressed` state. Edge-to-edge divider: 2px `--color-border-border-gray-light` below base-rail. Minimum two tabs.",
+          "April page tabs (Figma 857:7100): `.april-tabs-group` → `.april-tabs-group__base-rail` → ghost `sm` Button. The rail draws an edge-to-edge divider. Home in-card tabs use `OverviewTabs` (Acme/Overview Tabs) — the same ghost buttons without the rail divider.",
       },
     },
   },

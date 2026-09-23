@@ -1,3 +1,5 @@
+/** New hire modal — identity, start date, and first compensation. */
+
 import { useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { FormDateField } from "../april/components/FormDateField"

@@ -2,7 +2,7 @@ class EmployeeUpdater
   class Error < AppError; end
 
   ATTR_KEYS = %i[
-    first_name last_name email country department employment_type level started_on
+    first_name last_name email country department employment_type level started_on manager_id
   ].freeze
 
   def self.call(...)
@@ -17,6 +17,7 @@ class EmployeeUpdater
   def call
     attrs = @params.slice(*ATTR_KEYS)
     raise Error, "no employee fields to update" if attrs.empty?
+    attrs[:manager_id] = attrs[:manager_id].presence if attrs.key?(:manager_id)
 
     @employee.update!(attrs)
     @employee
