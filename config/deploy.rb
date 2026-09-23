@@ -6,6 +6,18 @@
 
 lock "~> 3.20.0"
 
+# net-ssh dies on hashed/unknown host-key lines in ~/.ssh/known_hosts.
+require "sshkit/backends/netssh"
+SSHKit::Backend::Netssh::KnownHostsKeys.class_eval do
+  alias_method :original_parse_key, :parse_key
+
+  def parse_key(*args)
+    original_parse_key(*args)
+  rescue NotImplementedError, ArgumentError, TypeError
+    nil
+  end
+end
+
 set :application, "acme"
 set :repo_url, "git@github.com:momwhocode/acme.git"
 set :deploy_to, "/var/www/acme"

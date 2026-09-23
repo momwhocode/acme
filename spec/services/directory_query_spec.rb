@@ -142,4 +142,3 @@ RSpec.describe DirectoryQuery do
     expect(relation_for(sort: "started_on", direction: "asc").pluck(:id)).to eq([ earlier.id, later.id ])
   end
 end
-

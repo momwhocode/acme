@@ -18,22 +18,24 @@ export default {
   }
 }
 
+function DeleteHireStory() {
+  const [open, setOpen] = useState(true)
+  return (
+    <StoryFrame>
+      <Button label="Open confirm" variant="outlined" size="md" onClick={() => setOpen(true)} />
+      {open ? (
+        <ConfirmModal
+          title="Delete Ada Lovelace?"
+          description="Removes this hire. This action cannot be undone."
+          confirm="Delete"
+          onCancel={() => setOpen(false)}
+          onConfirm={() => setOpen(false)}
+        />
+      ) : null}
+    </StoryFrame>
+  )
+}
+
 export const DeleteHire = {
-  render: () => {
-    const [open, setOpen] = useState(true)
-    return (
-      <StoryFrame>
-        <Button label="Open confirm" variant="outlined" size="md" onClick={() => setOpen(true)} />
-        {open ? (
-          <ConfirmModal
-            title="Delete Ada Lovelace?"
-            description="Removes this hire. This action cannot be undone."
-            confirm="Delete"
-            onCancel={() => setOpen(false)}
-            onConfirm={() => setOpen(false)}
-          />
-        ) : null}
-      </StoryFrame>
-    )
-  }
+  render: () => <DeleteHireStory />
 }

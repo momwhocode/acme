@@ -21,7 +21,7 @@
 #
 FactoryBot.define do
   factory :audit_event do
-    association :actor, factory: :user
+    actor factory: :user
     action { "update" }
     record_type { "Employee" }
     record_id { SecureRandom.uuid }

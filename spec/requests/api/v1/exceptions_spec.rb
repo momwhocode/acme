@@ -136,7 +136,12 @@ RSpec.describe "API exception handler" do
 
     expect(status).to eq(404)
     expect(headers["content-type"]).to include("text/html")
-    expect(_raw).to include("Page not found")
-    expect(_raw).to include("Acme")
+  end
+
+  it "renders the branded not-found page for HTML" do
+    _status, _headers, raw = envelope_for("/missing-page", ActionController::RoutingError.new("No route"))
+
+    expect(raw).to include("Page not found")
+    expect(raw).to include("Acme")
   end
 end

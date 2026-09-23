@@ -173,5 +173,4 @@ RSpec.describe AnalyticsQuery do
     expect(described_class.call(as_of: Date.new(2026, 1, 1), type: "contractor")).to include(headcount: 1)
     expect(described_class.call(as_of: Date.new(2026, 1, 1), level: "L2")).to include(headcount: 1)
   end
-
 end

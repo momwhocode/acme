@@ -17,15 +17,25 @@ AllCops:
     - "vendor/**/*"
     - "tmp/**/*"
 
+RSpec/DescribeClass:
+  Exclude:
+    - spec/db/**/*
+    - spec/lib/tasks/**/*
+
 RSpec/ExampleLength:
   Max: 20
   Exclude:
     - spec/requests/swagger/**/*
+    - spec/requests/api/v1/analytics_spec.rb
+    - spec/services/analytics_query_spec.rb
 
 RSpec/MultipleExpectations:
   Max: 2
   Exclude:
+    - spec/db/**/*
     - spec/requests/swagger/**/*
+    - spec/requests/api/v1/analytics_spec.rb
+    - spec/services/analytics_query_spec.rb
 
 RSpec/EmptyExampleGroup:
   Exclude:

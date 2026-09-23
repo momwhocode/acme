@@ -36,6 +36,12 @@ RSpec.describe "Employee lifecycle API" do
         "employee" => include("email" => "ada@acme.test", "status" => "active"),
         "compensation_record" => include("change_reason" => "hire", "currency" => "GBP")
       )
+    end
+
+    it "records an onboard audit event" do
+      sign_in_hr
+      post "/api/v1/employees", params: onboard_payload, as: :json
+
       expect(AuditEvent.where(action: "onboard", record_type: "Employee")).to exist
     end
 
@@ -442,6 +448,15 @@ RSpec.describe "Employee lifecycle API" do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(api_error).to include("message" => "cannot delete the only pay record")
+    end
+
+    it "does not audit a blocked pay delete" do
+      sign_in_hr
+      employee = create(:employee)
+      record = create(:compensation_record, employee: employee)
+
+      delete "/api/v1/employees/#{employee.id}/compensation_records/#{record.id}", as: :json
+
       expect(AuditEvent.where(action: "destroy", record_type: "CompensationRecord")).not_to exist
     end
   end
@@ -462,6 +477,15 @@ RSpec.describe "Employee lifecycle API" do
 
       expect(response).to have_http_status(:ok)
       expect(response.media_type).to eq("text/csv")
+    end
+
+    it "includes only matching employees in the csv" do
+      sign_in_hr
+      create(:employee, first_name: "Ada", last_name: "Lovelace", country: "GB")
+      create(:employee, first_name: "Grace", last_name: "Hopper", country: "US", email: "grace@acme.test")
+
+      get "/api/v1/employees/export", params: { country: "GB" }
+
       expect(response.body).to include("Ada Lovelace")
       expect(response.body).not_to include("Grace Hopper")
     end
