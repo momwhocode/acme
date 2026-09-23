@@ -2,7 +2,7 @@
 
 import { AVATAR_COLORS, avatarColorForId } from "../april/renderers/avatar.js"
 
-export const EMPLOYEE_PORTRAITS = [
+const EMPLOYEE_PORTRAITS = [
   "/avatars/employee-1.svg",
   "/avatars/employee-2.svg",
   "/avatars/employee-3.svg",

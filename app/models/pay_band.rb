@@ -13,6 +13,8 @@
 #
 #  index_pay_bands_on_level_and_currency  (level,currency) UNIQUE
 #
+# Midpoint by level and currency. Seed converts USD bands through the current FX snapshot.
+
 class PayBand < ApplicationRecord
   USD_MIDPOINTS = {
     "IC1" => 60_000,

@@ -1,5 +1,7 @@
 require "csv"
 
+# CSV of the current directory query — same filters as the listing, no pagination.
+
 class DirectoryExporter
   HEADERS = %w[
     Name Email Department Country Type Status Level Pay Started Manager
@@ -17,8 +19,7 @@ class DirectoryExporter
     rows = DirectoryPayload.employees(@employees)
     CSV.generate do |csv|
       csv << HEADERS
-      rows.each do |row|
-        employee = row
+      rows.each do |employee|
         csv << [
           "#{employee[:first_name]} #{employee[:last_name]}".strip,
           employee[:email],

@@ -13,7 +13,6 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Smooth dissolve when columns are shown or hidden via the columns dropdown. */
 export function useTableColumnTransition(columns, duration = TABLE_COLUMN_TRANSITION_MS) {
   const columnsKey = columnIdsKey(columns);
   const columnsRef = useRef(columns);

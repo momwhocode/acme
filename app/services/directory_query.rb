@@ -1,3 +1,5 @@
+# Paginated Employees listing. Filters, search, and sort stay in SQL.
+
 class DirectoryQuery
   class Error < AppError; end
 

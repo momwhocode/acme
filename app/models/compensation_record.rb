@@ -21,6 +21,8 @@
 #
 #  fk_rails_...  (employee_id => employees.id)
 #
+# One effective-dated pay row. Unique per employee + effective_date.
+
 class CompensationRecord < ApplicationRecord
   PAY_PERIODS = %w[hourly daily monthly annual].freeze
   ATTR_KEYS = %i[base_amount currency pay_period hours_per_week effective_date change_reason].freeze

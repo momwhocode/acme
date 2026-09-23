@@ -191,7 +191,7 @@ export default function EmployeeProfilePage() {
               </dl>
             </section>
 
-            <section className="acme-profile__card acme-profile__comp" aria-labelledby="current-comp-title">
+            <section className="acme-profile__card" aria-labelledby="current-comp-title">
               <h2 id="current-comp-title" className="april-text-style april-text-style--text-lg-semibold">
                 Current compensation
               </h2>
@@ -217,7 +217,7 @@ export default function EmployeeProfilePage() {
               )}
             </section>
 
-            <section className="acme-profile__card acme-profile__history" aria-labelledby="comp-history-title">
+            <section className="acme-profile__card" aria-labelledby="comp-history-title">
               <h2 id="comp-history-title" className="april-text-style april-text-style--text-lg-semibold">
                 Compensation history
               </h2>
@@ -241,7 +241,7 @@ export default function EmployeeProfilePage() {
                           <p className="april-text-style april-text-style--text-sm-regular">
                             {formatUsd(record.annualised_usd)} annualised USD
                           </p>
-                          <div className="acme-profile__timeline-actions">
+                          <div>
                             <Button
                               label="Correct"
                               variant="link-neutral"

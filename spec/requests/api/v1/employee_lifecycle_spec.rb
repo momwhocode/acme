@@ -36,6 +36,7 @@ RSpec.describe "Employee lifecycle API" do
         "employee" => include("email" => "ada@acme.test", "status" => "active"),
         "compensation_record" => include("change_reason" => "hire", "currency" => "GBP")
       )
+      expect(AuditEvent.where(action: "onboard", record_type: "Employee")).to exist
     end
 
     it "rejects a hire without compensation" do
@@ -248,7 +249,7 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees/import", params: { file: upload_csv }
 
       expect(response).to have_http_status(:ok)
-      expect(api_data).to include("employees" => 2, "compensation_records" => 3, "skipped" => 0)
+      expect(api_data).to include("employees" => 2, "compensation_records" => 3)
     end
 
     it "updates emails that already exist" do
@@ -257,7 +258,7 @@ RSpec.describe "Employee lifecycle API" do
       post "/api/v1/employees/import", params: { file: upload_csv }
 
       expect(response).to have_http_status(:ok)
-      expect(api_data).to include("employees" => 0, "updated" => 2, "skipped" => 0)
+      expect(api_data).to include("employees" => 0, "updated" => 2)
     end
 
     it "rejects a missing file" do
@@ -360,6 +361,12 @@ RSpec.describe "Employee lifecycle API" do
   end
 
   describe "PATCH /api/v1/employees/:id/rehire" do
+    it "requires login" do
+      patch "/api/v1/employees/#{create(:employee, :left).id}/rehire", as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
     it "reactivates a leaver" do
       sign_in_hr
       employee = create(:employee, :left)
@@ -381,6 +388,12 @@ RSpec.describe "Employee lifecycle API" do
   end
 
   describe "DELETE /api/v1/employees/:id" do
+    it "requires login" do
+      delete "/api/v1/employees/#{create(:employee).id}", as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
     it "deletes a mistaken hire" do
       sign_in_hr
       employee = create(:employee)
@@ -429,10 +442,17 @@ RSpec.describe "Employee lifecycle API" do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(api_error).to include("message" => "cannot delete the only pay record")
+      expect(AuditEvent.where(action: "destroy", record_type: "CompensationRecord")).not_to exist
     end
   end
 
   describe "GET /api/v1/employees/export" do
+    it "requires login" do
+      get "/api/v1/employees/export"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
     it "exports the filtered directory as csv" do
       sign_in_hr
       create(:employee, first_name: "Ada", last_name: "Lovelace", country: "GB")

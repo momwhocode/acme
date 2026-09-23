@@ -12,11 +12,6 @@ const COPY = {
     icon: "error",
     title: "Something went wrong",
     description: "Reload the page to continue."
-  },
-  rejected: {
-    icon: "block",
-    title: "Change rejected",
-    description: "That request could not be completed."
   }
 }
 
@@ -36,7 +31,7 @@ export default function StatusPage({
 
   return (
     <div
-      className={["acme-status-page", inset ? "acme-status-page--inset" : ""].filter(Boolean).join(" ")}
+      className="acme-status-page"
       role={inset ? undefined : "main"}
     >
       <div className="acme-status-page__card">

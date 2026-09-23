@@ -1,4 +1,4 @@
-/* App chrome — same shell as SchoolOS (sidebar + scrolling main). */
+/* App chrome — sidebar + scrolling main. */
 
 #root > .superadmin-shell,
 .superadmin-shell {
@@ -51,8 +51,7 @@
   flex-shrink: 0;
 }
 
-.superadmin-page__table,
-.superadmin-page__body {
+.superadmin-page__table {
   flex: 1;
   min-height: 0;
   display: flex;

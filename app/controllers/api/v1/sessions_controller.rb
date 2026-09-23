@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Cookie session. Logout stays public so an expired cookie can still clear the client.
     class SessionsController < BaseController
       skip_before_action :require_login!, only: %i[create destroy]
 

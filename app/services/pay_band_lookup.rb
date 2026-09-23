@@ -1,3 +1,5 @@
+# Compa-ratio against the seeded midpoint for this level and currency.
+
 class PayBandLookup
   def self.call(employee:, compensation:, normalizer: CurrencyNormalizer.new)
     return if employee&.level.blank? || compensation.blank?

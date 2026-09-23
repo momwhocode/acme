@@ -72,9 +72,3 @@ export function saveDirectoryView(view) {
   writeJson(VIEWS_KEY, next)
   return next
 }
-
-export function deleteDirectoryView(name) {
-  const next = listSavedViews().filter((entry) => entry.name !== name)
-  writeJson(VIEWS_KEY, next)
-  return next
-}

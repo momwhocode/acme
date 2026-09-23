@@ -61,18 +61,18 @@ RSpec.describe DirectoryImporter do
     import_fixture
     result = import_fixture
 
-    expect(result).to include(employees: 0, updated: 2, skipped: 0)
+    expect(result).to include(employees: 0, updated: 2)
   end
 
   it "imports the published column template" do
     expect(described_class.call(Rails.root.join("public/templates/acme-employees.csv"))).to include(
-      employees: 1, compensation_records: 1, skipped: 0
+      employees: 1, compensation_records: 1
     )
   end
 
   it "accepts an IO with a path" do
     File.open(Rails.root.join("spec/fixtures/files/directory.csv")) do |file|
-      expect(described_class.call(file)).to include(employees: 2, skipped: 0)
+      expect(described_class.call(file)).to include(employees: 2)
     end
   end
 

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest"
 import {
-  deleteDirectoryView,
   listSavedViews,
   readStoredColumns,
   readStoredDirectorySession,
@@ -43,8 +42,5 @@ describe("directoryPrefs", () => {
         sort: { columnId: null, direction: "desc" }
       }
     ])
-
-    deleteDirectoryView("UK contractors")
-    expect(listSavedViews()).toEqual([])
   })
 })

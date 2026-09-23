@@ -1,3 +1,5 @@
+# Identity edit. Status and leave date stay on offboard / rehire.
+
 class EmployeeUpdater
   class Error < AppError; end
 

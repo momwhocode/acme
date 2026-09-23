@@ -1,3 +1,5 @@
+# Profile modal payload: current pay, history, band, and recent audit events.
+
 class EmployeeProfile
   def self.call(employee, normalizer: CurrencyNormalizer.new)
     records = employee.compensation_records.order(effective_date: :desc, id: :desc).to_a

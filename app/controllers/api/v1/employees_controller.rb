@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Directory, hire lifecycle, CSV import/export.
     class EmployeesController < BaseController
       include ::Pagy::Backend
       include ActionController::DataStreaming
@@ -82,17 +83,13 @@ module Api
 
       def employee_params
         params.permit(
-          *EmployeeUpdater::ATTR_KEYS,
+          *EmployeeOnboarder::EMPLOYEE_KEYS,
           compensation: CompensationRecord::ATTR_KEYS
         )
       end
 
       def employee_update_params
         params.permit(*EmployeeUpdater::ATTR_KEYS)
-      end
-
-      def audit!(action, record, payload = {})
-        AuditRecorder.record(actor: current_user, action: action, record: record, payload: payload)
       end
 
       def import_file

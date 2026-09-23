@@ -204,7 +204,7 @@ describe("HomePage", () => {
     expect(document.querySelector(".acme-overview__kpi .april-tag .april-icon")?.textContent).toBe("arrow_upward")
   })
 
-  it("loads the monthly snapshot for the selected period", async () => {
+  it("loads the as_of snapshot for the selected period", async () => {
     renderHome()
 
     await screen.findByText("Total Annualised Cost")

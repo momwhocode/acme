@@ -155,10 +155,10 @@ describe("importErrors", () => {
 })
 
 describe("importToastTitle", () => {
-  it("names imported, updated, and skipped counts", () => {
-    expect(importToastTitle({ data: { employees: 2, skipped: 0 } })).toBe("Imported 2 employees")
+  it("names imported and updated counts", () => {
+    expect(importToastTitle({ data: { employees: 2 } })).toBe("Imported 2 employees")
     expect(importToastTitle({ employees: 0, updated: 2 })).toBe("Imported 0 employees · updated 2")
-    expect(importToastTitle({ employees: 1, skipped: 3 })).toBe("Imported 1 employee · 3 already on file")
+    expect(importToastTitle({ employees: 1 })).toBe("Imported 1 employee")
   })
 })
 
@@ -324,7 +324,7 @@ describe("employee requests", () => {
 
   it("imports a CSV without forcing a JSON content type", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ data: { employees: 1, skipped: 0 } }), { status: 200 })
+      new Response(JSON.stringify({ data: { employees: 1 } }), { status: 200 })
     )
     vi.stubGlobal("fetch", fetchMock)
     const file = new File([ "first_name\nAda" ], "people.csv", { type: "text/csv" })

@@ -5,9 +5,13 @@ RSpec.describe "Analytics", type: :request do
     get "HR analytics snapshot" do
       tags "Analytics"
       produces "application/json"
-      description "SQL aggregations over current active compensation. Returns annualised payroll in USD, average and median pay, and headcount mix by type and department."
+      description "as_of snapshot over employment dates. Mix filters refetch the same window."
       parameter name: :as_of, in: :query, required: false, schema: { type: :string, format: :date },
                 description: "Snapshot date. Defaults to today."
+      parameter name: :country, in: :query, required: false, schema: { type: :string }
+      parameter name: :department, in: :query, required: false, schema: { type: :string }
+      parameter name: :type, in: :query, required: false, schema: { type: :string }
+      parameter name: :level, in: :query, required: false, schema: { type: :string }
 
       response "200", "metrics" do
         schema "$ref" => "#/components/schemas/Analytics"

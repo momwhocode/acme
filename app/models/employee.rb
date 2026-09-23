@@ -28,6 +28,8 @@
 #
 #  fk_rails_...  (manager_id => employees.id)
 #
+# Directory hire. Compensation is append-only; status changes go through offboard / rehire.
+
 class Employee < ApplicationRecord
   EMPLOYMENT_TYPES = %w[full-time part-time contractor freelancer intern].freeze
   STATUSES = %w[active left].freeze

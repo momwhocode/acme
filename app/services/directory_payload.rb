@@ -1,3 +1,5 @@
+# Directory list rows plus current pay and filter facets.
+
 class DirectoryPayload
   def self.employees(records, normalizer: CurrencyNormalizer.new)
     list = Array(records)

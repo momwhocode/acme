@@ -1,3 +1,5 @@
+# Nightly FX snapshot append. Home and pay USD use the latest rate on or before as_of.
+
 class SyncExchangeRatesJob < ApplicationJob
   queue_as :default
 

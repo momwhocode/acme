@@ -35,6 +35,10 @@ RSpec.describe "Employees", type: :request do
       parameter name: :status, in: :query, required: false, getter: :employment_status,
                 schema: { type: :string, enum: Employee::STATUSES }
       parameter name: :q, in: :query, required: false, schema: { type: :string, maxLength: 255 }
+      parameter name: :manager, in: :query, required: false, schema: { type: :string, format: :uuid }
+      parameter name: :level, in: :query, required: false, schema: { type: :string }
+      parameter name: :sort, in: :query, required: false, schema: { type: :string }
+      parameter name: :direction, in: :query, required: false, schema: { type: :string, enum: %w[asc desc] }
 
       response "200", "page of employees" do
         schema "$ref" => "#/components/schemas/DirectoryPage"
@@ -378,6 +382,40 @@ RSpec.describe "Employees", type: :request do
         end
       end
     end
+
+    delete "Delete a hire" do
+      tags "Employees"
+      produces "application/json"
+      description "Hard-deletes a mistaken hire and their compensation rows. Audit events stay."
+
+      response "200", "deleted" do
+        schema "$ref" => "#/components/schemas/Logout"
+        let(:employee) { create(:employee) }
+        let(:id) { employee.id }
+        before do
+          sign_in_hr
+          create(:compensation_record, employee: employee)
+        end
+
+        run_test! do |response|
+          expect(Employee.find_by(id: employee.id)).to be_nil
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { create(:employee).id }
+        run_test!
+      end
+
+      response "404", "unknown employee" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { SecureRandom.uuid }
+        before { sign_in_hr }
+
+        run_test!
+      end
+    end
   end
 
   path "/api/v1/employees/import" do
@@ -394,7 +432,7 @@ RSpec.describe "Employees", type: :request do
         before { sign_in_hr }
 
         run_test! do |response|
-          expect(api_data).to include("employees" => 2, "compensation_records" => 3, "skipped" => 0)
+          expect(api_data).to include("employees" => 2, "compensation_records" => 3)
         end
       end
 
@@ -534,6 +572,77 @@ RSpec.describe "Employees", type: :request do
             expect(api_error.fetch("details")).to include("left_on")
           end
         end
+      end
+    end
+  end
+
+  path "/api/v1/employees/{id}/rehire" do
+    parameter name: :id, in: :path, schema: { type: :string, format: :uuid }
+
+    patch "Rehire a leaver" do
+      tags "Employees"
+      produces "application/json"
+      description "Sets status back to active and clears left_on. started_on does not move."
+
+      response "200", "reactivated" do
+        schema "$ref" => "#/components/schemas/EmployeeProfile"
+        let(:employee) { create(:employee, :left) }
+        let(:id) { employee.id }
+        before do
+          sign_in_hr
+          ExchangeRate.seed!(on: Date.new(2024, 1, 1))
+          create(:compensation_record, employee: employee)
+        end
+
+        run_test! do |response|
+          expect(api_data.fetch("employee")).to include("status" => "active", "left_on" => nil)
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { create(:employee, :left).id }
+        run_test!
+      end
+
+      response "422", "already active" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:id) { create(:employee).id }
+        before { sign_in_hr }
+
+        run_test! do |response|
+          expect(api_error).to include("message" => "already active")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/employees/export" do
+    get "Export this directory view" do
+      tags "Employees"
+      produces "text/csv"
+      description "CSV of the current filters. Same query params as the listing, no pagination."
+      parameter name: :country, in: :query, required: false, schema: { type: :string, minLength: 2, maxLength: 2 }
+
+      response "200", "csv" do
+        let(:country) { "GB" }
+        before do
+          sign_in_hr
+          ExchangeRate.seed!(on: Date.new(2024, 1, 1))
+          create(:employee, first_name: "Ada", last_name: "Lovelace", country: "GB")
+          create(:employee, first_name: "Grace", last_name: "Hopper", country: "US", email: "grace@acme.test")
+        end
+
+        run_test! do |response|
+          expect(response.media_type).to eq("text/csv")
+          expect(response.body).to include("Ada Lovelace")
+          expect(response.body).not_to include("Grace Hopper")
+        end
+      end
+
+      response "401", "not signed in" do
+        schema "$ref" => "#/components/schemas/Error"
+        run_test!
       end
     end
   end

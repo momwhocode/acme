@@ -1,3 +1,5 @@
+# Create an active hire and the first compensation row in one transaction.
+
 class EmployeeOnboarder
   class Error < AppError; end
 

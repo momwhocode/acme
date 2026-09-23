@@ -20,12 +20,12 @@ export const EMPLOYEES_TABLE_COLUMNS = [
   { id: "actions", kind: "actions", sticky: "end" }
 ]
 
-export const STATUS_FILTER_OPTIONS = STATUSES.map((value) => ({
+const STATUS_FILTER_OPTIONS = STATUSES.map((value) => ({
   value,
   label: value === "left" ? "Left" : "Active"
 }))
 
-export const TYPE_FILTER_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({
+const TYPE_FILTER_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({
   value,
   label: value
 }))

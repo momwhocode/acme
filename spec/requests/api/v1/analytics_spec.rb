@@ -26,15 +26,17 @@ RSpec.describe "GET /api/v1/analytics" do
     expect(api_data).to include(
       "headcount" => 1,
       "annualised_usd" => "100000.0",
-      "average_usd" => "100000.0",
       "median_usd" => "100000.0",
       "by_type" => [ include("employment_type" => "full-time", "headcount" => 1, "currency" => "GBP") ],
       "by_department" => [ include("department" => "engineering", "headcount" => 1, "currency" => "GBP") ],
       "by_country" => [ include("country" => "GB", "headcount" => 1, "currency" => "GBP", "payroll_local" => "80000.0") ],
       "by_level" => be_an(Array),
-      "actions" => include("onboarding", "offboarding", "contracts", "recent"),
-      "fx_rates" => include(include("currency" => "GBP"))
+      "actions" => include("onboarding", "offboarding", "contracts", "recent")
     )
+    expect(api_data).not_to have_key("average_usd")
+    expect(api_data).not_to have_key("fx_rates")
+    expect(api_data).not_to have_key("monthly_usd")
+    expect(api_data).not_to have_key("by_currency")
   end
 
   it "snapshots payroll on as_of" do

@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Catch-all for unknown `/api` routes.
     class ErrorsController < ActionController::API
       include ExceptionHandler
 

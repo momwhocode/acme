@@ -1,3 +1,5 @@
+# Annualise local pay and convert to USD using the latest FX row on or before as_of.
+
 class CurrencyNormalizer
   BASE_CURRENCY = "USD"
   WEEKS_PER_YEAR = 52

@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Append, correct, or delete effective-dated pay rows.
     class CompensationRecordsController < BaseController
       def create
         record, employee = CompensationAppender.call(
@@ -25,10 +26,8 @@ module Api
 
       def destroy
         record = compensation_record
-        raise AppError, "cannot delete the only pay record" if record.employee.compensation_records.count <= 1
-
+        CompensationDestroyer.call(record: record)
         audit!("destroy", record, { employee_id: record.employee_id })
-        record.destroy!
         render_success({})
       end
 
@@ -36,10 +35,6 @@ module Api
 
       def compensation_record
         Employee.find(params[:employee_id]).compensation_records.find(params[:id])
-      end
-
-      def audit!(action, record, payload = {})
-        AuditRecorder.record(actor: current_user, action: action, record: record, payload: payload)
       end
 
       def compensation_params

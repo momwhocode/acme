@@ -1,3 +1,5 @@
+# Mark a leaver. left_on must cover every compensation effective date.
+
 class EmployeeOffboarder
   class Error < AppError; end
 

@@ -66,14 +66,6 @@ body,
   flex: 0 0 auto;
 }
 
-.page-loader--full {
-  min-height: 100dvh;
-}
-
-#root > .page-loader--full {
-  flex: 1 1 auto;
-}
-
 /*
   Empty aria-busy shells show the branded loader.
   Page-sized placeholders fill the remaining column so the mark sits in the pane center.

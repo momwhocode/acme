@@ -23,53 +23,8 @@ async function resolveGoogleMapsApiKey() {
   return resolvedKeyPromise;
 }
 
-function addressComponent(place, type) {
-  return (
-    place?.address_components?.find((component) => component.types?.includes(type)) ||
-    place?.addressComponents?.find((component) => component.types?.includes(type))
-  );
-}
-
-function componentName(component) {
-  return String(component?.long_name || component?.longText || "").trim();
-}
-
 export function placeToAddress(place) {
   return String(place?.formatted_address || place?.formattedAddress || place?.name || "").trim();
-}
-
-function placeToCity(place) {
-  return (
-    componentName(addressComponent(place, "locality")) ||
-    componentName(addressComponent(place, "administrative_area_level_2")) ||
-    componentName(addressComponent(place, "postal_town")) ||
-    componentName(addressComponent(place, "administrative_area_level_1")) ||
-    ""
-  );
-}
-
-function placeToMapsUrl(place) {
-  const url = String(place?.url || "").trim();
-  if (url) return url;
-  const address = placeToAddress(place);
-  if (!address) return "";
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-}
-
-function placeToVenueName(place) {
-  const name = String(place?.name || "").trim();
-  const address = placeToAddress(place);
-  if (name && name !== address) return name;
-  return name;
-}
-
-export function placeToAddressFields(place) {
-  return {
-    address: placeToAddress(place),
-    city: placeToCity(place),
-    mapsUrl: placeToMapsUrl(place),
-    venueName: placeToVenueName(place),
-  };
 }
 
 export function loadGoogleMapsPlaces() {
@@ -140,9 +95,4 @@ export function loadGoogleMapsPlaces() {
   });
 
   return mapsPromise;
-}
-
-export function resetGoogleMapsLoaderForTests() {
-  mapsPromise = null;
-  resolvedKeyPromise = null;
 }

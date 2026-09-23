@@ -3,8 +3,6 @@
 import { employeeRowMenuItems } from "./employeesTable.js"
 import { renderCountryCell, renderTableActions, renderTableLead } from "./tableCellRenderers.jsx"
 
-/** Directory row cells — lead, country, pay, and row actions. */
-
 export function createEmployeesTableExtensions({ onDetails, onOffboard, onRehire, onDelete }) {
   return {
     renderBodyContent(column, row) {

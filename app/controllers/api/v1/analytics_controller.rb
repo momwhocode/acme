@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Home snapshot. Optional mix filters refetch the same as_of window.
     class AnalyticsController < BaseController
       def show
         render_success(

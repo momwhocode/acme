@@ -22,10 +22,10 @@ function listValues(value) {
   return present(value).split(",").map((entry) => entry.trim()).filter(Boolean)
 }
 
-export function directoryFilterErrors({ country, type, employment_type: employmentType, status, manager, q } = {}) {
+export function directoryFilterErrors({ country, type, status, manager, q } = {}) {
   const errors = {}
   if (listValues(country).some((code) => !COUNTRY_PATTERN.test(code))) errors.country = "unknown country"
-  const types = listValues(type || employmentType).map((entry) => entry.toLowerCase())
+  const types = listValues(type).map((entry) => entry.toLowerCase())
   if (types.some((entry) => !EMPLOYMENT_TYPES.includes(entry))) errors.type = "unknown type"
   const statuses = listValues(status).map((entry) => entry.toLowerCase())
   if (statuses.some((entry) => !STATUSES.includes(entry))) errors.status = "unknown status"
@@ -127,10 +127,8 @@ export function importToastTitle(payload = {}) {
   const data = payload.data || payload
   const employees = Number(data.employees) || 0
   const updated = Number(data.updated) || 0
-  const skipped = Number(data.skipped) || 0
   const people = employees === 1 ? "employee" : "employees"
   if (updated) return `Imported ${employees} ${people} · updated ${updated}`
-  if (skipped) return `Imported ${employees} ${people} · ${skipped} already on file`
   return `Imported ${employees} ${people}`
 }
 

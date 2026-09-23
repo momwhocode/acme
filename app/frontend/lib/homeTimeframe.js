@@ -35,7 +35,7 @@ export function homeTimeframeCompareAsOf(value, referenceDate = new Date()) {
   return formatIsoDate(new Date(asOfDate.getFullYear(), asOfDate.getMonth(), 0))
 }
 
-export function homePeriodLabel(value, referenceDate = new Date()) {
+function homePeriodLabel(value, referenceDate = new Date()) {
   const year = value?.year ?? referenceDate.getFullYear()
   const month = value?.month ?? referenceDate.getMonth()
   return new Date(year, month, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })

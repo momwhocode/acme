@@ -1,3 +1,5 @@
+# Compensation API row plus annualised USD when an as_of FX quote exists.
+
 class CompensationPayload
   def self.call(record, normalizer: CurrencyNormalizer.new)
     return if record.blank?

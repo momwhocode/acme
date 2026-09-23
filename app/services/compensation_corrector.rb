@@ -1,3 +1,5 @@
+# In-place correction of an existing pay row. New raises still go through CompensationAppender.
+
 class CompensationCorrector
   class Error < AppError; end
 

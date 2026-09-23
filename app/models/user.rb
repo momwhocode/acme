@@ -14,6 +14,8 @@
 #
 #  index_users_on_lower_email  (lower((email)::text)) UNIQUE
 #
+# HR session account. Seeded as Sharvari Potnis unless HR_EMAIL already exists.
+
 class User < ApplicationRecord
   DEFAULT_EMAIL = "hr@acme.test".freeze
   DEFAULT_PASSWORD = "whiteaeroplane".freeze

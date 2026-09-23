@@ -246,6 +246,36 @@ RSpec.describe Employee do
     end
   end
 
+  describe ".levels_in_bucket" do
+    it "expands Home level chips to IC and L codes" do
+      expect(described_class.levels_in_bucket("L2", "L5+")).to include("IC2", "L2", "IC5", "M1")
+      expect(described_class.levels_in_bucket("IC3")).to eq([ "IC3" ])
+    end
+  end
+
+  describe "#display_name" do
+    it "joins first and last name" do
+      expect(build(:employee, first_name: "Ada", last_name: "Lovelace").display_name).to eq("Ada Lovelace")
+    end
+  end
+
+  describe "manager" do
+    it "rejects a self-manager" do
+      employee = create(:employee)
+      employee.manager_id = employee.id
+
+      expect(employee).not_to be_valid
+      expect(employee.errors[:manager_id]).to include("cannot manage themselves")
+    end
+
+    it "includes the manager name in directory json" do
+      manager = create(:employee, first_name: "Priya", last_name: "Shah", email: "priya@acme.test")
+      employee = create(:employee, manager: manager)
+
+      expect(employee.as_directory_json).to include(manager_id: manager.id, manager_name: "Priya Shah")
+    end
+  end
+
   describe "#as_directory_json" do
     it "returns the list fields" do
       employee = create(:employee, first_name: "Ada", last_name: "Lovelace")

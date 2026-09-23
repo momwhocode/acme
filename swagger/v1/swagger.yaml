@@ -17,11 +17,11 @@ tags:
 - name: Session
   description: HR login, current user, logout.
 - name: Employees
-  description: Directory, onboard, import, and offboard.
+  description: Directory, onboard, import, export, rehire, and delete.
 - name: Compensation
-  description: Effective-dated raises and promotions.
+  description: Effective-dated raises, corrections, and pay-row deletes.
 - name: Analytics
-  description: SQL-aggregated payroll, headcount mix, and compensation stats.
+  description: as_of payroll snapshot with mix filters and action queues.
 - name: Errors
   description: Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400
     invalid_request. Unexpected failures are 500 internal_error and never leak the
@@ -82,6 +82,16 @@ components:
               type: array
               items:
                 type: string
+            managers:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
     User:
       type: object
       required:
@@ -194,6 +204,13 @@ components:
           type: string
           format: date
           nullable: true
+        manager_id:
+          type: string
+          format: uuid
+          nullable: true
+        manager_name:
+          type: string
+          nullable: true
         current_compensation:
           nullable: true
           allOf:
@@ -267,6 +284,41 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/CompensationRecord"
+            pay_band:
+              nullable: true
+              type: object
+              properties:
+                level:
+                  type: string
+                currency:
+                  type: string
+                midpoint:
+                  "$ref": "#/components/schemas/Decimal"
+                compa_ratio:
+                  "$ref": "#/components/schemas/Decimal"
+                  nullable: true
+            audit_events:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  action:
+                    type: string
+                  record_type:
+                    type: string
+                  record_id:
+                    type: string
+                    format: uuid
+                  payload:
+                    type: object
+                  actor_name:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
     Pagination:
       type: object
       required:
@@ -314,6 +366,18 @@ components:
               "$ref": "#/components/schemas/Employee"
             compensation_record:
               "$ref": "#/components/schemas/CompensationRecord"
+    CompensationCorrectionResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          type: object
+          required:
+          - compensation_record
+          properties:
+            compensation_record:
+              "$ref": "#/components/schemas/CompensationRecord"
     CompensationChangeResponse:
       type: object
       required:
@@ -339,7 +403,6 @@ components:
           required:
           - employees
           - compensation_records
-          - skipped
           properties:
             employees:
               type: integer
@@ -348,9 +411,6 @@ components:
               type: integer
               example: 3
             updated:
-              type: integer
-              example: 0
-            skipped:
               type: integer
               example: 0
     OffboardResponse:
@@ -495,6 +555,10 @@ components:
           type: string
           format: date
           example: '2024-01-01'
+        manager_id:
+          type: string
+          format: uuid
+          nullable: true
     OffboardRequest:
       type: object
       required:
@@ -544,16 +608,10 @@ components:
               type: integer
             annualised_usd:
               "$ref": "#/components/schemas/Decimal"
-            average_usd:
-              allOf:
-              - "$ref": "#/components/schemas/Decimal"
-              nullable: true
             median_usd:
               allOf:
               - "$ref": "#/components/schemas/Decimal"
               nullable: true
-            monthly_usd:
-              "$ref": "#/components/schemas/Decimal"
             by_type:
               type: array
               items:
@@ -566,23 +624,12 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/AnalyticsMix"
-            by_currency:
+            by_level:
               type: array
               items:
                 "$ref": "#/components/schemas/AnalyticsMix"
-            fx_rates:
-              type: array
-              items:
-                type: object
-                required:
-                - currency
-                - to_usd
-                properties:
-                  currency:
-                    type: string
-                    example: GBP
-                  to_usd:
-                    "$ref": "#/components/schemas/Decimal"
+            actions:
+              type: object
     LoginRequest:
       type: object
       required:
@@ -604,16 +651,36 @@ paths:
       summary: HR analytics snapshot
       tags:
       - Analytics
-      description: SQL aggregations over current active compensation. Returns annualised
-        payroll in USD, average and median pay, and headcount mix by type and department.
+      description: as_of snapshot over employment dates. Mix filters refetch the same
+        window.
       parameters:
       - name: as_of
         in: query
         required: false
-        description: Snapshot date. Defaults to today.
         schema:
           type: string
           format: date
+        description: Snapshot date. Defaults to today.
+      - name: country
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: department
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: level
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: metrics
@@ -672,6 +739,68 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/CompensationChangeRequest"
+  "/api/v1/employees/{employee_id}/compensation_records/{id}":
+    parameters:
+    - name: employee_id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    - name: id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    patch:
+      summary: Correct a pay row
+      tags:
+      - Compensation
+      description: In-place correction. New raises still POST a new row.
+      parameters: []
+      responses:
+        '200':
+          description: corrected
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompensationCorrectionResponse"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: no fields to update
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CompensationInput"
+    delete:
+      summary: Delete a pay row
+      tags:
+      - Compensation
+      description: Removes one row. The hire must keep at least one compensation record.
+      responses:
+        '200':
+          description: deleted
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Logout"
+        '422':
+          description: only pay record
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/employees":
     get:
       summary: List the directory
@@ -748,6 +877,30 @@ paths:
         schema:
           type: string
           maxLength: 255
+      - name: manager
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: level
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
       responses:
         '200':
           description: page of employees
@@ -874,6 +1027,31 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/EmployeeUpdateRequest"
+    delete:
+      summary: Delete a hire
+      tags:
+      - Employees
+      description: Hard-deletes a mistaken hire and their compensation rows. Audit
+        events stay.
+      responses:
+        '200':
+          description: deleted
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Logout"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '404':
+          description: unknown employee
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/employees/import":
     post:
       summary: Import a directory CSV
@@ -953,6 +1131,63 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/OffboardRequest"
+  "/api/v1/employees/{id}/rehire":
+    parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    patch:
+      summary: Rehire a leaver
+      tags:
+      - Employees
+      description: Sets status back to active and clears left_on. started_on does
+        not move.
+      responses:
+        '200':
+          description: reactivated
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/EmployeeProfile"
+        '401':
+          description: not signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '422':
+          description: already active
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/employees/export":
+    get:
+      summary: Export this directory view
+      tags:
+      - Employees
+      description: CSV of the current filters. Same query params as the listing, no
+        pagination.
+      parameters:
+      - name: country
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 2
+      responses:
+        '200':
+          description: csv
+        '401':
+          description: not signed in
+          content:
+            text/csv:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/{unmatched}":
     parameters:
     - name: unmatched

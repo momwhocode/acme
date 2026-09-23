@@ -1,3 +1,5 @@
+# Serves Swagger UI and the generated OpenAPI YAML.
+
 class ApiDocsController < ActionController::Base
   layout false
 

@@ -22,9 +22,9 @@ RSpec.configure do |config|
       tags: [
         { name: "Health", description: "Liveness. No session." },
         { name: "Session", description: "HR login, current user, logout." },
-        { name: "Employees", description: "Directory, onboard, import, and offboard." },
-        { name: "Compensation", description: "Effective-dated raises and promotions." },
-        { name: "Analytics", description: "SQL-aggregated payroll, headcount mix, and compensation stats." },
+        { name: "Employees", description: "Directory, onboard, import, export, rehire, and delete." },
+        { name: "Compensation", description: "Effective-dated raises, corrections, and pay-row deletes." },
+        { name: "Analytics", description: "as_of payroll snapshot with mix filters and action queues." },
         {
           name: "Errors",
           description: "Shared envelope. Unknown `/api` routes are 404. Malformed JSON is 400 invalid_request. Unexpected failures are 500 internal_error and never leak the exception."
@@ -74,7 +74,17 @@ RSpec.configure do |config|
                 type: :object,
                 properties: {
                   departments: { type: :array, items: { type: :string } },
-                  countries: { type: :array, items: { type: :string } }
+                  countries: { type: :array, items: { type: :string } },
+                  managers: {
+                    type: :array,
+                    items: {
+                      type: :object,
+                      properties: {
+                        id: { type: :string, format: :uuid },
+                        name: { type: :string }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -141,6 +151,8 @@ RSpec.configure do |config|
               level: { type: :string, nullable: true },
               started_on: { type: :string, format: :date },
               left_on: { type: :string, format: :date, nullable: true },
+              manager_id: { type: :string, format: :uuid, nullable: true },
+              manager_name: { type: :string, nullable: true },
               current_compensation: {
                 nullable: true,
                 allOf: [ { "$ref" => "#/components/schemas/CompensationRecord" } ]
@@ -182,7 +194,32 @@ RSpec.configure do |config|
                     nullable: true,
                     allOf: [ { "$ref" => "#/components/schemas/CompensationRecord" } ]
                   },
-                  compensation_records: { type: :array, items: { "$ref" => "#/components/schemas/CompensationRecord" } }
+                  compensation_records: { type: :array, items: { "$ref" => "#/components/schemas/CompensationRecord" } },
+                  pay_band: {
+                    nullable: true,
+                    type: :object,
+                    properties: {
+                      level: { type: :string },
+                      currency: { type: :string },
+                      midpoint: { "$ref" => "#/components/schemas/Decimal" },
+                      compa_ratio: { "$ref" => "#/components/schemas/Decimal", nullable: true }
+                    }
+                  },
+                  audit_events: {
+                    type: :array,
+                    items: {
+                      type: :object,
+                      properties: {
+                        id: { type: :string, format: :uuid },
+                        action: { type: :string },
+                        record_type: { type: :string },
+                        record_id: { type: :string, format: :uuid },
+                        payload: { type: :object },
+                        actor_name: { type: :string },
+                        created_at: { type: :string, format: "date-time" }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -225,6 +262,19 @@ RSpec.configure do |config|
               }
             }
           },
+          CompensationCorrectionResponse: {
+            type: :object,
+            required: %w[data],
+            properties: {
+              data: {
+                type: :object,
+                required: %w[compensation_record],
+                properties: {
+                  compensation_record: { "$ref" => "#/components/schemas/CompensationRecord" }
+                }
+              }
+            }
+          },
           CompensationChangeResponse: {
             type: :object,
             required: %w[data],
@@ -245,12 +295,11 @@ RSpec.configure do |config|
             properties: {
               data: {
                 type: :object,
-                required: %w[employees compensation_records skipped],
+                required: %w[employees compensation_records],
                 properties: {
                   employees: { type: :integer, example: 2 },
                   compensation_records: { type: :integer, example: 3 },
-                  updated: { type: :integer, example: 0 },
-                  skipped: { type: :integer, example: 0 }
+                  updated: { type: :integer, example: 0 }
                 }
               }
             }
@@ -318,7 +367,8 @@ RSpec.configure do |config|
               department: { type: :string, example: "sales" },
               employment_type: { type: :string, enum: %w[full-time part-time contractor freelancer intern] },
               level: { type: :string, nullable: true, example: "IC3" },
-              started_on: { type: :string, format: :date, example: "2024-01-01" }
+              started_on: { type: :string, format: :date, example: "2024-01-01" },
+              manager_id: { type: :string, format: :uuid, nullable: true }
             }
           },
           OffboardRequest: {
@@ -351,24 +401,12 @@ RSpec.configure do |config|
                 properties: {
                   headcount: { type: :integer },
                   annualised_usd: { "$ref" => "#/components/schemas/Decimal" },
-                  average_usd: { allOf: [ { "$ref" => "#/components/schemas/Decimal" } ], nullable: true },
                   median_usd: { allOf: [ { "$ref" => "#/components/schemas/Decimal" } ], nullable: true },
-                  monthly_usd: { "$ref" => "#/components/schemas/Decimal" },
                   by_type: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
                   by_department: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
                   by_country: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
-                  by_currency: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
-                  fx_rates: {
-                    type: :array,
-                    items: {
-                      type: :object,
-                      required: %w[currency to_usd],
-                      properties: {
-                        currency: { type: :string, example: "GBP" },
-                        to_usd: { "$ref" => "#/components/schemas/Decimal" }
-                      }
-                    }
-                  }
+                  by_level: { type: :array, items: { "$ref" => "#/components/schemas/AnalyticsMix" } },
+                  actions: { type: :object }
                 }
               }
             }

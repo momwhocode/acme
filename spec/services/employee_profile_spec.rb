@@ -19,4 +19,17 @@ RSpec.describe EmployeeProfile do
     )
     expect(payload).to have_key(:pay_band)
   end
+
+  it "includes the pay band and recent audit events" do
+    employee = create(:employee, level: "IC2")
+    hire = create(:compensation_record, employee: employee, currency: "USD", base_amount: 85_000)
+    create(:pay_band, level: "IC2", currency: "USD", midpoint: 85_000)
+    AuditRecorder.record(actor: create(:user), action: "onboard", record: employee)
+
+    payload = described_class.call(employee.reload)
+
+    expect(payload[:current_compensation]).to include(id: hire.id)
+    expect(payload[:pay_band]).to include(level: "IC2", compa_ratio: 1.0)
+    expect(payload[:audit_events].first).to include(action: "onboard", record_type: "Employee")
+  end
 end

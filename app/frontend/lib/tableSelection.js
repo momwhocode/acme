@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 
-/** Shared row selection state for data tables with checkbox column */
 export function useTableRowSelection(
   rows,
   selectedIds,

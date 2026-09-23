@@ -15,6 +15,8 @@
 #
 #  index_audit_events_on_record_type_and_record_id_and_created_at  (record_type,record_id,created_at)
 #
+# Append-only HR log. Profile reads Employee plus that hire's compensation events.
+
 class AuditEvent < ApplicationRecord
   belongs_to :actor, class_name: "User", optional: true
 

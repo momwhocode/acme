@@ -78,8 +78,7 @@ class DirectoryImporter
     {
       employees: employees.size,
       updated: updated,
-      compensation_records: compensations.size + updated_comps,
-      skipped: 0
+      compensation_records: compensations.size + updated_comps
     }
   end
 

@@ -1,3 +1,5 @@
+# Home as_of snapshot. Mix filters apply after the two compensation JOIN dates.
+
 class AnalyticsQuery
   def self.call(...)
     new(...).call
@@ -19,38 +21,20 @@ class AnalyticsQuery
     {
       headcount: total["headcount"].to_i,
       annualised_usd: money(total["payroll_usd"]) || 0,
-      average_usd: money(total["average_usd"]),
       median_usd: money(total["median_usd"]),
-      monthly_usd: monthly_usd,
       by_type: mix_rows(rows, "type", :employment_type),
       by_department: mix_rows(rows, "department", :department),
       by_country: mix_rows(rows, "country", :country),
-      by_currency: mix_rows(rows, "currency", :currency, local: true),
       by_level: mix_rows(rows, "level", :level),
-      actions: actions,
-      fx_rates: fx_rates
+      actions: actions
     }
   end
 
   private
 
-  def monthly_usd
-    month_start = @as_of.beginning_of_month
-    month_end = @as_of.end_of_month
-    predicate, filter_binds = employee_predicate
-    row = query(
-      monthly_sql(predicate),
-      @as_of, @as_of, *filter_binds, @as_of,
-      month_end, month_end, month_start, month_end, month_end, month_start,
-      name: "AnalyticsMonthly"
-    ).first || {}
-    money(row["monthly_usd"]) || 0
-  end
-
   def current_comp_sql(predicate)
     <<~SQL.squish
       SELECT DISTINCT ON (employees.id)
-        employees.status,
         employees.employment_type,
         employees.department,
         employees.country,
@@ -78,7 +62,6 @@ class AnalyticsQuery
 
     <<~SQL.squish
       SELECT
-        current_comp.status,
         current_comp.employment_type,
         current_comp.department,
         current_comp.country,
@@ -120,7 +103,6 @@ class AnalyticsQuery
           WHEN GROUPING(employment_type) = 0 THEN 'type'
           WHEN GROUPING(department) = 0 THEN 'department'
           WHEN GROUPING(country) = 0 THEN 'country'
-          WHEN GROUPING(currency) = 0 THEN 'currency'
           WHEN GROUPING(level) = 0 THEN 'level'
           ELSE 'total'
         END AS bucket,
@@ -128,38 +110,20 @@ class AnalyticsQuery
         department,
         country,
         level,
-        CASE WHEN COUNT(DISTINCT currency) = 1 THEN MIN(currency) ELSE currency END AS currency,
+        CASE WHEN COUNT(DISTINCT currency) = 1 THEN MIN(currency) END AS currency,
         COUNT(*)::bigint AS headcount,
         COUNT(DISTINCT currency)::bigint AS currency_count,
         COALESCE(ROUND(SUM(annualised_usd), 2), 0) AS payroll_usd,
         COALESCE(ROUND(SUM(payroll_local), 2), 0) AS payroll_local,
-        ROUND(AVG(annualised_usd), 2) AS average_usd,
         ROUND((PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY annualised_usd))::numeric, 2) AS median_usd
       FROM valued
       WHERE started_on <= ?::date
         AND (left_on IS NULL OR left_on >= ?::date)
-      GROUP BY GROUPING SETS ((employment_type), (department), (country), (currency), (level), ())
+      GROUP BY GROUPING SETS ((employment_type), (department), (country), (level), ())
     SQL
   end
 
-  def monthly_sql(predicate)
-    <<~SQL.squish
-      WITH current_comp AS (#{current_comp_sql(predicate)}),
-      valued AS (#{valued_sql})
-      SELECT COALESCE(ROUND(SUM(
-        annualised_usd / 12.0 *
-        GREATEST(
-          0,
-          (LEAST(COALESCE(left_on, ?::date), ?::date) - GREATEST(started_on, ?::date) + 1)
-        ) / EXTRACT(DAY FROM ?::date)
-      ), 2), 0) AS monthly_usd
-      FROM valued
-      WHERE started_on <= ?::date
-        AND (left_on IS NULL OR left_on >= ?::date)
-    SQL
-  end
-
-  def mix_rows(rows, bucket, key, local: false)
+  def mix_rows(rows, bucket, key)
     rows.select { |row| row["bucket"] == bucket }
         .sort_by { |row| row[key.to_s].to_s }
         .map do |row|
@@ -171,7 +135,7 @@ class AnalyticsQuery
             median_usd: money(row["median_usd"])
           }
           currency = row["currency"].presence
-          item[:currency] = currency if local || (currency && row["currency_count"].to_i == 1)
+          item[:currency] = currency if currency && row["currency_count"].to_i == 1
           item
         end
   end
@@ -223,15 +187,6 @@ class AnalyticsQuery
       event_on: event_on,
       missing_comp: employee.current_compensation_record(as_of: @as_of).blank?
     )
-  end
-
-  def fx_rates
-    ExchangeRate.supported_currencies.filter_map do |code|
-      rate = ExchangeRate.rate_to(from: code, to: CurrencyNormalizer::BASE_CURRENCY, on: @as_of)
-      next if rate.blank?
-
-      { currency: code, to_usd: BigDecimal(rate.to_s) }
-    end
   end
 
   def money(value)

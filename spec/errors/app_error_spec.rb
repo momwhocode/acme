@@ -7,7 +7,10 @@ RSpec.describe AppError do
       DirectoryImporter::Error,
       EmployeeOnboarder::Error,
       EmployeeOffboarder::Error,
-      CompensationAppender::Error
+      EmployeeRehirer::Error,
+      CompensationAppender::Error,
+      CompensationCorrector::Error,
+      CompensationDestroyer::Error
     ]).to all(be < described_class)
   end
 

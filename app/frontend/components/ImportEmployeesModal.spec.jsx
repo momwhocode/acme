@@ -13,7 +13,7 @@ import { importEmployees } from "../lib/employees"
 
 describe("ImportEmployeesModal", () => {
   beforeEach(() => {
-    importEmployees.mockResolvedValue({ data: { employees: 1, skipped: 0 } })
+    importEmployees.mockResolvedValue({ data: { employees: 1 } })
   })
 
   afterEach(() => {

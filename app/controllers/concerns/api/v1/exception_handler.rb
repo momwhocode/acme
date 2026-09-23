@@ -1,5 +1,6 @@
 module Api
   module V1
+    # Shared JSON envelope. Unexpected exceptions never leak the message.
     module ExceptionHandler
       extend ActiveSupport::Concern
 

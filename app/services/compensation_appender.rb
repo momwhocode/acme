@@ -1,3 +1,5 @@
+# Append a new effective-dated pay row. Optional level writes through to the employee.
+
 class CompensationAppender
   class Error < AppError; end
 

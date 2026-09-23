@@ -10,7 +10,7 @@ RSpec.describe AnalyticsQuery do
 
   before { ExchangeRate.seed!(on: Date.new(2024, 1, 1)) }
 
-  it "sums current active payroll and reports average and median" do
+  it "sums current active payroll and reports median" do
     create(:compensation_record, employee: create(:employee, email: "a@acme.test"),
                                  base_amount: 60_000, currency: "USD")
     create(:compensation_record, employee: create(:employee, email: "b@acme.test"),
@@ -21,7 +21,6 @@ RSpec.describe AnalyticsQuery do
     expect(described_class.call(as_of: Date.new(2026, 1, 1))).to include(
       headcount: 3,
       annualised_usd: usd(60_000, currency: "USD") + usd(80_000, currency: "USD") + usd(80_000, currency: "GBP"),
-      average_usd: BigDecimal("80000.0"),
       median_usd: BigDecimal("80000.0")
     )
   end
@@ -136,21 +135,10 @@ RSpec.describe AnalyticsQuery do
     expect(described_class.call(as_of: Date.new(2025, 1, 1))).to include(annualised_usd: 70_000)
   end
 
-  it "includes this month's payout for people who left in the month" do
-    create(:compensation_record, employee: create(:employee, email: "a@acme.test"), base_amount: 120_000)
-    create(:compensation_record,
-           employee: create(:employee, :left, email: "b@acme.test", left_on: Date.new(2026, 1, 10)),
-           base_amount: 60_000)
-
-    snapshot = described_class.call(as_of: Date.new(2026, 1, 20))
-    expect(snapshot[:annualised_usd]).to eq(BigDecimal("120000.0"))
-    expect(snapshot[:monthly_usd]).to eq(((120_000 / 12.0) + (60_000 / 12.0 * 10 / 31)).round(2))
-  end
-
   it "returns zeros when the directory is empty" do
     expect(described_class.call).to include(
-      headcount: 0, annualised_usd: 0, average_usd: nil, median_usd: nil,
-      monthly_usd: 0, by_type: [], by_department: [], by_country: []
+      headcount: 0, annualised_usd: 0, median_usd: nil,
+      by_type: [], by_department: [], by_country: []
     )
   end
 
@@ -186,10 +174,4 @@ RSpec.describe AnalyticsQuery do
     expect(described_class.call(as_of: Date.new(2026, 1, 1), level: "L2")).to include(headcount: 1)
   end
 
-  it "exposes the latest USD quotes used for annualisation" do
-    expect(described_class.call(as_of: Date.new(2026, 1, 1))[:fx_rates]).to include(
-      include(currency: "USD", to_usd: BigDecimal("1.0")),
-      include(currency: "GBP", to_usd: BigDecimal("1.25"))
-    )
-  end
 end
