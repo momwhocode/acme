@@ -32,7 +32,7 @@ The app is the source of truth for compensation: who is paid, how much, in which
 | Approval workflows and notifications | Orthogonal to the core data model; parked as a clear extension point. |
 | Multi-tenancy | Single org (ACME). Avoids premature abstraction. |
 | Full RBAC | One persona (HR manager). Access control is a first-class production concern; a real build would gate salary visibility by role. |
-| Live FX in tests / default path | Seeds stay deterministic. `FX_SOURCE=live` is opt-in Frankfurter/ECB; CI and specs never hit the network. |
+| Live FX in tests / default path | Seeds stay deterministic. Credentials `fx.source: live` is opt-in Frankfurter/ECB; CI and specs never hit the network. |
 
 ## Tech stack
 
@@ -59,8 +59,8 @@ bin/dev
 
 ```sh
 bin/rails db:seed
-FORCE=1 COUNT=10000 bin/rails directory:seed
-bin/rails directory:import FILE=tmp/employees.csv
+bin/rails "directory:seed[10000,force]"
+bin/rails "directory:import[tmp/employees.csv]"
 ```
 
 CSV columns: `first_name,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason`. Repeat email for each compensation change. Invalid rows fail the import; existing emails are updated. Import does not write FX rates. HR can also import from Employees → Import (template at `/templates/acme-employees.csv`) or `POST /api/v1/employees/import`.
@@ -76,20 +76,35 @@ CSV columns: `first_name,last_name,email,country,department,employment_type,stat
 - Import: `POST /api/v1/employees/import` (`file` multipart CSV, max 5 MB)
 - Storybook: `npm run storybook` → http://localhost:6006
 
-Production must set `HR_PASSWORD` (and optionally `HR_EMAIL`) before the first seed. The default password is development/test only.
+App secrets live in Rails credentials (`bin/rails credentials:edit`), not ENV. Production must set `hr.password` (and optionally `hr.email`) before the first seed. The default password is development/test only.
+
+```yaml
+hr:
+  email: hr@acme.test
+  password:           # required in production
+fx:
+  source: seed        # or live (Frankfurter / ECB)
+database:
+  password:           # used when DATABASE_URL is not set
+redis:
+  url: redis://localhost:6379/1
+google_maps:
+  browser_key:        # optional Places key (referrer-restricted)
+api:
+  url:                # empty = same-origin /api
+```
 
 FX rates live in `exchange_rates`. The seed catalog is the current snapshot (`Date.current`). Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
 
 ```sh
 bin/rails fx:sync                 # replay seed catalog
-FX_SOURCE=live bin/rails fx:sync  # Frankfurter / ECB
-FX_ON=2024-06-01 bin/rails fx:sync
+bin/rails "fx:sync[2024-06-01]"
 ```
 
-`CurrencyNormalizer` uses the latest row on or before `as_of`. Host cron (after the ECB publish, 06:15 UTC):
+`CurrencyNormalizer` uses the latest row on or before `as_of`. Host cron (after the ECB publish, 06:15 UTC) with `fx.source: live` in credentials:
 
 ```
-15 6 * * * cd /path/to/acme && FX_SOURCE=live bin/rails fx:sync
+15 6 * * * cd /path/to/acme && bin/rails fx:sync
 ```
 
 ## Test and lint

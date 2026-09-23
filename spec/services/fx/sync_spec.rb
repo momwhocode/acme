@@ -9,12 +9,8 @@ RSpec.describe Fx::Sync do
     Fx::QuoteSnapshot.new(on: on, quotes: quotes)
   end
 
-  def restore_fx_source(previous)
-    if previous.nil?
-      ENV.delete("FX_SOURCE")
-    else
-      ENV["FX_SOURCE"] = previous
-    end
+  def stub_fx_source(source)
+    allow(AppConfig).to receive(:fx_live?).and_return(source == "live")
   end
 
   it "appends a new dated snapshot without changing older rates" do
@@ -30,7 +26,7 @@ RSpec.describe Fx::Sync do
     expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: on)).to eq(BigDecimal("1.20"))
   end
 
-  it "uses the seed catalog when FX_SOURCE is not live" do
+  it "uses the seed catalog when credentials fx.source is not live" do
     described_class.call(on: Date.new(2026, 3, 1), source: Fx::SeedSource.new)
 
     expect(ExchangeRate.rate_to(from: "GBP", to: "USD", on: Date.new(2026, 3, 1))).to eq(BigDecimal("1.25"))
@@ -102,30 +98,15 @@ RSpec.describe Fx::Sync do
     }.to raise_error(Fx::Sync::Error, /no quotes/)
   end
 
-  it "selects Frankfurter when FX_SOURCE is live" do
-    previous = ENV["FX_SOURCE"]
-    ENV["FX_SOURCE"] = "live"
+  it "selects Frankfurter when credentials fx.source is live" do
+    stub_fx_source("live")
 
     expect(described_class.default_source).to be_a(Fx::FrankfurterSource)
-  ensure
-    restore_fx_source(previous)
   end
 
-  it "selects the seed catalog when FX_SOURCE is unset" do
-    previous = ENV["FX_SOURCE"]
-    ENV.delete("FX_SOURCE")
+  it "selects the seed catalog when credentials fx.source is not live" do
+    stub_fx_source("seed")
 
     expect(described_class.default_source).to be_a(Fx::SeedSource)
-  ensure
-    restore_fx_source(previous)
-  end
-
-  it "selects the seed catalog when FX_SOURCE is not exactly live" do
-    previous = ENV["FX_SOURCE"]
-    ENV["FX_SOURCE"] = "LIVE"
-
-    expect(described_class.default_source).to be_a(Fx::SeedSource)
-  ensure
-    restore_fx_source(previous)
   end
 end

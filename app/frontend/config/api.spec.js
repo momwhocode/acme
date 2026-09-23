@@ -1,17 +1,17 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import { getApiBaseUrl } from "./api.js"
 
 describe("getApiBaseUrl", () => {
   afterEach(() => {
-    vi.unstubAllEnvs()
+    delete window.ACME_CONFIG
   })
 
-  it("uses same-origin when VITE_API_URL is unset", () => {
+  it("uses same-origin when credentials api.url is unset", () => {
     expect(getApiBaseUrl()).toBe("")
   })
 
-  it("strips a trailing slash from VITE_API_URL", () => {
-    vi.stubEnv("VITE_API_URL", "https://api.example.com/")
+  it("strips a trailing slash from the credentials API URL", () => {
+    window.ACME_CONFIG = { apiUrl: "https://api.example.com/" }
 
     expect(getApiBaseUrl()).toBe("https://api.example.com")
   })

@@ -1,5 +1,5 @@
 module Fx
-  # Current catalog used by tests, seeds, and `fx:sync` when FX_SOURCE is not live.
+  # Current catalog used by tests, seeds, and `fx:sync` when credentials fx.source is not live.
   class SeedSource
     def fetch(on:)
       QuoteSnapshot.new(on: on, quotes: ExchangeRate::SEED_RATES.map { |attrs|

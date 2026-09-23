@@ -13,7 +13,7 @@ module Fx
     end
 
     def self.default_source
-      ENV["FX_SOURCE"] == "live" ? FrankfurterSource.new : SeedSource.new
+      AppConfig.fx_live? ? FrankfurterSource.new : SeedSource.new
     end
   end
 end

@@ -111,10 +111,18 @@ RSpec.describe User do
       expect(described_class.find_by!(email: "hr@acme.test").authenticate("password")).to be_truthy
     end
 
-    it "requires HR_PASSWORD in production when no user exists" do
+    it "requires credentials.hr.password in production when no user exists" do
       allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
 
-      expect { described_class.seed_hr!(password: nil) }.to raise_error(ArgumentError, /HR_PASSWORD/)
+      expect { described_class.seed_hr!(password: nil) }.to raise_error(ArgumentError, /credentials\.hr\.password/)
+    end
+
+    it "uses the HR email from credentials" do
+      allow(AppConfig).to receive_messages(hr_email: "lead@acme.test", hr_password: "password1")
+
+      user = described_class.seed_hr!
+
+      expect(user.email).to eq("lead@acme.test")
     end
 
     it "keeps the default HR display name current" do

@@ -14,7 +14,7 @@
 #
 #  index_users_on_lower_email  (lower((email)::text)) UNIQUE
 #
-# HR session account. Seeded as Sharvari Potnis unless HR_EMAIL already exists.
+# HR session account. Seeded as Sharvari Potnis unless credentials.hr.email already exists.
 
 class User < ApplicationRecord
   DEFAULT_EMAIL = "hr@acme.test".freeze
@@ -31,8 +31,8 @@ class User < ApplicationRecord
                     format: { with: URI::MailTo::EMAIL_REGEXP }, length: { maximum: 255 }
   validates :password, length: { minimum: 8, maximum: 72 }, allow_nil: true
 
-  # Idempotent. Existing HR_EMAIL keeps the password; name is reset to the seed greeting.
-  def self.seed_hr!(email: ENV["HR_EMAIL"].presence || DEFAULT_EMAIL, password: ENV["HR_PASSWORD"])
+  # Idempotent. Existing credentials.hr.email keeps the password; name is reset to the seed greeting.
+  def self.seed_hr!(email: AppConfig.hr_email, password: AppConfig.hr_password)
     normalized = email.to_s.strip.downcase.presence || DEFAULT_EMAIL
     existing = find_by("LOWER(email) = ?", normalized)
     if existing

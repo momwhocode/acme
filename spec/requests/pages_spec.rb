@@ -8,6 +8,18 @@ RSpec.describe "GET /" do
     expect(response.body).to include('id="root"')
   end
 
+  it "injects credentials into window.ACME_CONFIG" do
+    allow(AppConfig).to receive(:frontend_payload).and_return(
+      apiUrl: "https://api.example.com",
+      mapsBrowserKey: "maps-key"
+    )
+
+    get "/"
+
+    expect(response.body).to include("window.ACME_CONFIG")
+    expect(response.body).to include("https://api.example.com")
+  end
+
   it "renders auth paths for the SPA" do
     get "/sign_in"
 

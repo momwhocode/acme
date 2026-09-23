@@ -1,4 +1,5 @@
-# PostgreSQL. DATABASE_URL wins in hosted environments.
+# PostgreSQL. Hosted DATABASE_URL still wins when the platform injects it.
+# App password lives in credentials (`database.password`), not ENV.
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -16,4 +17,8 @@ production:
   <<: *default
   database: acme_production
   username: acme
-  password: <%= ENV["ACME_DATABASE_PASSWORD"] %>
+  password: <%= begin
+    Rails.application.credentials.dig(:database, :password)
+  rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::MessageEncryptor::InvalidMessage
+    nil
+  end %>

@@ -50,7 +50,7 @@ en:
     hours_numeric: hours_per_week must be numeric.
     currency_required: Currency is required.
     missing_fx: "No %{from}->%{to} rate on or before %{on}."
-    hr_password_required: HR_PASSWORD is required to create the HR account.
+    hr_password_required: credentials.hr.password is required to create the HR account.
   activerecord:
     errors:
       models:
