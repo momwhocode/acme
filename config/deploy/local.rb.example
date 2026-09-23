@@ -1,0 +1,6 @@
+# Copy to local.rb (gitignored). Point at the SSH key on this laptop — never commit the key.
+# set :ssh_options, {
+#   keys: [ File.expand_path("~/.ssh/YOUR_DEPLOY_KEY") ],
+#   forward_agent: true,
+#   auth_methods: %w[publickey]
+# }

@@ -41,6 +41,18 @@ RSpec.describe AppConfig do
     expect(described_class).not_to be_fx_live
   end
 
+  it "defaults force_ssl to off so the IP deploy can serve HTTP" do
+    stub_credentials({})
+
+    expect(described_class).not_to be_force_ssl
+  end
+
+  it "turns force_ssl on from credentials" do
+    stub_credentials(force_ssl: true)
+
+    expect(described_class).to be_force_ssl
+  end
+
   it "strips a trailing slash from the API URL" do
     stub_credentials(api: { url: "https://api.example.com/" })
 

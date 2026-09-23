@@ -18,10 +18,10 @@ Rails.application.configure do
 
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
-  # config.require_master_key = true
+  config.require_master_key = true
 
-  # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
-  # config.public_file_server.enabled = false
+  # Nginx serves /vite and /assets. Rails still can serve the rest as a fallback.
+  config.public_file_server.enabled = true
 
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
@@ -44,18 +44,22 @@ Rails.application.configure do
   # config.action_cable.url = "wss://example.com/cable"
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
-  # config.assume_ssl = true
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # IP deploy is HTTP until a cert is on nginx. Flip credentials `force_ssl: true` then.
+  acme_force_ssl = begin
+    value = Rails.application.credentials.force_ssl
+    value == true || value.to_s == "true"
+  rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::MessageEncryptor::InvalidMessage
+    false
+  end
+  config.assume_ssl = acme_force_ssl
+  config.force_ssl = acme_force_ssl
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
-  # Log to STDOUT by default
-  config.logger = ActiveSupport::Logger.new(STDOUT)
+  # Docker/Kamal logs to STDOUT. Capistrano writes linked shared/log/production.log.
+  log_destination = ENV["RAILS_LOG_TO_STDOUT"].present? ? $stdout : Rails.root.join("log/production.log")
+  config.logger = ActiveSupport::Logger.new(log_destination)
     .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
     .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 

@@ -1,0 +1,10 @@
+# Copy to /var/www/acme/shared/config/database.yml on the server and set password there.
+# Do not put the production password in git.
+production:
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  host: localhost
+  database: acme_production
+  username: acme
+  password:

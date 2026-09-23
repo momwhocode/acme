@@ -5,10 +5,4 @@ test:
   adapter: test
 
 production:
-  adapter: redis
-  url: <%= begin
-    Rails.application.credentials.dig(:redis, :url)
-  rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::MessageEncryptor::InvalidMessage
-    nil
-  end || "redis://localhost:6379/1" %>
-  channel_prefix: acme_production
+  adapter: async

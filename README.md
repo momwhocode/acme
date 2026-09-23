@@ -92,6 +92,7 @@ google_maps:
   browser_key:        # optional Places key (referrer-restricted)
 api:
   url:                # empty = same-origin /api
+force_ssl: false      # set true after nginx has a certificate
 ```
 
 FX rates live in `exchange_rates`. The seed catalog is the current snapshot (`Date.current`). Do not edit `SEED_RATES` when the market moves — append a dated snapshot:
@@ -105,6 +106,26 @@ bin/rails "fx:sync[2024-06-01]"
 
 ```
 15 6 * * * cd /path/to/acme && bin/rails fx:sync
+```
+
+## Deploy
+
+Capistrano to `15.252.167.21` (`deploy` user, nginx → Puma). SSH keys and `config/master.key` stay on the laptop and in `/var/www/acme/shared` — they are gitignored and never uploaded by Capistrano.
+
+First time on the server (as root): `sudo bash config/deploy/bootstrap.sh`
+
+Then from the laptop, copy secrets that are not in git:
+
+```sh
+scp config/master.key deploy@15.252.167.21:/var/www/acme/shared/config/master.key
+scp config/deploy/templates/database.yml deploy@15.252.167.21:/var/www/acme/shared/config/database.yml
+# set the database password in that server file, chmod 600 both files
+```
+
+Point SSH at your local key via `~/.ssh/config` or `cp config/deploy/local.rb.example config/deploy/local.rb` (gitignored).
+
+```sh
+bundle exec cap production deploy
 ```
 
 ## Test and lint

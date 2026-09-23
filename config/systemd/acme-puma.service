@@ -1,0 +1,26 @@
+[Unit]
+Description=ACME Puma (Rails + Vite)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+WorkingDirectory=/var/www/acme/current
+Environment=RAILS_ENV=production
+Environment=PIDFILE=/var/www/acme/shared/tmp/pids/puma.pid
+Environment=PUMA_SOCKET=/var/www/acme/shared/tmp/sockets/puma.sock
+EnvironmentFile=-/var/www/acme/shared/rails_master_key.env
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/local/bin/bundle exec puma -C config/puma.rb -e production -b unix:///var/www/acme/shared/tmp/sockets/puma.sock
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/var/www/acme/shared/log/puma.log
+StandardError=append:/var/www/acme/shared/log/puma_error.log
+
+[Install]
+WantedBy=multi-user.target

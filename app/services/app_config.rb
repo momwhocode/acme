@@ -33,6 +33,10 @@ class AppConfig
       string(:api, :url).sub(%r{/\z}, "")
     end
 
+    def force_ssl?
+      string(:force_ssl) == "true"
+    end
+
     # Browser-safe slice injected as window.ACME_CONFIG. Maps key is referrer-restricted.
     def frontend_payload
       { apiUrl: api_url, mapsBrowserKey: google_maps_browser_key }
