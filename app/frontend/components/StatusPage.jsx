@@ -1,22 +1,14 @@
-/** Shared empty/error page used by 404 and session-expired states. */
+/** Shared empty page used by the 404 route. */
 
 import { Button } from "../april/components/Button"
 
 const COPY = {
-  not_found: {
-    icon: "search_off",
-    title: "Page not found",
-    description: "This page isn't available. Head back home or open the directory."
-  },
-  server_error: {
-    icon: "error",
-    title: "Something went wrong",
-    description: "Reload the page to continue."
-  }
+  icon: "search_off",
+  title: "Page not found",
+  description: "This page isn't available. Head back home or open the directory."
 }
 
 export default function StatusPage({
-  variant = "not_found",
   inset = false,
   title,
   description,
@@ -27,8 +19,6 @@ export default function StatusPage({
   onPrimary,
   onSecondary
 }) {
-  const copy = COPY[variant] || COPY.not_found
-
   return (
     <div
       className="acme-status-page"
@@ -36,15 +26,15 @@ export default function StatusPage({
     >
       <div className="acme-status-page__card">
         <span className="acme-status-page__icon material-symbols-outlined" aria-hidden="true">
-          {copy.icon}
+          {COPY.icon}
         </span>
         <div className="acme-status-page__copy">
           {inset ? (
-            <h2 className="april-text-style april-text-style--display-sm-semibold">{title || copy.title}</h2>
+            <h2 className="april-text-style april-text-style--display-sm-semibold">{title || COPY.title}</h2>
           ) : (
-            <h1 className="april-text-style april-text-style--display-sm-semibold">{title || copy.title}</h1>
+            <h1 className="april-text-style april-text-style--display-sm-semibold">{title || COPY.title}</h1>
           )}
-          <p className="april-text-style april-text-style--text-md-regular">{description ?? copy.description}</p>
+          <p className="april-text-style april-text-style--text-md-regular">{description ?? COPY.description}</p>
         </div>
         <div className="acme-status-page__actions">
           {showSecondary ? (

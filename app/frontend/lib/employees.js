@@ -15,7 +15,7 @@ function present(value) {
   return String(value ?? "").trim()
 }
 
-export const MAX_QUERY = 255
+const MAX_QUERY = 255
 
 function listValues(value) {
   if (Array.isArray(value)) return value.map(present).filter(Boolean)
@@ -108,7 +108,7 @@ export function offboardErrors({ left_on: leftOn, started_on: startedOn } = {}) 
   return errors
 }
 
-export const MAX_IMPORT_BYTES = 5 * 1024 * 1024
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024
 
 function csvFile(file) {
   const name = present(file?.name).toLowerCase()

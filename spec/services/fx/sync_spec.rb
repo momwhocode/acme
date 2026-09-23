@@ -5,6 +5,10 @@ RSpec.describe Fx::Sync do
 
   before { ExchangeRate.seed! }
 
+  def snapshot(on, quotes)
+    Fx::QuoteSnapshot.new(on: on, quotes: quotes)
+  end
+
   def restore_fx_source(previous)
     if previous.nil?
       ENV.delete("FX_SOURCE")
@@ -14,15 +18,16 @@ RSpec.describe Fx::Sync do
   end
 
   it "appends a new dated snapshot without changing older rates" do
+    on = Date.current + 1
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ]
+      fetch: snapshot(on, [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ])
     )
 
-    described_class.call(on: Date.current + 1, source: source)
+    described_class.call(on: on, source: source)
 
     expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.current)).to eq(BigDecimal("1.10"))
-    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: Date.current + 1)).to eq(BigDecimal("1.20"))
+    expect(ExchangeRate.rate_to(from: "EUR", to: "USD", on: on)).to eq(BigDecimal("1.20"))
   end
 
   it "uses the seed catalog when FX_SOURCE is not live" do
@@ -34,10 +39,7 @@ RSpec.describe Fx::Sync do
   it "uses the snapshot date from the live source" do
     source = instance_double(
       Fx::FrankfurterSource,
-      fetch: Fx::QuoteSnapshot.new(
-        on: Date.new(2026, 1, 2),
-        quotes: [ { from_currency: "EUR", to_currency: "USD", rate: "1.18" } ]
-      )
+      fetch: snapshot(Date.new(2026, 1, 2), [ { from_currency: "EUR", to_currency: "USD", rate: "1.18" } ])
     )
 
     described_class.call(on: Date.new(2026, 1, 3), source: source)
@@ -46,29 +48,24 @@ RSpec.describe Fx::Sync do
     expect(ExchangeRate.exists?(from_currency: "EUR", effective_date: Date.new(2026, 1, 3))).to be(false)
   end
 
-  it "stamps a raw array with the requested on date" do
-    source = instance_double(
-      Fx::SeedSource,
-      fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.19" } ]
-    )
-
-    described_class.call(on: Date.new(2026, 4, 1), source: source)
-
-    expect(ExchangeRate.exists?(from_currency: "EUR", effective_date: Date.new(2026, 4, 1))).to be(true)
-  end
-
   it "returns the number of quotes written" do
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ]
+      fetch: snapshot(Date.new(2026, 1, 1), [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ])
     )
 
     expect(described_class.call(on: Date.new(2026, 1, 1), source: source)).to eq(1)
   end
 
   it "overwrites a snapshot on the same date" do
-    first = instance_double(Fx::SeedSource, fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ])
-    second = instance_double(Fx::SeedSource, fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.21" } ])
+    first = instance_double(
+      Fx::SeedSource,
+      fetch: snapshot(Date.new(2026, 1, 1), [ { from_currency: "EUR", to_currency: "USD", rate: "1.20" } ])
+    )
+    second = instance_double(
+      Fx::SeedSource,
+      fetch: snapshot(Date.new(2026, 1, 1), [ { from_currency: "EUR", to_currency: "USD", rate: "1.21" } ])
+    )
 
     described_class.call(on: Date.new(2026, 1, 1), source: first)
     described_class.call(on: Date.new(2026, 1, 1), source: second)
@@ -79,7 +76,7 @@ RSpec.describe Fx::Sync do
   it "defaults on to Date.current" do
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "EUR", to_currency: "USD", rate: "1.17" } ]
+      fetch: snapshot(Date.new(2026, 7, 1), [ { from_currency: "EUR", to_currency: "USD", rate: "1.17" } ])
     )
 
     travel_to Date.new(2026, 7, 1) do
@@ -90,26 +87,15 @@ RSpec.describe Fx::Sync do
   end
 
   it "raises when the source returns no quotes" do
-    source = instance_double(Fx::SeedSource, fetch: [])
+    source = instance_double(Fx::SeedSource, fetch: snapshot(Date.new(2010, 1, 1), []))
 
     expect {
       described_class.call(on: Date.new(2010, 1, 1), source: source)
     }.to raise_error(Fx::Sync::Error, /no quotes/)
   end
 
-  it "raises when the source returns nil" do
+  it "raises when the source does not return a snapshot" do
     source = instance_double(Fx::SeedSource, fetch: nil)
-
-    expect {
-      described_class.call(on: Date.new(2010, 1, 1), source: source)
-    }.to raise_error(Fx::Sync::Error, /no quotes/)
-  end
-
-  it "raises when a snapshot has blank quotes" do
-    source = instance_double(
-      Fx::SeedSource,
-      fetch: Fx::QuoteSnapshot.new(on: Date.new(2010, 1, 1), quotes: [])
-    )
 
     expect {
       described_class.call(on: Date.new(2010, 1, 1), source: source)

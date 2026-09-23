@@ -8,7 +8,6 @@ export default function NotFoundPage({ signedIn = false }) {
   const navigate = useNavigate()
   const status = (
     <StatusPage
-      variant="not_found"
       inset={signedIn}
       showPrimary
       primaryLabel={signedIn ? "Employees" : "Sign in"}

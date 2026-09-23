@@ -7,7 +7,7 @@ const FOCUS_QUERY = {
   level: "level"
 }
 
-export function directoryPathFromMix(rowKey, row) {
+function directoryPathFromMix(rowKey, row) {
   const params = new URLSearchParams({ status: "active" })
   const queryKey = FOCUS_QUERY[rowKey]
   const value = row[rowKey]

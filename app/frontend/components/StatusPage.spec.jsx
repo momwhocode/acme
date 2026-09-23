@@ -19,20 +19,19 @@ describe("StatusPage", () => {
     expect(onSecondary).toHaveBeenCalled()
   })
 
-  it("renders server-error copy with a primary action", async () => {
+  it("renders a primary action when asked", async () => {
     const user = userEvent.setup()
     const onPrimary = vi.fn()
     render(
       <StatusPage
-        variant="server_error"
         showPrimary
-        primaryLabel="Reload"
+        primaryLabel="Employees"
         onPrimary={onPrimary}
       />
     )
 
-    expect(screen.getByRole("heading", { name: "Something went wrong" })).toBeTruthy()
-    await user.click(screen.getByRole("button", { name: "Reload" }))
+    expect(screen.getByRole("heading", { name: "Page not found" })).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Employees" }))
     expect(onPrimary).toHaveBeenCalled()
   })
 })

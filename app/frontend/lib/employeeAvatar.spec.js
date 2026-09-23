@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { employeeAvatar, employeeInitials } from "./employeeAvatar.js"
+import { employeeAvatar } from "./employeeAvatar.js"
 
 describe("employeeAvatar", () => {
   it("builds initials and a color", () => {
     const avatar = employeeAvatar({ id: "emp-1", first_name: "Ada", last_name: "Lovelace" })
 
-    expect(employeeInitials({ first_name: "Ada", last_name: "Lovelace" })).toBe("AL")
     expect(avatar.initials).toBe("AL")
     expect(avatar.color).toBeTruthy()
   })

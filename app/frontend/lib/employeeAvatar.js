@@ -19,7 +19,7 @@ function hashSeed(value) {
   return hash >>> 0
 }
 
-export function employeeInitials(employee = {}) {
+function employeeInitials(employee = {}) {
   return `${employee.first_name?.[0] || ""}${employee.last_name?.[0] || ""}`.toUpperCase()
 }
 

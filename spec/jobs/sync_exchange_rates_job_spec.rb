@@ -5,10 +5,14 @@ RSpec.describe SyncExchangeRatesJob do
 
   before { ExchangeRate.seed! }
 
+  def snapshot(on, quotes)
+    Fx::QuoteSnapshot.new(on: on, quotes: quotes)
+  end
+
   it "writes the snapshot through Fx::Sync" do
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ]
+      fetch: snapshot(Date.new(2026, 2, 1), [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ])
     )
 
     described_class.perform_now(Date.new(2026, 2, 1), source: source)
@@ -19,7 +23,7 @@ RSpec.describe SyncExchangeRatesJob do
   it "returns the number of quotes synced" do
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ]
+      fetch: snapshot(Date.new(2026, 2, 1), [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ])
     )
 
     expect(described_class.perform_now(Date.new(2026, 2, 1), source: source)).to eq(1)
@@ -28,7 +32,7 @@ RSpec.describe SyncExchangeRatesJob do
   it "defaults on to Date.current" do
     source = instance_double(
       Fx::SeedSource,
-      fetch: [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ]
+      fetch: snapshot(Date.new(2026, 8, 1), [ { from_currency: "INR", to_currency: "USD", rate: "0.011" } ])
     )
 
     travel_to Date.new(2026, 8, 1) do

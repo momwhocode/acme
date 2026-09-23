@@ -112,7 +112,6 @@ class AnalyticsQuery
         level,
         CASE WHEN COUNT(DISTINCT currency) = 1 THEN MIN(currency) END AS currency,
         COUNT(*)::bigint AS headcount,
-        COUNT(DISTINCT currency)::bigint AS currency_count,
         COALESCE(ROUND(SUM(annualised_usd), 2), 0) AS payroll_usd,
         COALESCE(ROUND(SUM(payroll_local), 2), 0) AS payroll_local,
         ROUND((PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY annualised_usd))::numeric, 2) AS median_usd
@@ -135,7 +134,7 @@ class AnalyticsQuery
             median_usd: money(row["median_usd"])
           }
           currency = row["currency"].presence
-          item[:currency] = currency if currency && row["currency_count"].to_i == 1
+          item[:currency] = currency if currency
           item
         end
   end

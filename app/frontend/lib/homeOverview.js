@@ -7,7 +7,7 @@ const TYPE_ORDER = [ "full-time", "part-time", "contractor", "freelancer", "inte
 const LEVEL_BUCKETS = [ "L1", "L2", "L3", "L4", "L5+" ]
 const CHART_FALLBACK = "var(--amber-amber-300)"
 
-export const TYPE_COLORS = {
+const TYPE_COLORS = {
   "full-time": "var(--yellow-yellow-400)",
   "part-time": "var(--green-green-600)",
   contractor: "var(--orange-orange-500)",
@@ -15,7 +15,7 @@ export const TYPE_COLORS = {
   intern: "var(--yellow-yellow-900)"
 }
 
-export const LEVEL_COLORS = [
+const LEVEL_COLORS = [
   "var(--yellow-yellow-200)",
   "var(--yellow-yellow-400)",
   "var(--amber-amber-400)",
@@ -139,7 +139,7 @@ export function deltaTagProps(delta) {
   return { type: "default", leadingIcon: false }
 }
 
-export function contingentStats(rows = []) {
+function contingentStats(rows = []) {
   return {
     headcount: rows
       .filter((row) => CONTINGENT_TYPES.includes(row.employment_type))
@@ -158,7 +158,7 @@ export function typeSlices(rows = []) {
     }))
 }
 
-export function levelBucket(level) {
+function levelBucket(level) {
   const text = String(level || "").trim().toUpperCase()
   const numbered = text.match(/^(?:IC|L)(\d+)\+?$/)
   const n = numbered ? Number(numbered[1]) : null

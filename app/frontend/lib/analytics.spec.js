@@ -3,27 +3,26 @@ import { getAnalytics } from "./analytics.js"
 import {
   analyticsParamsFromFocus,
   directoryPathFromFocus,
-  directoryPathFromMix,
   toggleFocus
 } from "./analyticsDisplay.js"
 
-describe("directoryPathFromMix", () => {
+describe("directoryPathFromFocus", () => {
   it("opens the directory on the active mix slice", () => {
-    expect(directoryPathFromMix("employment_type", { employment_type: "contractor" })).toBe(
+    expect(directoryPathFromFocus({ key: "employment_type", value: "contractor" })).toBe(
       "/employees?status=active&type=contractor"
     )
-    expect(directoryPathFromMix("department", { department: "engineering" })).toBe(
+    expect(directoryPathFromFocus({ key: "department", value: "engineering" })).toBe(
       "/employees?status=active&department=engineering"
     )
-    expect(directoryPathFromMix("country", { country: "GB" })).toBe("/employees?status=active&country=GB")
+    expect(directoryPathFromFocus({ key: "country", value: "GB" })).toBe("/employees?status=active&country=GB")
   })
 
   it("keeps only the active status when the slice has no filter value", () => {
-    expect(directoryPathFromMix("country", {})).toBe("/employees?status=active")
+    expect(directoryPathFromFocus({ key: "country" })).toBe("/employees?status=active")
   })
 
   it("opens a level bucket in the directory", () => {
-    expect(directoryPathFromMix("level", { level: "L2" })).toBe("/employees?status=active&level=L2")
+    expect(directoryPathFromFocus({ key: "level", value: "L2" })).toBe("/employees?status=active&level=L2")
   })
 })
 

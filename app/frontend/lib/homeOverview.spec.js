@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest"
 import {
-  LEVEL_COLORS,
-  TYPE_COLORS,
   actionRole,
   buildOverviewModel,
   conicGradient,
-  contingentStats,
   deltaTagProps,
   formatCompactUsd,
   formatCount,
@@ -14,7 +11,6 @@ import {
   formatSignedCount,
   formatSignedPct,
   formatSignedPts,
-  levelBucket,
   levelBars,
   moneyCell,
   moneyRows,
@@ -56,34 +52,22 @@ describe("homeOverview formatters", () => {
 
 describe("homeOverview mix", () => {
   it("uses design-system chart tokens for type colors", () => {
-    expect(TYPE_COLORS["full-time"]).toBe("var(--yellow-yellow-400)")
-    expect(TYPE_COLORS["part-time"]).toBe("var(--green-green-600)")
     expect(typeSlices([ { employment_type: "full-time", headcount: 2 } ])[0]).toMatchObject({
       label: "Full Time",
       color: "var(--yellow-yellow-400)"
     })
+    expect(typeSlices([ { employment_type: "part-time", headcount: 1 } ])[0].color).toBe("var(--green-green-600)")
     expect(conicGradient(typeSlices([ { employment_type: "contractor", headcount: 1 } ]), 1)).toContain(
       "var(--orange-orange-500)"
     )
-    expect(LEVEL_COLORS[4]).toBe("var(--orange-orange-500)")
-  })
-
-  it("splits contingent headcount from live type rows", () => {
-    expect(
-      contingentStats([
-        { employment_type: "full-time", headcount: 7, payroll_usd: 100 },
-        { employment_type: "contractor", headcount: 2, payroll_usd: 20 },
-        { employment_type: "intern", headcount: 1, payroll_usd: 5 }
-      ])
-    ).toEqual({ headcount: 3 })
   })
 
   it("maps IC/M levels onto the L1–L5+ chart buckets", () => {
-    expect(levelBucket("IC1")).toBe("L1")
-    expect(levelBucket("L4")).toBe("L4")
-    expect(levelBucket("IC6")).toBe("L5+")
-    expect(levelBucket("M1")).toBe("L5+")
-    expect(levelBucket(null)).toBeNull()
+    expect(levelBars([ { level: "IC1", headcount: 1, median_usd: 1 } ])[0].label).toBe("L1")
+    expect(levelBars([ { level: "L4", headcount: 1, median_usd: 1 } ])[0].label).toBe("L4")
+    expect(levelBars([ { level: "IC6", headcount: 1, median_usd: 1 } ])[0].label).toBe("L5+")
+    expect(levelBars([ { level: "M1", headcount: 1, median_usd: 1 } ])[0].label).toBe("L5+")
+    expect(levelBars([ { level: null, headcount: 1, median_usd: 1 } ])).toEqual([])
   })
 
   it("buckets live levels into L1–L5+ bars", () => {
