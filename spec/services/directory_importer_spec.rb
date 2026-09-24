@@ -21,6 +21,7 @@ RSpec.describe DirectoryImporter do
       employment_type: "full-time",
       status: "active",
       level: "IC4",
+      job_title: "Engineer",
       started_on: "2020-01-15",
       left_on: "",
       base_amount: "80000",
@@ -48,6 +49,19 @@ RSpec.describe DirectoryImporter do
 
     expect(ada.country).to eq("GB")
     expect(ada.department).to eq("engineering")
+    expect(ada.job_title).to eq("Engineer")
+  end
+
+  it "imports job_title from the required column" do
+    import_csv(csv_row(job_title: "Staff Engineer"))
+
+    expect(Employee.find_by!(email: "ada.lovelace@import.test").job_title).to eq("Staff Engineer")
+  end
+
+  it "allows a blank job_title" do
+    import_csv(csv_row(job_title: ""))
+
+    expect(Employee.find_by!(email: "ada.lovelace@import.test").job_title).to be_nil
   end
 
   it "attaches both Ada raises to the same employee" do
@@ -102,7 +116,7 @@ RSpec.describe DirectoryImporter do
 
   it "accepts headers with surrounding spaces" do
     path = Rails.root.join("tmp/directory_import_headers.csv")
-    File.write(path, " first_name ,last_name,email,country,department,employment_type,status,level,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason\n#{csv_row}\n")
+    File.write(path, " first_name ,last_name,email,country,department,employment_type,status,level,job_title,started_on,left_on,base_amount,currency,pay_period,hours_per_week,effective_date,change_reason\n#{csv_row}\n")
 
     expect { described_class.call(path) }.to change(Employee, :count).by(1)
   end

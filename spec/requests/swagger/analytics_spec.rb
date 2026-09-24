@@ -30,6 +30,16 @@ RSpec.describe "Analytics", type: :request do
         schema "$ref" => "#/components/schemas/Error"
         run_test!
       end
+
+      response "422", "invalid as_of" do
+        schema "$ref" => "#/components/schemas/Error"
+        let(:as_of) { "June 1" }
+        before { sign_in_hr }
+
+        run_test! do |response|
+          expect(api_error).to include("message" => "as_of is invalid")
+        end
+      end
     end
   end
 end

@@ -314,7 +314,7 @@ RSpec.configure do |config|
             properties: {
               base_amount: { type: :number, minimum: 0, example: 80_000 },
               currency: { type: :string, enum: %w[USD EUR GBP INR] },
-              pay_period: { type: :string, enum: %w[hourly daily monthly annual] },
+              pay_period: { type: :string, enum: %w[hourly annual] },
               hours_per_week: { type: :number, exclusiveMinimum: 0, maximum: 168 },
               effective_date: { type: :string, format: :date },
               change_reason: { type: :string, maxLength: 255 }
@@ -345,7 +345,7 @@ RSpec.configure do |config|
                 properties: {
                   effective_date: { type: :string, format: :date, example: "2025-04-01" },
                   change_reason: { type: :string, example: "promotion" },
-                  level: { type: :string, example: "IC3" }
+                  level: { type: :string, example: "L3" }
                 }
               }
             ]
@@ -379,6 +379,7 @@ RSpec.configure do |config|
               employment_type: { type: :string, example: "full-time" },
               department: { type: :string, example: "engineering" },
               country: { type: :string, example: "GB" },
+              level: { type: :string, example: "L2", nullable: true },
               currency: { type: :string, example: "GBP" },
               headcount: { type: :integer, example: 120 },
               payroll_usd: { "$ref" => "#/components/schemas/Decimal" },

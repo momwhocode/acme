@@ -17,7 +17,7 @@ class DirectorySeeder
 
   COUNTRIES = COUNTRY_CURRENCY.keys.freeze
   DEPARTMENTS = %w[engineering product design sales marketing finance people operations legal support].freeze
-  LEVELS = %w[IC1 IC2 IC3 IC4 IC5 IC6 M1 M2 M3].freeze
+  LEVELS = %w[L1 L2 L3 L4 L5+].freeze
   CHANGE_REASONS = %w[raise promotion adjustment].freeze
 
   def self.call(...)
@@ -103,7 +103,7 @@ class DirectorySeeder
 
   def compensation_rows(employee, index)
     currency = COUNTRY_CURRENCY.fetch(employee[:country])
-    pay_period = pay_period_for(employee[:employment_type], index)
+    pay_period = pay_period_for(employee[:employment_type])
     hours = hours_for(pay_period, employee[:employment_type])
     last_day = [ employee[:left_on], @today ].compact.min
     dates = history_dates(employee[:started_on], last_day)
@@ -154,14 +154,8 @@ class DirectorySeeder
     LEVELS.sample(random: @rng)
   end
 
-  def pay_period_for(employment_type, key)
-    case employment_type
-    when "contractor" then "daily"
-    when "intern" then "monthly"
-    when "freelancer" then key.even? ? "hourly" : "daily"
-    when "part-time" then key.even? ? "hourly" : "monthly"
-    else key % 10 == 0 ? "monthly" : "annual"
-    end
+  def pay_period_for(employment_type)
+    %w[part-time freelancer].include?(employment_type) ? "hourly" : "annual"
   end
 
   def hours_for(pay_period, employment_type)
@@ -188,8 +182,6 @@ class DirectorySeeder
     annual_local = (annual_usd / usd_rate(currency)).round(2)
 
     case pay_period
-    when "monthly" then (annual_local / 12).round(2)
-    when "daily" then (annual_local / CurrencyNormalizer::WORKING_DAYS_PER_YEAR).round(2)
     when "hourly" then (annual_local / (hours * CurrencyNormalizer::WEEKS_PER_YEAR)).round(2)
     else annual_local
     end

@@ -37,15 +37,6 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Set up Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: .node-version
-          cache: npm
-
-      - name: Install JavaScript dependencies
-        run: npm ci
-
       - name: Prepare database
         # schema:load only — db:prepare also runs db/seeds.rb on a new database.
         run: bin/rails db:create db:schema:load

@@ -115,8 +115,15 @@ RSpec.describe DirectorySeeder do
 
     it "uses only product pay periods" do
       expect(CompensationRecord.distinct.pluck(:pay_period)).to all(
-        be_in(CompensationRecord::PAY_PERIODS)
+        be_in(%w[annual hourly])
       )
+    end
+
+    it "stores L1–L5+ levels on staff roles" do
+      staff = Employee.where.not(employment_type: %w[intern contractor freelancer])
+
+      expect(staff.where(level: nil)).to be_empty
+      expect(staff.distinct.pluck(:level)).to all(be_in(DirectorySeeder::LEVELS))
     end
 
     it "requires left_on on leavers" do

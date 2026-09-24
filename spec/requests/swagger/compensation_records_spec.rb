@@ -13,7 +13,7 @@ RSpec.describe "Compensation records", type: :request do
 
       response "201", "pay change recorded" do
         schema "$ref" => "#/components/schemas/CompensationChangeResponse"
-        let(:employee) { create(:employee, level: "IC2") }
+        let(:employee) { create(:employee, level: "L2") }
         let(:employee_id) { employee.id }
         let(:body) do
           {
@@ -22,7 +22,7 @@ RSpec.describe "Compensation records", type: :request do
             pay_period: "annual",
             effective_date: "2025-04-01",
             change_reason: "promotion",
-            level: "IC3"
+            level: "L3"
           }
         end
         before do
@@ -32,7 +32,7 @@ RSpec.describe "Compensation records", type: :request do
 
         run_test! do |response|
           expect(api_data.dig("compensation_record", "change_reason")).to eq("promotion")
-          expect(api_data.dig("employee", "level")).to eq("IC3")
+          expect(api_data.dig("employee", "level")).to eq("L3")
         end
       end
 
@@ -156,7 +156,7 @@ RSpec.describe "Compensation records", type: :request do
         let(:employee) { create(:employee) }
         let(:employee_id) { employee.id }
         let(:id) { create(:compensation_record, employee: employee).id }
-        let(:body) { { level: "IC3" } }
+        let(:body) { { level: "L3" } }
         before { sign_in_hr }
 
         run_test! do |response|
@@ -168,7 +168,7 @@ RSpec.describe "Compensation records", type: :request do
     delete "Delete a pay row" do
       tags "Compensation"
       produces "application/json"
-      description "Removes one row. The hire must keep at least one compensation record."
+      description "Removes one row. The employee must keep at least one compensation record."
 
       response "200", "deleted" do
         schema "$ref" => "#/components/schemas/Logout"

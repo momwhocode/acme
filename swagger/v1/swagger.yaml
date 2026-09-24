@@ -181,6 +181,9 @@ components:
         department:
           type: string
           example: engineering
+        job_title:
+          type: string
+          nullable: true
         employment_type:
           type: string
           enum:
@@ -434,8 +437,6 @@ components:
           type: string
           enum:
           - hourly
-          - daily
-          - monthly
           - annual
         hours_per_week:
           type: number
@@ -475,6 +476,9 @@ components:
         department:
           type: string
           example: engineering
+        job_title:
+          type: string
+          nullable: true
         employment_type:
           type: string
           enum:
@@ -485,11 +489,15 @@ components:
           - intern
         level:
           type: string
-          example: IC2
+          example: L2
         started_on:
           type: string
           format: date
           example: '2024-01-01'
+        manager_id:
+          type: string
+          format: uuid
+          nullable: true
         compensation:
           "$ref": "#/components/schemas/CompensationInput"
     CompensationChangeRequest:
@@ -506,7 +514,7 @@ components:
             example: promotion
           level:
             type: string
-            example: IC3
+            example: L3
     EmployeeUpdateRequest:
       type: object
       properties:
@@ -526,6 +534,9 @@ components:
         department:
           type: string
           example: sales
+        job_title:
+          type: string
+          nullable: true
         employment_type:
           type: string
           enum:
@@ -537,7 +548,7 @@ components:
         level:
           type: string
           nullable: true
-          example: IC3
+          example: L3
         started_on:
           type: string
           format: date
@@ -569,6 +580,10 @@ components:
         country:
           type: string
           example: GB
+        level:
+          type: string
+          example: L2
+          nullable: true
         currency:
           type: string
           example: GBP
@@ -681,6 +696,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
+        '422':
+          description: invalid as_of
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/employees/{employee_id}/compensation_records":
     parameters:
     - name: employee_id
@@ -774,7 +795,8 @@ paths:
       summary: Delete a pay row
       tags:
       - Compensation
-      description: Removes one row. The hire must keep at least one compensation record.
+      description: Removes one row. The employee must keep at least one compensation
+        record.
       responses:
         '200':
           description: deleted
@@ -880,6 +902,17 @@ paths:
         required: false
         schema:
           type: string
+          enum:
+          - lead
+          - email
+          - department
+          - country
+          - employment_type
+          - status
+          - level
+          - job_title
+          - started_on
+          - pay
       - name: direction
         in: query
         required: false
@@ -1015,11 +1048,11 @@ paths:
             schema:
               "$ref": "#/components/schemas/EmployeeUpdateRequest"
     delete:
-      summary: Delete a hire
+      summary: Delete an employee
       tags:
       - Employees
-      description: Hard-deletes a mistaken hire and their compensation rows. Audit
-        events stay.
+      description: Hard-deletes the employee and their compensation rows. Audit events
+        stay.
       responses:
         '200':
           description: deleted
@@ -1044,8 +1077,9 @@ paths:
       summary: Import a directory CSV
       tags:
       - Employees
-      description: Creates employees and effective-dated compensation. Existing emails
-        are updated. Max 5 MB.
+      description: Creates or updates employees and effective-dated compensation.
+        Requires a job_title column (blank cells are allowed). Existing emails are
+        updated. Max 5 MB.
       parameters: []
       responses:
         '200':
@@ -1082,7 +1116,7 @@ paths:
         format: uuid
       required: true
     patch:
-      summary: Mark a leaver
+      summary: Start offboarding
       tags:
       - Employees
       description: Sets status to left. left_on must be ISO-8601 and cover every compensation
@@ -1090,7 +1124,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: marked left
+          description: offboarded
           content:
             application/json:
               schema:
@@ -1156,8 +1190,9 @@ paths:
       summary: Export this directory view
       tags:
       - Employees
-      description: CSV of the current filters. Same query params as the listing, no
-        pagination.
+      description: 'CSV of the current filters. Same query params as the listing,
+        no pagination. Columns: Name, Email, Department, Country, Type, Status, Level,
+        Job Title, Pay, Started, End Date, Manager.'
       parameters:
       - name: country
         in: query
@@ -1166,6 +1201,71 @@ paths:
           type: string
           minLength: 2
           maxLength: 2
+      - name: department
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - full-time
+          - part-time
+          - contractor
+          - freelancer
+          - intern
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - active
+          - left
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 255
+      - name: manager
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: level
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - lead
+          - email
+          - department
+          - country
+          - employment_type
+          - status
+          - level
+          - job_title
+          - started_on
+          - pay
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
       responses:
         '200':
           description: csv

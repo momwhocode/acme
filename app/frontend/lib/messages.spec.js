@@ -5,6 +5,8 @@ describe("t", () => {
   it("reads a catalog string", () => {
     expect(t("errors.unknownCountry")).toBe("unknown country")
     expect(t("success.employeeRehired")).toBe("Employee rehired")
+    expect(t("success.employeeOffboarded")).toBe("Employee offboarded")
+    expect(t("success.employeeDeleted")).toBe("Employee deleted")
   })
 
   it("interpolates Rails-style placeholders", () => {

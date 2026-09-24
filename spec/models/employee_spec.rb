@@ -254,7 +254,7 @@ RSpec.describe Employee do
 
   describe ".levels_in_bucket" do
     it "expands Home level chips to IC and L codes" do
-      expect(described_class.levels_in_bucket("L2", "L5+")).to include("IC2", "L2", "IC5", "M1")
+      expect(described_class.levels_in_bucket("L2", "L5+")).to include("IC2", "L2", "L5+", "IC5", "M1")
       expect(described_class.levels_in_bucket("IC3")).to eq([ "IC3" ])
     end
   end

@@ -12,7 +12,7 @@ export const EMPLOYEES_TABLE_COLUMNS = [
   { id: "email", label: EMPLOYEE_FIELD_LABELS.email, kind: "header", scroll: "start" },
   { id: "country", label: EMPLOYEE_FIELD_LABELS.country, kind: "header", scroll: true },
   { id: "status", label: EMPLOYEE_FIELD_LABELS.status, kind: "status", scroll: true },
-  { id: "job_title", label: EMPLOYEE_FIELD_LABELS.jobTitle, kind: "header", scroll: true },
+  { id: "job_title", label: EMPLOYEE_FIELD_LABELS.jobTitle, kind: "header", scroll: true, sortable: true },
   { id: "level", label: EMPLOYEE_FIELD_LABELS.level, kind: "header", scroll: true },
   { id: "department", label: EMPLOYEE_FIELD_LABELS.department, kind: "header", scroll: true },
   { id: "employment_type", label: EMPLOYEE_FIELD_LABELS.type, kind: "header", scroll: true },

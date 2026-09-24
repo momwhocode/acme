@@ -15,6 +15,7 @@ class DirectoryQuery
     "employment_type" => %i[employment_type last_name id],
     "status" => %i[status last_name id],
     "level" => %i[level last_name id],
+    "job_title" => %i[job_title last_name id],
     "started_on" => %i[started_on last_name id]
   }.freeze
 

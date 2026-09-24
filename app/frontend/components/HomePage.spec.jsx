@@ -161,6 +161,7 @@ describe("HomePage", () => {
     expect(screen.queryByText(/annualised run-rate, not actual spend/)).toBeNull()
     expect(screen.queryByRole("button", { name: "Open In Directory" })).toBeNull()
     expect(screen.getByText("Total Annualised Cost")).toBeTruthy()
+    expect(screen.getByText(/\/yr$/)).toBeTruthy()
     expect(screen.getByText("Active Headcount")).toBeTruthy()
     expect(screen.getByText("Median Compensation")).toBeTruthy()
     expect(screen.getByText("Contingent Ratio")).toBeTruthy()

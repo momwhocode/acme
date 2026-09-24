@@ -115,9 +115,33 @@ RSpec.describe DirectoryQuery do
 
   it "filters by level bucket" do
     ic2 = create(:employee, level: "IC2", email: "ic2@acme.test")
+    l2 = create(:employee, level: "L2", email: "l2@acme.test")
     create(:employee, level: "IC4", email: "ic4@acme.test")
 
-    expect(relation_for(level: "L2")).to eq([ ic2 ])
+    expect(relation_for(level: "L2")).to contain_exactly(ic2, l2)
+  end
+
+  it "expands L5+ to stored IC/M codes" do
+    manager = create(:employee, level: "M1", email: "m1@acme.test")
+    senior = create(:employee, level: "L5+", email: "l5@acme.test")
+    create(:employee, level: "L2", email: "l2@acme.test")
+
+    expect(relation_for(level: "L5+")).to contain_exactly(manager, senior)
+  end
+
+  it "rejects an unknown manager id" do
+    expect { described_class.new(manager: "not-a-uuid").relation }.to raise_error(
+      described_class::Error, "unknown manager"
+    )
+  end
+
+  it "sorts by current pay" do
+    lower = create(:employee, email: "low@acme.test")
+    higher = create(:employee, email: "high@acme.test")
+    create(:compensation_record, employee: lower, base_amount: 50_000)
+    create(:compensation_record, employee: higher, base_amount: 120_000)
+
+    expect(relation_for(sort: "pay", direction: "desc").pluck(:id)).to eq([ higher.id, lower.id ])
   end
 
   it "filters by manager" do
@@ -133,6 +157,13 @@ RSpec.describe DirectoryQuery do
     alpha = create(:employee, first_name: "Ann", last_name: "Alpha", email: "a@acme.test")
 
     expect(relation_for(sort: "lead", direction: "desc").pluck(:id)).to eq([ zeta.id, alpha.id ])
+  end
+
+  it "sorts by job title" do
+    engineer = create(:employee, job_title: "Engineer", email: "eng@acme.test")
+    analyst = create(:employee, job_title: "Analyst", email: "an@acme.test")
+
+    expect(relation_for(sort: "job_title", direction: "asc").pluck(:id)).to eq([ analyst.id, engineer.id ])
   end
 
   it "sorts by start date" do

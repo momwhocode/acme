@@ -43,7 +43,7 @@ class Employee < ApplicationRecord
     "L2" => %w[L2 IC2],
     "L3" => %w[L3 IC3],
     "L4" => %w[L4 IC4],
-    "L5+" => %w[L5 L6 L7 L8 IC5 IC6 IC7 IC8 M1 M2 M3 M4 M5]
+    "L5+" => %w[L5+ L5 L6 L7 L8 IC5 IC6 IC7 IC8 M1 M2 M3 M4 M5]
   }.freeze
 
   # Home L5+ and directory `level=L5+` expand to the stored IC/M codes in LEVEL_BUCKETS.

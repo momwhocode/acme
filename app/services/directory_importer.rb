@@ -9,7 +9,7 @@ class DirectoryImporter
   BATCH_SIZE = 1_000
   EMPLOYEE_HEADERS = %w[
     first_name last_name email country department employment_type status
-    level started_on left_on
+    level job_title started_on left_on
   ].freeze
   COMP_HEADERS = %w[
     base_amount currency pay_period hours_per_week effective_date change_reason

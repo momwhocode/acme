@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import {
+  EMPLOYEES_TABLE_COLUMNS,
   countryFlag,
   countryLabel,
   directoryQueryFromFilters,
@@ -13,6 +14,10 @@ import {
 } from "./employeesTable.js"
 
 describe("employeesTable", () => {
+  it("lets the directory sort job title", () => {
+    expect(EMPLOYEES_TABLE_COLUMNS.find((column) => column.id === "job_title").sortable).toBe(true)
+  })
+
   it("builds directory query params from chips and search", () => {
     expect(
       directoryQueryFromFilters({

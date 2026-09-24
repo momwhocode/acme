@@ -42,6 +42,8 @@ describe("CompensationChangeModal", () => {
     )
 
     expect(document.getElementById("comp-change-amount").value).toBe("80000.0")
+    expect(screen.getByText("Level")).toBeTruthy()
+    expect(screen.getByRole("button", { name: "L2" })).toBeTruthy()
     await user.clear(document.getElementById("comp-change-amount"))
     await user.type(document.getElementById("comp-change-amount"), "90000")
     await user.type(document.getElementById("comp-change-reason"), "promotion")

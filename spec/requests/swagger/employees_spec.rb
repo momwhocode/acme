@@ -37,7 +37,8 @@ RSpec.describe "Employees", type: :request do
       parameter name: :q, in: :query, required: false, schema: { type: :string, maxLength: 255 }
       parameter name: :manager, in: :query, required: false, schema: { type: :string, format: :uuid }
       parameter name: :level, in: :query, required: false, schema: { type: :string }
-      parameter name: :sort, in: :query, required: false, schema: { type: :string }
+      parameter name: :sort, in: :query, required: false,
+                schema: { type: :string, enum: %w[lead email department country employment_type status level job_title started_on pay] }
       parameter name: :direction, in: :query, required: false, schema: { type: :string, enum: %w[asc desc] }
 
       response "200", "page of employees" do
@@ -383,10 +384,10 @@ RSpec.describe "Employees", type: :request do
       end
     end
 
-    delete "Delete a hire" do
+    delete "Delete an employee" do
       tags "Employees"
       produces "application/json"
-      description "Hard-deletes a mistaken hire and their compensation rows. Audit events stay."
+      description "Hard-deletes the employee and their compensation rows. Audit events stay."
 
       response "200", "deleted" do
         schema "$ref" => "#/components/schemas/Logout"
@@ -423,7 +424,7 @@ RSpec.describe "Employees", type: :request do
       tags "Employees"
       consumes "multipart/form-data"
       produces "application/json"
-      description "Creates employees and effective-dated compensation. Existing emails are updated. Max 5 MB."
+      description "Creates or updates employees and effective-dated compensation. Requires a job_title column (blank cells are allowed). Existing emails are updated. Max 5 MB."
       parameter name: :file, in: :formData, schema: { type: :string, format: :binary }, required: true
 
       response "200", "imported" do
@@ -484,14 +485,14 @@ RSpec.describe "Employees", type: :request do
   path "/api/v1/employees/{id}/offboard" do
     parameter name: :id, in: :path, schema: { type: :string, format: :uuid }
 
-    patch "Mark a leaver" do
+    patch "Start offboarding" do
       tags "Employees"
       consumes "application/json"
       produces "application/json"
       description "Sets status to left. left_on must be ISO-8601 and cover every compensation date."
       parameter name: :body, in: :body, schema: { "$ref" => "#/components/schemas/OffboardRequest" }
 
-      response "200", "marked left" do
+      response "200", "offboarded" do
         schema "$ref" => "#/components/schemas/OffboardResponse"
         let(:employee) { create(:employee) }
         let(:id) { employee.id }
@@ -621,8 +622,18 @@ RSpec.describe "Employees", type: :request do
     get "Export this directory view" do
       tags "Employees"
       produces "text/csv"
-      description "CSV of the current filters. Same query params as the listing, no pagination."
+      description "CSV of the current filters. Same query params as the listing, no pagination. Columns: Name, Email, Department, Country, Type, Status, Level, Job Title, Pay, Started, End Date, Manager."
       parameter name: :country, in: :query, required: false, schema: { type: :string, minLength: 2, maxLength: 2 }
+      parameter name: :department, in: :query, required: false, schema: { type: :string }
+      parameter name: :type, in: :query, required: false, schema: { type: :string, enum: Employee::EMPLOYMENT_TYPES }
+      parameter name: :status, in: :query, required: false, getter: :employment_status,
+                schema: { type: :string, enum: Employee::STATUSES }
+      parameter name: :q, in: :query, required: false, schema: { type: :string, maxLength: 255 }
+      parameter name: :manager, in: :query, required: false, schema: { type: :string, format: :uuid }
+      parameter name: :level, in: :query, required: false, schema: { type: :string }
+      parameter name: :sort, in: :query, required: false,
+                schema: { type: :string, enum: %w[lead email department country employment_type status level job_title started_on pay] }
+      parameter name: :direction, in: :query, required: false, schema: { type: :string, enum: %w[asc desc] }
 
       response "200", "csv" do
         let(:country) { "GB" }
