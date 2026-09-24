@@ -74,4 +74,11 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-docs/*
+# Cursor (local rules and agent state)
+.cursor/
+
+# Extra markdown and local notes — product contract is REQUIREMENTS.docx
+docs/
+*.md
+!README.md
+REQUIREMENTS.html
