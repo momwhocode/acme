@@ -1,6 +1,6 @@
 /** Home overview model: mix charts, money table, KPI deltas, and action queues. */
 
-import { countryLabel, displayLevel, formatUsd, titleCase } from "./employeesTable.js"
+import { countryLabel, displayLevel, titleCase } from "./employeesTable.js"
 
 const CONTINGENT_TYPES = [ "part-time", "contractor", "freelancer", "intern" ]
 const TYPE_ORDER = [ "full-time", "part-time", "contractor", "freelancer", "intern" ]
@@ -69,9 +69,7 @@ export const ACTION_TAG = {
 }
 
 // Seed INR→USD is 0.012 (ExchangeRate::SEED_RATES). Local overview amounts convert from USD.
-export const INR_PER_USD = 1 / 0.012
-
-export function usdToInr(amountUsd) {
+function usdToInr(amountUsd) {
   return (Number(amountUsd) || 0) / 0.012
 }
 
@@ -115,12 +113,6 @@ export function formatCompactInr(amountUsd) {
 
 export function formatCompactMoney(amountUsd, local) {
   return local ? formatCompactInr(amountUsd) : formatCompactUsd(amountUsd)
-}
-
-// Median KPI run-rate is annual / 12 on the client — analytics does not return monthly_usd.
-export function formatMonthlyUsd(annual) {
-  if (annual == null || annual === "") return "—"
-  return formatUsd(Number(annual) / 12)
 }
 
 export function formatMonthlyMoney(annual, local) {
@@ -267,17 +259,6 @@ function weightedMedian(rows = []) {
 
 export function moneyCell(row, local) {
   return formatCompactMoney(row.payroll, local)
-}
-
-export function conicGradient(slices, total) {
-  let cursor = 0
-  const stops = slices.map((slice) => {
-    const share = pctShare(slice.headcount, total)
-    const start = cursor
-    cursor += share
-    return `${slice.color} ${start}% ${cursor}%`
-  })
-  return `conic-gradient(${stops.join(", ") || "var(--color-border-border-gray-light) 0 100%"})`
 }
 
 export function actionRole(employee = {}) {

@@ -388,7 +388,7 @@ export default function EmployeeProfilePage() {
           onCancel={() => openOverlay(null)}
           onSuccess={() => {
             openOverlay(null)
-            setToast({ title: t("success.markedAsLeft") })
+            setToast({ title: t("success.employeeOffboarded") })
             refresh()
           }}
         />
@@ -405,7 +405,7 @@ export default function EmployeeProfilePage() {
             setBusy(true)
             try {
               await destroyEmployee(employee.id)
-              setToast({ title: t("success.hireDeleted") })
+              setToast({ title: t("success.employeeDeleted") })
               onEmployeeChanged?.()
               close()
             } catch (caught) {

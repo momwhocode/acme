@@ -81,15 +81,6 @@ export function homePeriodControlLabel(value, referenceDate = new Date()) {
   return preset?.label || homePeriodLabel(current, referenceDate)
 }
 
-export function formatLongSnapshotDate(iso) {
-  if (!iso) return ""
-  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  })
-}
-
 /** Current month plus recent closed months. */
 export function homeMonthOptions(referenceDate = new Date(), count = 7) {
   const options = []

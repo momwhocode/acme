@@ -55,7 +55,7 @@ describe("CompensationChangeModal", () => {
           currency: "GBP",
           pay_period: "annual",
           change_reason: "promotion",
-          level: "IC2"
+          level: "L2"
         })
       )
     })

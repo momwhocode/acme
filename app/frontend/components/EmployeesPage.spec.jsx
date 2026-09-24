@@ -87,6 +87,7 @@ describe("EmployeesPage", () => {
     expect(await screen.findByText("Ada Lovelace")).toBeTruthy()
     expect(screen.getAllByRole("button", { name: "Country" }).length).toBeGreaterThan(0)
     expect(screen.getByRole("button", { name: "Start Date" })).toBeTruthy()
+    expect(screen.getAllByRole("button", { name: "Level" }).length).toBeGreaterThan(0)
     expect(screen.getByText("Job Title")).toBeTruthy()
     expect(screen.getByText("End Date")).toBeTruthy()
     expect(screen.getByRole("button", { name: "Annual Salary" })).toBeTruthy()
@@ -98,6 +99,17 @@ describe("EmployeesPage", () => {
     expect(screen.getByRole("button", { name: "Actions for Ada Lovelace" })).toBeTruthy()
   })
 
+  it("applies a home level drill-down from the URL", async () => {
+    renderDirectory("/employees?status=active&level=L2")
+
+    await waitFor(() => {
+      expect(listEmployees).toHaveBeenCalledWith(
+        expect.objectContaining({ status: "active", level: "L2" }),
+        expect.any(Object)
+      )
+    })
+  })
+
   it("opens the row menu and shows a bulk bar when a row is selected", async () => {
     const user = userEvent.setup()
     renderDirectory()
@@ -105,8 +117,8 @@ describe("EmployeesPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
     expect(screen.getByRole("menuitem", { name: "View profile" })).toBeTruthy()
-    expect(screen.getByRole("menuitem", { name: "Mark as left" })).toBeTruthy()
-    expect(screen.getByRole("menuitem", { name: "Delete hire" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Start Offboarding" })).toBeTruthy()
+    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeTruthy()
 
     await user.click(screen.getByRole("checkbox", { name: "Select row Ada Lovelace" }))
     expect(screen.getByRole("toolbar", { name: "Bulk actions" })).toBeTruthy()

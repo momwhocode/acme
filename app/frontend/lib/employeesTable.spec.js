@@ -16,7 +16,7 @@ describe("employeesTable", () => {
   it("builds directory query params from chips and search", () => {
     expect(
       directoryQueryFromFilters({
-        filterValues: { status: [ "active" ], country: [ "GB", "US" ], type: [], department: [], manager: [ "mgr-1" ] },
+        filterValues: { status: [ "active" ], country: [ "GB", "US" ], type: [], department: [], manager: [ "mgr-1" ], level: [ "L2" ] },
         q: " ada ",
         page: 2,
         perPage: 25,
@@ -29,6 +29,7 @@ describe("employeesTable", () => {
       status: "active",
       country: "GB,US",
       manager: "mgr-1",
+      level: "L2",
       sort: "pay",
       direction: "asc"
     })
@@ -82,7 +83,7 @@ describe("employeesTable", () => {
     const onOffboard = vi.fn()
     const items = employeeRowMenuItems(row, { onDetails, onOffboard })
 
-    expect(items.map((item) => item.label)).toEqual([ "View profile", "Mark as left", "Delete hire" ])
+    expect(items.map((item) => item.label)).toEqual([ "View profile", "Start Offboarding", "Delete" ])
     items[0].onClick()
     items[1].onClick()
     expect(onDetails).toHaveBeenCalledWith(row)
@@ -93,9 +94,20 @@ describe("employeesTable", () => {
     expect(countryFlag("GB")).toBe("🇬🇧")
     expect(countryLabel("GB")).toBe("United Kingdom")
     expect(countryFlag("not-a-country")).toBe("")
-    expect(employeesFilterChips({ countries: [ "GB" ] })[2].dropdownOptions).toEqual([
+    expect(employeesFilterChips({ countries: [ "GB" ] })[3].dropdownOptions).toEqual([
       { value: "GB", label: "United Kingdom" }
     ])
+    expect(employeesFilterChips()[2]).toMatchObject({
+      filterLabel: "Level",
+      filterKey: "level",
+      dropdownOptions: [
+        { value: "L1", label: "L1" },
+        { value: "L2", label: "L2" },
+        { value: "L3", label: "L3" },
+        { value: "L4", label: "L4" },
+        { value: "L5+", label: "L5+" }
+      ]
+    })
   })
 
   it("formats missing USD as an em dash", () => {

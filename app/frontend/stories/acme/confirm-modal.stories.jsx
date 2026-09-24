@@ -12,7 +12,7 @@ export default {
     docs: {
       description: {
         component:
-          "Shared sm confirmation used by delete hire, leave, and other destructive directory actions."
+          "Shared sm confirmation used by delete, offboard, and other destructive directory actions."
       }
     }
   }

@@ -2,13 +2,11 @@ import { describe, expect, it } from "vitest"
 import {
   actionRole,
   buildOverviewModel,
-  conicGradient,
   deltaTagProps,
   formatCompactInr,
   formatCompactUsd,
   formatCount,
   formatMonthlyMoney,
-  formatMonthlyUsd,
   formatPct,
   formatSignedCount,
   formatSignedPct,
@@ -28,8 +26,6 @@ describe("homeOverview formatters", () => {
     expect(formatCompactUsd(8_100_000)).toBe("$8.1M")
     expect(formatCompactUsd(13_200)).toBe("$13.2K")
     expect(formatCompactUsd(0)).toBe("$0")
-    expect(formatMonthlyUsd(58_260)).toBe("$4,855")
-    expect(formatMonthlyUsd(null)).toBe("—")
     expect(formatCompactInr(150_000)).toBe("₹1.25 Cr")
     expect(formatMonthlyMoney(150_000, true)).toBe("₹10.4 L")
     expect(formatCount(10000)).toBe("10,000")
@@ -61,9 +57,7 @@ describe("homeOverview mix", () => {
       color: "var(--yellow-yellow-400)"
     })
     expect(typeSlices([ { employment_type: "part-time", headcount: 1 } ])[0].color).toBe("var(--green-green-600)")
-    expect(conicGradient(typeSlices([ { employment_type: "contractor", headcount: 1 } ]), 1)).toContain(
-      "var(--orange-orange-500)"
-    )
+    expect(typeSlices([ { employment_type: "contractor", headcount: 1 } ])[0].color).toBe("var(--orange-orange-500)")
   })
 
   it("maps IC/M levels onto the L1–L5+ chart buckets", () => {
@@ -148,7 +142,6 @@ describe("homeOverview mix", () => {
 
   it("falls back for unknown types, empty snapshots, and local money without a currency", () => {
     expect(typeSlices([ { employment_type: "seasonal", headcount: 1 } ])[0].color).toBe("var(--amber-amber-300)")
-    expect(conicGradient([], 0)).toContain("var(--color-border-border-gray-light)")
     expect(moneyCell({ payroll: 150000 }, true)).toBe("₹1.25 Cr")
     expect(moneyRows([ { employment_type: "intern", payroll_usd: 10 } ], "employment_type")[0].label).toBe("Intern")
     const empty = buildOverviewModel(null, null)

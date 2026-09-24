@@ -20,9 +20,6 @@ export default function CompensationFields({
   showChangeReason = true
 }) {
   const hourly = values.pay_period === "hourly"
-  const periodOptions = FORM_PAY_PERIODS.includes(values.pay_period)
-    ? PERIOD_OPTIONS
-    : [ ...PERIOD_OPTIONS, { value: values.pay_period, label: titleCase(values.pay_period) } ]
 
   return (
     <>
@@ -59,7 +56,7 @@ export default function CompensationFields({
           <FormSelectField
             id={`${idPrefix}-pay-period`}
             value={values.pay_period}
-            options={periodOptions}
+            options={PERIOD_OPTIONS}
             onChange={(value) => onChange("pay_period", value)}
             state={fieldErrorText(errors.pay_period) ? "error" : "default"}
             description={fieldErrorText(errors.pay_period)}

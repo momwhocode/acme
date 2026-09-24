@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
   defaultHomePeriod,
-  formatLongSnapshotDate,
   homeMonthOptions,
   homePeriodControlLabel,
   homePeriodPresets,
@@ -48,7 +47,6 @@ describe("home period labels", () => {
     expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 5 }, ref)).toBe("Last Quarter")
     expect(homePeriodControlLabel({ toDate: false, year: 2025, month: 11 }, ref)).toBe("Last Year")
     expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 4 }, ref)).toBe("May 2026")
-    expect(formatLongSnapshotDate("2026-09-23")).toBe("23 September 2026")
   })
 
   it("lists the snapshot presets used on Home", () => {

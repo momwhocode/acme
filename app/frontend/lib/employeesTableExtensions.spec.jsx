@@ -40,7 +40,7 @@ describe("createEmployeesTableExtensions", () => {
     expect(onDetails).toHaveBeenCalledWith(row)
   })
 
-  it("omits mark as left for a leaver", async () => {
+  it("omits start offboarding for a leaver", async () => {
     const user = userEvent.setup()
     const row = employeeTableRow({ ...employee, status: "left", left_on: "2026-01-01" })
     const extensions = createEmployeesTableExtensions({ onDetails: vi.fn(), onOffboard: vi.fn() })
@@ -49,6 +49,6 @@ describe("createEmployeesTableExtensions", () => {
     await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
     expect(screen.getByRole("menuitem", { name: "View profile" })).toBeTruthy()
     expect(screen.getByRole("menuitem", { name: "Rehire" })).toBeTruthy()
-    expect(screen.queryByRole("menuitem", { name: "Mark as left" })).toBeNull()
+    expect(screen.queryByRole("menuitem", { name: "Start Offboarding" })).toBeNull()
   })
 })

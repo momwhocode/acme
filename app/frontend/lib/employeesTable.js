@@ -3,7 +3,7 @@
 import { employeeAvatar } from "./employeeAvatar.js"
 import { EMPLOYEE_FIELD_LABELS } from "./employeeFormSections.js"
 import { filterTableColumns, toggleableColumns } from "./tableColumns.js"
-import { EMPLOYMENT_TYPES, STATUSES } from "./employees.js"
+import { EMPLOYMENT_TYPES, FORM_LEVELS, STATUSES } from "./employees.js"
 import { readFilterSelection } from "./filterValues.js"
 
 export const EMPLOYEES_TABLE_COLUMNS = [
@@ -31,6 +31,11 @@ const STATUS_FILTER_OPTIONS = STATUSES.map((value) => ({
 const TYPE_FILTER_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({
   value,
   label: titleCase(value)
+}))
+
+const LEVEL_FILTER_OPTIONS = FORM_LEVELS.map((value) => ({
+  value,
+  label: value
 }))
 
 export function countryFlag(code) {
@@ -84,6 +89,7 @@ export function employeesFilterChips({ departments = [], countries = [], manager
   const chips = [
     { filterLabel: "Status", filterKey: "status", dropdownOptions: STATUS_FILTER_OPTIONS },
     { filterLabel: "Type", filterKey: "type", dropdownOptions: TYPE_FILTER_OPTIONS },
+    { filterLabel: "Level", filterKey: "level", dropdownOptions: LEVEL_FILTER_OPTIONS },
     { filterLabel: "Country", filterKey: "country", dropdownOptions: countryFacetOptions(countries) },
     { filterLabel: "Department", filterKey: "department", dropdownOptions: facetOptions(departments) }
   ]
@@ -146,11 +152,11 @@ export function formatMoney(amount, currency) {
 export function employeeRowMenuItems(row, { onDetails, onOffboard, onRehire, onDelete } = {}) {
   const items = [ { label: "View profile", onClick: () => onDetails?.(row) } ]
   if (row.employee?.status === "active") {
-    items.push({ label: "Mark as left", onClick: () => onOffboard?.(row) })
+    items.push({ label: "Start Offboarding", onClick: () => onOffboard?.(row) })
   } else {
     items.push({ label: "Rehire", onClick: () => onRehire?.(row) })
   }
-  items.push({ label: "Delete hire", onClick: () => onDelete?.(row) })
+  items.push({ label: "Delete", onClick: () => onDelete?.(row) })
   return items
 }
 

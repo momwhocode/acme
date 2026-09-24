@@ -186,16 +186,16 @@ export default function EmployeesPage() {
           onCancel={() => setOffboardRow(null)}
           onSuccess={() => {
             setOffboardRow(null)
-            setToast({ title: t("success.markedAsLeft") })
+            setToast({ title: t("success.employeeOffboarded") })
             retry()
           }}
         />
       ) : null}
       {deleteRow ? (
         <ConfirmModal
-          title="Delete hire"
+          title="Delete"
           description={`Removes ${deleteRow.name} and their pay history. This cannot be undone.`}
-          confirm="Delete hire"
+          confirm="Delete"
           confirmLoading={busy}
           onCancel={() => setDeleteRow(null)}
           onConfirm={async () => {
@@ -204,7 +204,7 @@ export default function EmployeesPage() {
             try {
               await destroyEmployee(deleteRow.id)
               setDeleteRow(null)
-              setToast({ title: t("success.hireDeleted") })
+              setToast({ title: t("success.employeeDeleted") })
               retry()
             } catch (caught) {
               setToast({ title: caught.message || t("errors.deleteEmployee") })

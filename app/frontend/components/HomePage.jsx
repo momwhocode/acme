@@ -253,7 +253,7 @@ export default function HomePage({ user }) {
             <OverviewKpi
               icon="payments"
               label="Total Annualised Cost"
-              value={`${formatCompactMoney(model.annual, local)}/yo`}
+              value={`${formatCompactMoney(model.annual, local)}/yr`}
               delta={model.kpis.costDelta}
             />
             <OverviewKpi

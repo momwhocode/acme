@@ -4,15 +4,17 @@ import { useState } from "react"
 import { Alert } from "../april/components/Alert"
 import { FormFieldRow } from "../april/components/FormFieldRow"
 import { FormSection } from "../april/components/FormSection"
+import { FormSelectField } from "../april/components/FormSelectField"
 import { Modal } from "../april/components/Modal"
-import { TextInput } from "../april/components/TextInput"
 import CompensationFields from "./CompensationFields"
 import { addCompensation, compensationChangeErrors, firstApiFieldError, updateCompensation } from "../lib/employees"
+import { formLevelValue, levelSelectOptions } from "../lib/employeeFormOptions"
+import { EMPLOYEE_FIELD_LABELS } from "../lib/employeeFormSections"
 import { todayIso } from "../lib/formDates"
 
 function formFromCurrent(current = {}, employee = {}, editing = false) {
   return {
-    level: employee.level || "",
+    level: formLevelValue(employee.level),
     base_amount: current.base_amount ?? "",
     currency: current.currency || "USD",
     pay_period: current.pay_period || "annual",
@@ -103,13 +105,13 @@ export default function CompensationChangeModal({ employee, currentCompensation,
           />
         ) : null}
         <FormSection title="Compensation Details">
-          <FormFieldRow label="Level">
-            <TextInput
+          <FormFieldRow label={EMPLOYEE_FIELD_LABELS.level}>
+            <FormSelectField
               id="comp-change-level"
-              showLabel={false}
-              fullWidth
               value={form.level}
-              onChange={(event) => setField("level", event.target.value)}
+              options={levelSelectOptions(form.level)}
+              placeholder={EMPLOYEE_FIELD_LABELS.level}
+              onChange={(value) => setField("level", value)}
             />
           </FormFieldRow>
           <CompensationFields

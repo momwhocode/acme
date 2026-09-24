@@ -9,7 +9,6 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const EMPLOYMENT_TYPES = [ "full-time", "part-time", "contractor", "freelancer", "intern" ]
 export const STATUSES = [ "active", "left" ]
-export const PAY_PERIODS = [ "hourly", "daily", "monthly", "annual" ]
 export const FORM_PAY_PERIODS = [ "annual", "hourly" ]
 export const CURRENCIES = [ "USD", "EUR", "GBP", "INR" ]
 /** Seed countries; onboard/edit pick from this list instead of free-text ISO codes. */
@@ -66,7 +65,7 @@ export function compensationErrors(compensation = {}) {
 
   const period = present(compensation.pay_period).toLowerCase()
   if (!period) errors.pay_period = t("errors.enterPayPeriod")
-  else if (!PAY_PERIODS.includes(period)) errors.pay_period = t("errors.unknownPayPeriod")
+  else if (!FORM_PAY_PERIODS.includes(period)) errors.pay_period = t("errors.unknownPayPeriod")
   if (period === "hourly" && (compensation.hours_per_week == null || compensation.hours_per_week === "")) {
     errors.hours_per_week = t("errors.hoursRequired")
   }

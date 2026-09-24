@@ -84,6 +84,15 @@ describe("compensationErrors", () => {
       pay_period: "unknown pay period"
     })
   })
+
+  it("rejects daily and monthly pay on new or edited rows", () => {
+    expect(compensationErrors({ base_amount: 1, currency: "USD", pay_period: "monthly" })).toEqual({
+      pay_period: "unknown pay period"
+    })
+    expect(compensationErrors({ base_amount: 1, currency: "USD", pay_period: "daily" })).toEqual({
+      pay_period: "unknown pay period"
+    })
+  })
 })
 
 describe("compensationChangeErrors", () => {
