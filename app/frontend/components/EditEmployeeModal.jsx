@@ -2,23 +2,17 @@
 
 import { useState } from "react"
 import { Alert } from "../april/components/Alert"
-import { FormDateField } from "../april/components/FormDateField"
-import { FormFieldRow } from "../april/components/FormFieldRow"
 import { FormSection } from "../april/components/FormSection"
-import { FormSelectField } from "../april/components/FormSelectField"
 import { Modal } from "../april/components/Modal"
-import { TextInput } from "../april/components/TextInput"
+import { EmployeeDatesFields, EmployeeDetailsFields, EmployeeJobFields } from "./EmployeeFormFields"
+import { EMPLOYEE_FORM_SECTIONS } from "../lib/employeeFormSections"
+import { formLevelValue } from "../lib/employeeFormOptions"
 import {
-  EMPLOYMENT_TYPES,
   employeeIdentityErrors,
-  fieldErrorText,
   firstApiFieldError,
-  listEmployees,
+  lookupEmployeeByEmail,
   updateEmployee
 } from "../lib/employees"
-import { apiData } from "../lib/http"
-
-const TYPE_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({ value, label: value }))
 
 function formFromEmployee(employee = {}) {
   return {
@@ -27,8 +21,9 @@ function formFromEmployee(employee = {}) {
     email: employee.email || "",
     country: employee.country || "",
     department: employee.department || "",
+    job_title: employee.job_title || "",
     employment_type: employee.employment_type || "full-time",
-    level: employee.level || "",
+    level: formLevelValue(employee.level),
     started_on: employee.started_on || "",
     manager_email: ""
   }
@@ -43,6 +38,7 @@ function payloadFromForm(form) {
     department: form.department,
     employment_type: form.employment_type,
     started_on: form.started_on,
+    job_title: form.job_title.trim(),
     level: form.level.trim()
   }
 }
@@ -71,8 +67,7 @@ export default function EditEmployeeModal({ employee, onCancel, onSuccess }) {
     try {
       const managerEmail = form.manager_email.trim().toLowerCase()
       if (managerEmail) {
-        const listed = await listEmployees({ q: managerEmail, per_page: 5 })
-        const match = (apiData(listed)?.employees || []).find((row) => row.email === managerEmail)
+        const match = await lookupEmployeeByEmail(managerEmail)
         if (!match) {
           setErrors({ manager_id: "Manager not found" })
           setSubmitError("Manager not found")
@@ -96,7 +91,7 @@ export default function EditEmployeeModal({ employee, onCancel, onSuccess }) {
       backdrop
       size="lg"
       icon="edit"
-      title="Edit employee"
+      title="Edit Employee"
       description="Updates profile details. Pay changes stay on the compensation timeline."
       showConfirmInput={false}
       showReset={false}
@@ -118,119 +113,21 @@ export default function EditEmployeeModal({ employee, onCancel, onSuccess }) {
             dismissible={false}
           />
         ) : null}
-        <FormSection title="Employee">
-          <FormFieldRow label="Name" required>
-            <div className="april-modal__form-grid">
-              <TextInput
-                id="edit-first-name"
-                showLabel={false}
-                fullWidth
-                autoFocus
-                placeholder="First name"
-                value={form.first_name}
-                onChange={(event) => setField("first_name", event.target.value)}
-                state={fieldErrorText(errors.first_name) ? "error" : "default"}
-                description={fieldErrorText(errors.first_name)}
-                showDescription={Boolean(fieldErrorText(errors.first_name))}
-              />
-              <TextInput
-                id="edit-last-name"
-                showLabel={false}
-                fullWidth
-                placeholder="Last name"
-                value={form.last_name}
-                onChange={(event) => setField("last_name", event.target.value)}
-                state={fieldErrorText(errors.last_name) ? "error" : "default"}
-                description={fieldErrorText(errors.last_name)}
-                showDescription={Boolean(fieldErrorText(errors.last_name))}
-              />
-            </div>
-          </FormFieldRow>
-          <FormFieldRow label="Email" required>
-            <TextInput
-              id="edit-email"
-              showLabel={false}
-              fullWidth
-              type="email"
-              value={form.email}
-              onChange={(event) => setField("email", event.target.value)}
-              state={fieldErrorText(errors.email) ? "error" : "default"}
-              description={fieldErrorText(errors.email)}
-              showDescription={Boolean(fieldErrorText(errors.email))}
-            />
-          </FormFieldRow>
-          <FormFieldRow label="Team" required>
-            <div className="april-modal__form-grid">
-              <TextInput
-                id="edit-country"
-                showLabel={false}
-                fullWidth
-                maxLength={2}
-                placeholder="Country"
-                value={form.country}
-                onChange={(event) => setField("country", event.target.value.toUpperCase())}
-                state={fieldErrorText(errors.country) ? "error" : "default"}
-                description={fieldErrorText(errors.country)}
-                showDescription={Boolean(fieldErrorText(errors.country))}
-              />
-              <TextInput
-                id="edit-department"
-                showLabel={false}
-                fullWidth
-                placeholder="Department"
-                value={form.department}
-                onChange={(event) => setField("department", event.target.value)}
-                state={fieldErrorText(errors.department) ? "error" : "default"}
-                description={fieldErrorText(errors.department)}
-                showDescription={Boolean(fieldErrorText(errors.department))}
-              />
-            </div>
-          </FormFieldRow>
-          <FormFieldRow label="Role" required>
-            <div className="april-modal__form-grid">
-              <FormSelectField
-                id="edit-type"
-                value={form.employment_type}
-                options={TYPE_OPTIONS}
-                onChange={(value) => setField("employment_type", value)}
-                state={fieldErrorText(errors.employment_type) ? "error" : "default"}
-                description={fieldErrorText(errors.employment_type)}
-                showDescription={Boolean(fieldErrorText(errors.employment_type))}
-              />
-              <TextInput
-                id="edit-level"
-                showLabel={false}
-                fullWidth
-                placeholder="Level"
-                value={form.level}
-                onChange={(event) => setField("level", event.target.value)}
-              />
-            </div>
-          </FormFieldRow>
-          <FormFieldRow label="Manager">
-            <TextInput
-              id="edit-manager-email"
-              showLabel={false}
-              fullWidth
-              type="email"
-              placeholder={employee.manager_name ? `Current: ${employee.manager_name}` : "Manager email"}
-              value={form.manager_email}
-              onChange={(event) => setField("manager_email", event.target.value)}
-              state={fieldErrorText(errors.manager_id) ? "error" : "default"}
-              description={fieldErrorText(errors.manager_id) || (employee.manager_name ? `Reports to ${employee.manager_name}` : "Optional")}
-              showDescription
-            />
-          </FormFieldRow>
-          <FormFieldRow label="Start date" required>
-            <FormDateField
-              id="edit-started-on"
-              value={form.started_on}
-              onChange={(event) => setField("started_on", event.target.value)}
-              state={fieldErrorText(errors.started_on) ? "error" : "default"}
-              description={fieldErrorText(errors.started_on)}
-              showDescription={Boolean(fieldErrorText(errors.started_on))}
-            />
-          </FormFieldRow>
+        <FormSection title={EMPLOYEE_FORM_SECTIONS.details}>
+          <EmployeeDetailsFields idPrefix="edit" form={form} errors={errors} onChange={setField} autoFocus />
+        </FormSection>
+        <FormSection title={EMPLOYEE_FORM_SECTIONS.job}>
+          <EmployeeJobFields
+            idPrefix="edit"
+            form={form}
+            errors={errors}
+            onChange={setField}
+            managerPlaceholder={employee.manager_name ? `Current: ${employee.manager_name}` : "Manager Email"}
+            managerDescription={employee.manager_name ? `Reports to ${employee.manager_name}` : "Optional"}
+          />
+        </FormSection>
+        <FormSection title={EMPLOYEE_FORM_SECTIONS.dates}>
+          <EmployeeDatesFields idPrefix="edit" form={form} errors={errors} onChange={setField} />
         </FormSection>
       </div>
     </Modal>

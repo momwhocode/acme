@@ -4,10 +4,12 @@ import { FormDateField } from "../april/components/FormDateField"
 import { FormFieldRow } from "../april/components/FormFieldRow"
 import { FormSelectField } from "../april/components/FormSelectField"
 import { TextInput } from "../april/components/TextInput"
-import { CURRENCIES, PAY_PERIODS, fieldErrorText } from "../lib/employees"
+import { EMPLOYEE_FIELD_LABELS } from "../lib/employeeFormSections"
+import { CURRENCIES, FORM_PAY_PERIODS, fieldErrorText } from "../lib/employees"
+import { titleCase } from "../lib/employeesTable"
 
 const CURRENCY_OPTIONS = CURRENCIES.map((value) => ({ value, label: value }))
-const PERIOD_OPTIONS = PAY_PERIODS.map((value) => ({ value, label: value }))
+const PERIOD_OPTIONS = FORM_PAY_PERIODS.map((value) => ({ value, label: titleCase(value) }))
 
 export default function CompensationFields({
   idPrefix,
@@ -18,10 +20,13 @@ export default function CompensationFields({
   showChangeReason = true
 }) {
   const hourly = values.pay_period === "hourly"
+  const periodOptions = FORM_PAY_PERIODS.includes(values.pay_period)
+    ? PERIOD_OPTIONS
+    : [ ...PERIOD_OPTIONS, { value: values.pay_period, label: titleCase(values.pay_period) } ]
 
   return (
     <>
-      <FormFieldRow label="Pay" required>
+      <FormFieldRow label={hourly ? EMPLOYEE_FIELD_LABELS.rate : EMPLOYEE_FIELD_LABELS.amount} required>
         <div className="april-modal__form-grid">
           <TextInput
             id={`${idPrefix}-amount`}
@@ -31,7 +36,7 @@ export default function CompensationFields({
             inputMode="decimal"
             min="0"
             step="0.01"
-            placeholder="Amount"
+            placeholder={hourly ? EMPLOYEE_FIELD_LABELS.rate : EMPLOYEE_FIELD_LABELS.amount}
             value={values.base_amount}
             onChange={(event) => onChange("base_amount", event.target.value)}
             state={fieldErrorText(errors.base_amount) ? "error" : "default"}
@@ -49,12 +54,12 @@ export default function CompensationFields({
           />
         </div>
       </FormFieldRow>
-      <FormFieldRow label="Period" required>
+      <FormFieldRow label={EMPLOYEE_FIELD_LABELS.payType} required>
         <div className={hourly ? "april-modal__form-grid" : undefined}>
           <FormSelectField
             id={`${idPrefix}-pay-period`}
             value={values.pay_period}
-            options={PERIOD_OPTIONS}
+            options={periodOptions}
             onChange={(value) => onChange("pay_period", value)}
             state={fieldErrorText(errors.pay_period) ? "error" : "default"}
             description={fieldErrorText(errors.pay_period)}
@@ -70,7 +75,7 @@ export default function CompensationFields({
               min="0.01"
               max="168"
               step="0.25"
-              placeholder="Hours / week"
+              placeholder={EMPLOYEE_FIELD_LABELS.hours}
               value={values.hours_per_week}
               onChange={(event) => onChange("hours_per_week", event.target.value)}
               state={fieldErrorText(errors.hours_per_week) ? "error" : "default"}
@@ -81,7 +86,7 @@ export default function CompensationFields({
         </div>
       </FormFieldRow>
       {showEffectiveDate ? (
-        <FormFieldRow label="Effective" required>
+        <FormFieldRow label={EMPLOYEE_FIELD_LABELS.effective} required>
           <FormDateField
             id={`${idPrefix}-effective-date`}
             value={values.effective_date}

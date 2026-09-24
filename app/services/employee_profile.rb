@@ -1,4 +1,4 @@
-# Profile modal payload: current pay, history, band, and recent audit events.
+# Profile modal payload: current pay, history, and recent audit events.
 
 class EmployeeProfile
   def self.call(employee, normalizer: CurrencyNormalizer.new)
@@ -10,7 +10,6 @@ class EmployeeProfile
       employee: employee.as_directory_json,
       current_compensation: current_payload,
       compensation_records: records.map { |record| CompensationPayload.call(record, normalizer: normalizer) },
-      pay_band: PayBandLookup.call(employee: employee, compensation: current),
       audit_events: AuditEvent.for_employee(employee).limit(20).includes(:actor).map(&:as_api_json)
     }
   end

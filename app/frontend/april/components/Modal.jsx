@@ -19,13 +19,17 @@ function ModalCloseButton({ onClick }) {
   );
 }
 
-function ModalHeader({ title, icon, onClose }) {
+function ModalHeader({ title, icon, leading, onClose }) {
   return (
     <header className="april-modal__header">
       <div className="april-modal__title-group">
-        <span className="april-modal__icon material-symbols-outlined" aria-hidden="true">
-          {icon}
-        </span>
+        {leading ? (
+          <span className="april-modal__leading">{leading}</span>
+        ) : icon ? (
+          <span className="april-modal__icon material-symbols-outlined" aria-hidden="true">
+            {icon}
+          </span>
+        ) : null}
         <h2
           className="april-modal__title april-text-style april-text-style--text-lg-semibold"
           id="april-modal-title"
@@ -109,6 +113,7 @@ export function Modal({
   title,
   description = "",
   icon,
+  leading = null,
   showDescription = true,
   cancel = "Cancel",
   confirm,
@@ -124,6 +129,8 @@ export function Modal({
   confirmLoading = false,
   confirmVariant,
   showFooter = true,
+  subheader = null,
+  footer = null,
   children = null,
 }) {
   const [confirmText, setConfirmText] = useState("");
@@ -219,7 +226,8 @@ export function Modal({
       onClick={(event) => event.stopPropagation()}
     >
       <div className="april-modal__inner">
-        <ModalHeader title={props.title} icon={props.icon} onClose={onCancel} />
+        <ModalHeader title={props.title} icon={props.icon} leading={leading} onClose={onCancel} />
+        {subheader}
         <div className="april-modal__body">
           {props.showDescription && props.description ? (
             <p className="april-modal__description april-text-style april-text-style--text-sm-regular">
@@ -241,19 +249,23 @@ export function Modal({
           {contentContainer}
         </div>
         {showFooter ? (
-          <ModalFooter
-            size={props.size}
-            cancel={props.cancel}
-            confirm={props.confirm}
-            resetLabel={props.resetLabel}
-            showReset={props.showReset}
-            onCancel={onCancel}
-            onConfirm={onConfirm}
-            onReset={onReset}
-            confirmDisabled={isConfirmDisabled}
-            confirmLoading={confirmLoading}
-            confirmVariant={confirmVariant}
-          />
+          footer ? (
+            <footer className="april-modal__footer">{footer}</footer>
+          ) : (
+            <ModalFooter
+              size={props.size}
+              cancel={props.cancel}
+              confirm={props.confirm}
+              resetLabel={props.resetLabel}
+              showReset={props.showReset}
+              onCancel={onCancel}
+              onConfirm={onConfirm}
+              onReset={onReset}
+              confirmDisabled={isConfirmDisabled}
+              confirmLoading={confirmLoading}
+              confirmVariant={confirmVariant}
+            />
+          )
         ) : null}
       </div>
     </div>

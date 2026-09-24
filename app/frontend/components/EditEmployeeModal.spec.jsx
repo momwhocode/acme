@@ -54,7 +54,7 @@ describe("EditEmployeeModal", () => {
           email: "ada@acme.test",
           country: "GB",
           department: "engineering",
-          level: "IC2"
+          level: "L2"
         })
       )
     })

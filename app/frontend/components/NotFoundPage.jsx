@@ -11,7 +11,7 @@ export default function NotFoundPage({ signedIn = false }) {
     <StatusPage
       inset={signedIn}
       showPrimary
-      primaryLabel={signedIn ? "Employees" : "Sign in"}
+      primaryLabel={signedIn ? "Employee Directory" : "Sign in"}
       secondaryLabel={t("labels.backToHome")}
       onPrimary={() => navigate(signedIn ? "/employees" : "/sign_in")}
       onSecondary={() => navigate("/")}

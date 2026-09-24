@@ -5,6 +5,8 @@ import {
   directoryQueryFromFilters,
   employeeRowMenuItems,
   employeesFilterChips,
+  annualisedLocal,
+  displayLevel,
   employeeTableRow,
   formatUsd,
   titleCase
@@ -38,22 +40,27 @@ describe("employeesTable", () => {
       first_name: "Ada",
       last_name: "Lovelace",
       email: "ada@acme.test",
+      job_title: "Engineer",
       department: "engineering",
       country: "GB",
       employment_type: "full-time",
       status: "active",
       level: "IC2",
       started_on: "2024-01-01",
+      left_on: null,
       current_compensation: { annualised_usd: "100000.0" }
     })
 
     expect(row).toMatchObject({
       id: "1",
       name: "Ada Lovelace",
+      job_title: "Engineer",
       department: "Engineering",
       employment_type: "Full Time",
       status: "Active",
+      level: "L2",
       pay: "$100,000",
+      left_on: null,
       initials: "AL"
     })
     expect(row.color).toBeTruthy()
@@ -94,5 +101,9 @@ describe("employeesTable", () => {
   it("formats missing USD as an em dash", () => {
     expect(formatUsd(null)).toBe("—")
     expect(titleCase("full-time")).toBe("Full Time")
+    expect(displayLevel("IC2")).toBe("L2")
+    expect(displayLevel("L4")).toBe("L4")
+    expect(annualisedLocal({ base_amount: 90000, pay_period: "annual" })).toBe(90000)
+    expect(annualisedLocal({ base_amount: 45, pay_period: "hourly", hours_per_week: 40 })).toBe(93600)
   })
 })

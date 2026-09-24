@@ -82,8 +82,7 @@ const snapshot = {
           missing_comp: true
         }
       ]
-    },
-    recent: { count: 0, employees: [] }
+    }
   }
 }
 
@@ -105,8 +104,7 @@ const compareSnapshot = {
   actions: {
     onboarding: { count: 0, employees: [] },
     offboarding: { count: 0, employees: [] },
-    contracts: { count: 0, employees: [] },
-    recent: { count: 0, employees: [] }
+    contracts: { count: 0, employees: [] }
   }
 }
 
@@ -121,8 +119,7 @@ const emptySnapshot = {
   actions: {
     onboarding: { count: 0, employees: [] },
     offboarding: { count: 0, employees: [] },
-    contracts: { count: 0, employees: [] },
-    recent: { count: 0, employees: [] }
+    contracts: { count: 0, employees: [] }
   }
 }
 
@@ -161,25 +158,27 @@ describe("HomePage", () => {
     renderHome()
 
     expect(await screen.findByRole("heading", { name: "Welcome Back, Sharvari!" })).toBeTruthy()
-    expect(screen.getByText(/annualised run-rate, not actual spend/)).toBeTruthy()
+    expect(screen.queryByText(/annualised run-rate, not actual spend/)).toBeNull()
+    expect(screen.queryByRole("button", { name: "Open In Directory" })).toBeNull()
     expect(screen.getByText("Total Annualised Cost")).toBeTruthy()
     expect(screen.getByText("Active Headcount")).toBeTruthy()
     expect(screen.getByText("Median Compensation")).toBeTruthy()
     expect(screen.getByText("Contingent Ratio")).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Headcount by employment type" })).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Median comp by level" })).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Where the money goes" })).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Action center" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Employment Type" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Comp By Level" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Spend" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Onboarding/Offboarding Tracker" })).toBeTruthy()
+    expect(screen.queryByRole("tab", { name: /Recent Changes/ })).toBeNull()
     expect(screen.queryByRole("tab", { name: "Monthly" })).toBeNull()
     expect(screen.getByRole("tab", { name: "USD" })).toBeTruthy()
     expect(document.querySelector(".april-tabs-group__divider")).toBeNull()
-    expect(screen.getByText("Employment Type")).toBeTruthy()
+    expect(screen.getAllByText("Employment Type").length).toBeGreaterThan(1)
     expect(screen.getByText("All Types")).toBeTruthy()
     expect(screen.getByText("L2")).toBeTruthy()
     expect(screen.queryByText(/n=/)).toBeNull()
     expect(screen.getByText("Ada Lovelace")).toBeTruthy()
-    expect(screen.getByText("IC2 · Engineering")).toBeTruthy()
-    expect(screen.getByText("Median monthly run-rate in USD · L5+ includes L6–L7")).toBeTruthy()
+    expect(screen.getByText("L2 · Engineering")).toBeTruthy()
+    expect(screen.getByText("Median monthly compensation")).toBeTruthy()
 
     const swatch = document.querySelector(".acme-overview__swatch")
     expect(swatch?.getAttribute("style")).toContain("var(--yellow-yellow-400)")
@@ -216,49 +215,43 @@ describe("HomePage", () => {
     )
   })
 
-  it("reloads analytics for a past month and the full period", async () => {
+  it("reloads analytics for last month and back to the current month", async () => {
     const user = userEvent.setup()
     renderHome()
     await screen.findByText("Total Annualised Cost")
 
-    const pastMonth = homeMonthOptions()[1]
-    const currentPeriod = defaultHomePeriod()
-    await user.click(screen.getByRole("button", { name: homePeriodControlLabel(currentPeriod) }))
-    await user.click(screen.getByRole("menuitem", { name: pastMonth.label }))
+    const currentMonth = homeMonthOptions()[0]
+    const lastMonth = homeMonthOptions()[1]
+    await user.click(screen.getByRole("button", { name: homePeriodControlLabel(defaultHomePeriod()) }))
+    await user.click(screen.getByRole("menuitem", { name: "Last Month" }))
     await waitFor(() => {
       expect(getAnalytics).toHaveBeenCalledWith(
         expect.objectContaining({
-          as_of: homeTimeframeAsOf({ toDate: true, year: pastMonth.year, month: pastMonth.month })
+          as_of: homeTimeframeAsOf({ toDate: false, year: lastMonth.year, month: lastMonth.month })
         })
       )
     })
+    expect(screen.getByRole("button", { name: "Last Month" })).toBeTruthy()
 
-    const selectedPeriod = { ...currentPeriod, year: pastMonth.year, month: pastMonth.month }
-    await user.click(screen.getByRole("button", { name: homePeriodControlLabel(selectedPeriod) }))
-    await user.click(screen.getByRole("menuitem", { name: "Full Period" }))
+    await user.click(screen.getByRole("button", { name: "Last Month" }))
+    await user.click(screen.getByRole("menuitem", { name: currentMonth.label }))
     await waitFor(() => {
       expect(getAnalytics).toHaveBeenCalledWith(
-        expect.objectContaining({
-          as_of: homeTimeframeAsOf({
-            toDate: false,
-            year: pastMonth.year,
-            month: pastMonth.month
-          })
-        })
+        expect.objectContaining({ as_of: homeTimeframeAsOf(defaultHomePeriod()) })
       )
     })
-    expect(screen.getByRole("button", { name: homePeriodControlLabel({ ...selectedPeriod, toDate: false }) })).toBeTruthy()
+    expect(screen.getByRole("button", { name: homePeriodControlLabel(defaultHomePeriod()) })).toBeTruthy()
   })
 
   it("toggles local currency on the money table", async () => {
     const user = userEvent.setup()
     renderHome()
 
-    await screen.findByText("Where the money goes")
+    await screen.findByText("Spend")
     await user.click(screen.getByRole("tab", { name: "Country" }))
     await user.click(screen.getByRole("tab", { name: "Local" }))
-    expect(screen.getByText("Monthly run-rate by country · local")).toBeTruthy()
-    expect(screen.getByText(/£120,000/)).toBeTruthy()
+    expect(screen.getByText("Payroll by country")).toBeTruthy()
+    expect(screen.getAllByText("₹1.25 Cr").length).toBeGreaterThan(0)
     expect(screen.getByText("United Kingdom")).toBeTruthy()
   })
 
@@ -266,7 +259,7 @@ describe("HomePage", () => {
     const user = userEvent.setup()
     renderHome()
 
-    await screen.findByText("Where the money goes")
+    await screen.findByText("Spend")
     await user.click(screen.getByRole("button", { name: "Headcount" }))
     expect(screen.getAllByText("Full Time").length).toBe(2)
   })
@@ -275,9 +268,9 @@ describe("HomePage", () => {
     const user = userEvent.setup()
     renderHome()
 
-    await screen.findByText("Where the money goes")
+    await screen.findByText("Spend")
     await user.click(screen.getByRole("tab", { name: "Department" }))
-    expect(screen.getByText("Monthly run-rate by department · USD")).toBeTruthy()
+    expect(screen.getByText("Payroll by department")).toBeTruthy()
     expect(screen.getByText("Engineering")).toBeTruthy()
 
     await user.click(screen.getByText("Engineering"))
@@ -299,7 +292,7 @@ describe("HomePage", () => {
     expect(screen.getByText("Grace Hopper")).toBeTruthy()
     expect(screen.getByText("Missing Comp Record")).toBeTruthy()
 
-    await user.click(screen.getByRole("button", { name: /Grace Hopper/ }))
+    await user.click(screen.getByText("Grace Hopper"))
     expect(screen.getByText("Profile")).toBeTruthy()
   })
 
@@ -309,29 +302,37 @@ describe("HomePage", () => {
 
     await screen.findByText("Ada Lovelace")
     await user.click(screen.getByRole("button", { name: "Onboard Employee" }))
-    expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Onboard Employee" })).toBeTruthy()
   })
 
-  it("opens the current focus in the directory", async () => {
+  it("shows View All on every action tab and opens that directory slice", async () => {
     const user = userEvent.setup()
     renderHome()
 
     await screen.findByText("Ada Lovelace")
-    await user.click(screen.getByRole("button", { name: "Open In Directory" }))
+    expect(screen.getByRole("button", { name: "View All" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: /Open .* In Directory/ })).toBeNull()
+
+    await user.click(screen.getByRole("tab", { name: /Offboarding/ }))
+    expect(screen.getByRole("button", { name: "View All" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: /Open Offboarding/ })).toBeNull()
+
+    await user.click(screen.getByRole("button", { name: "View All" }))
     expect(screen.getByText("Directory")).toBeTruthy()
   })
 
-  it("narrows the snapshot to contingent people from the KPI", async () => {
+  it("shows donut and bar tooltips on hover", async () => {
     const user = userEvent.setup()
     renderHome()
 
-    await screen.findByText("Contingent Ratio")
-    await user.click(screen.getByRole("button", { name: /Contingent Ratio/ }))
-    await waitFor(() => {
-      expect(getAnalytics).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "part-time,contractor,freelancer,intern" })
-      )
-    })
+    await screen.findByText("Total Annualised Cost")
+    expect(screen.queryByRole("button", { name: /Total Annualised Cost/ })).toBeNull()
+
+    await user.hover(document.querySelector(".acme-overview__donut-slice"))
+    expect(screen.getByRole("tooltip", { name: /Full Time/ })).toBeTruthy()
+
+    await user.hover(screen.getByRole("button", { name: /L2/ }))
+    expect(screen.getByRole("tooltip", { name: /L2/ })).toBeTruthy()
   })
 
   it("shows empty chart copy when the snapshot has no people", async () => {

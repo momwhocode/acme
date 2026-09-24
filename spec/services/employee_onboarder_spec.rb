@@ -27,6 +27,13 @@ RSpec.describe EmployeeOnboarder do
     expect(record).to have_attributes(change_reason: "hire", currency: "GBP")
   end
 
+  it "assigns a manager when manager_id is present" do
+    manager = create(:employee, email: "mgr@acme.test")
+    employee, = described_class.call(attrs.merge(manager_id: manager.id))
+
+    expect(employee.manager_id).to eq(manager.id)
+  end
+
   it "ignores an attempted leaver status on hire" do
     employee, = described_class.call(attrs.merge(status: "left", left_on: "2024-06-01"))
 

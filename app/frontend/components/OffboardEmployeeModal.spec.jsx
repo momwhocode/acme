@@ -33,7 +33,7 @@ describe("OffboardEmployeeModal", () => {
       />
     )
 
-    await user.click(screen.getByRole("button", { name: "Mark as left" }))
+    await user.click(screen.getByRole("button", { name: "Start Offboarding" }))
 
     await waitFor(() => {
       expect(offboardEmployee).toHaveBeenCalledWith("emp-1", {
@@ -54,7 +54,7 @@ describe("OffboardEmployeeModal", () => {
       />
     )
 
-    await user.click(screen.getByRole("button", { name: "Mark as left" }))
+    await user.click(screen.getByRole("button", { name: "Start Offboarding" }))
 
     expect(screen.getByText("must be on or after started_on")).toBeTruthy()
     expect(offboardEmployee).not.toHaveBeenCalled()

@@ -73,9 +73,6 @@ RSpec.describe AnalyticsQuery do
            effective_date: Date.new(2024, 1, 1),
            base_amount: 40_000)
     create(:employee, email: "bare@acme.test", started_on: Date.new(2025, 12, 18))
-    changed = create(:employee, email: "raise@acme.test", started_on: Date.new(2024, 1, 1))
-    create(:compensation_record, employee: changed, effective_date: Date.new(2024, 1, 1), base_amount: 90_000)
-    create(:compensation_record, employee: changed, effective_date: Date.new(2025, 12, 22), base_amount: 100_000)
 
     snapshot = described_class.call(as_of: Date.new(2026, 1, 1))
 
@@ -88,8 +85,7 @@ RSpec.describe AnalyticsQuery do
     expect(snapshot.dig(:actions, :offboarding, :employees).first).to include(email: "gone@acme.test")
     expect(snapshot.dig(:actions, :contracts, :count)).to eq(1)
     expect(snapshot.dig(:actions, :contracts, :employees).first).to include(email: "temp@acme.test")
-    expect(snapshot.dig(:actions, :recent, :count)).to eq(2)
-    expect(snapshot.dig(:actions, :recent, :employees).map { |row| row[:email] }).to include("raise@acme.test")
+    expect(snapshot[:actions]).not_to have_key(:recent)
   end
 
   it "breaks active headcount down by type and department" do

@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest"
 import {
-  listSavedViews,
   readStoredColumns,
   readStoredDirectorySession,
-  saveDirectoryView,
   writeStoredColumns,
   writeStoredDirectorySession
 } from "./directoryPrefs.js"
@@ -27,20 +25,5 @@ describe("directoryPrefs", () => {
       q: "ada",
       sort: { columnId: "pay", direction: "asc" }
     })
-  })
-
-  it("saves and replaces a named view", () => {
-    saveDirectoryView({ name: "UK contractors", filterValues: { country: [ "GB" ] }, q: "" })
-    saveDirectoryView({ name: "UK contractors", filterValues: { country: [ "GB" ], type: [ "contractor" ] }, q: "eng" })
-
-    expect(listSavedViews()).toEqual([
-      {
-        name: "UK contractors",
-        filterValues: { country: [ "GB" ], type: [ "contractor" ] },
-        q: "eng",
-        columns: [],
-        sort: { columnId: null, direction: "desc" }
-      }
-    ])
   })
 })

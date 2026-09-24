@@ -39,14 +39,12 @@ function clearColumnWidths(tableEl) {
 }
 
 function isGrowableCol(col) {
-  if (col.classList.contains("april-table__col--select")) return false;
-  if (col.classList.contains("april-table__col--actions")) return false;
-  return true;
+  return col.classList.contains("april-table__col--flex");
 }
 
 /**
- * Pin select/actions to content width; distribute leftover frame width across
- * lead + data columns so hiding columns does not leave a hollow gap.
+ * Pin select/actions/data cols to content width; leftover frame width goes
+ * into the lead/flex column so hiding columns does not leave a hollow gap.
  */
 function measureColumnContentWidth(tableEl, index) {
   const header = tableEl.querySelectorAll("thead th")[index];

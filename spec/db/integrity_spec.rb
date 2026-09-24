@@ -68,23 +68,6 @@ RSpec.describe "directory integrity" do
     }.to raise_error(ActiveRecord::RecordNotUnique)
   end
 
-  it "rejects a second band for the same level and currency" do
-    create(:pay_band, level: "IC9", currency: "USD", midpoint: 10_000)
-
-    expect {
-      PayBand.insert_all!([
-        {
-          id: SecureRandom.uuid,
-          level: "IC9",
-          currency: "USD",
-          midpoint: 20_000,
-          created_at: Time.current,
-          updated_at: Time.current
-        }
-      ])
-    }.to raise_error(ActiveRecord::RecordNotUnique)
-  end
-
   it "cascades pay rows when a hire row is deleted" do
     employee = create(:employee)
     create(:compensation_record, employee: employee)
@@ -127,5 +110,73 @@ RSpec.describe "directory integrity" do
         left_on: Date.new(2024, 1, 1)
       )
     }.to raise_error(ActiveRecord::StatementInvalid, /employees_left_on_covers_start/)
+  end
+
+  it "rejects a leaver without left_on at the database" do
+    expect {
+      insert_employee!(email: "no-leave@acme.test", status: "left", left_on: nil)
+    }.to raise_error(ActiveRecord::StatementInvalid, /employees_left_on_when_left/)
+  end
+
+  it "rejects a self-manager at the database" do
+    id = SecureRandom.uuid
+
+    expect {
+      insert_employee!(id: id, email: "self@acme.test", manager_id: id)
+    }.to raise_error(ActiveRecord::StatementInvalid, /employees_manager_not_self/)
+  end
+
+  it "rejects an overlong job title at the database" do
+    expect {
+      insert_employee!(email: "title@acme.test", job_title: "x" * 256)
+    }.to raise_error(ActiveRecord::StatementInvalid, /employees_job_title_length/)
+  end
+
+  it "rejects an overlong level at the database" do
+    expect {
+      insert_employee!(email: "level@acme.test", level: "L" * 51)
+    }.to raise_error(ActiveRecord::StatementInvalid, /employees_level_length/)
+  end
+
+  it "rejects pay before started_on at the database" do
+    employee = create(:employee, started_on: Date.new(2024, 6, 1))
+
+    expect {
+      CompensationRecord.insert_all!([
+        {
+          id: SecureRandom.uuid,
+          employee_id: employee.id,
+          base_amount: 80_000,
+          currency: "USD",
+          pay_period: "annual",
+          effective_date: Date.new(2024, 1, 1),
+          created_at: Time.current,
+          updated_at: Time.current
+        }
+      ])
+    }.to raise_error(ActiveRecord::StatementInvalid, /compensation_records_within_employment/)
+  end
+
+  it "rejects shrinking left_on before existing pay at the database" do
+    employee = create(:employee, :left, started_on: Date.new(2024, 1, 1), left_on: Date.new(2025, 6, 1))
+    create(:compensation_record, employee: employee, effective_date: Date.new(2025, 1, 1))
+
+    expect {
+      Employee.where(id: employee.id).update_all(left_on: Date.new(2024, 6, 1))
+    }.to raise_error(ActiveRecord::StatementInvalid, /employees_cover_compensation/)
+  end
+
+  it "rejects an audit row without a record_id at the database" do
+    expect {
+      AuditEvent.insert_all!([
+        {
+          id: SecureRandom.uuid,
+          action: "update",
+          record_type: "Employee",
+          payload: {},
+          created_at: Time.current
+        }
+      ])
+    }.to raise_error(ActiveRecord::NotNullViolation)
   end
 end

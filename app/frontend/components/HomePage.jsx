@@ -6,6 +6,7 @@ import { PageLoadError } from "../april/components/PageLoadError"
 import { Table } from "../april/components/Table"
 import { TableEmpty } from "../april/components/TableEmpty"
 import { Tag } from "../april/components/Tag"
+import { OverviewDonut } from "./home/OverviewDonut"
 import { OverviewKpi } from "./home/OverviewKpi"
 import { OverviewTabs } from "./home/OverviewTabs"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
@@ -21,16 +22,14 @@ import {
   ACTION_TABLE_COLUMNS,
   ACTION_TABS,
   ACTION_TAG,
-  CONTINGENT_FOCUS,
   MONEY_SORT_KEYS,
   MONEY_TAB_INDEX,
   MONEY_TABS,
   actionRole,
   buildOverviewModel,
-  conicGradient,
-  formatCompactUsd,
+  formatCompactMoney,
   formatCount,
-  formatMonthlyUsd,
+  formatMonthlyMoney,
   formatPct,
   moneyCell,
   moneyRows,
@@ -43,9 +42,9 @@ import { renderTableLead, renderTableLink } from "../lib/tableCellRenderers"
 import { applySortToColumns, nextSortState } from "../lib/tableSort"
 import {
   defaultHomePeriod,
-  formatLongSnapshotDate,
   homeMonthOptions,
   homePeriodControlLabel,
+  homePeriodPresets,
   homeTimeframeAsOf,
   homeTimeframeCompareAsOf
 } from "../lib/homeTimeframe"
@@ -110,7 +109,7 @@ export default function HomePage({ user }) {
       headcount: formatCount(row.headcount),
       payroll: moneyCell(row, local),
       share: formatPct(pctShare(row.payroll, model.annual)),
-      median: formatCompactUsd(row.median / 12),
+      median: formatMonthlyMoney(row.median, local),
       country: row.country,
       color: row.color,
       shareWidth: pctShare(row.payroll, model.annual),
@@ -120,10 +119,11 @@ export default function HomePage({ user }) {
       id: "__total",
       label: moneyMeta.allLabel,
       headcount: formatCount(model.headcount),
-      payroll: formatCompactUsd(model.annual),
+      payroll: formatCompactMoney(model.annual, local),
       share: "100.0%",
-      median: formatCompactUsd(model.median / 12),
-      isTotal: true
+      median: formatMonthlyMoney(model.median, local),
+      isTotal: true,
+      clickable: false
     }
   ]
   const actionMeta = ACTION_TABS[actionTab]
@@ -199,9 +199,6 @@ export default function HomePage({ user }) {
         <h1 id="home-title" className="april-text-style april-text-style--display-xs-semibold">
           {welcomeBackTitle(user)}
         </h1>
-        <p className="acme-overview__subtitle april-text-style april-text-style--text-sm-regular">
-          Snapshot as of {formatLongSnapshotDate(asOf)} · annualised run-rate, not actual spend
-        </p>
       </header>
 
       {error && !payload ? (
@@ -217,11 +214,18 @@ export default function HomePage({ user }) {
                 size="md"
                 leadingIconName="calendar_month"
                 items={[
-                  { label: "To Date", onClick: () => setPeriod((current) => ({ ...current, toDate: true })) },
-                  { label: "Full Period", onClick: () => setPeriod((current) => ({ ...current, toDate: false })) },
+                  ...homePeriodPresets().map((preset) => ({
+                    label: preset.label,
+                    onClick: () => setPeriod(preset.period)
+                  })),
+                  { divider: true },
                   ...homeMonthOptions().map((option) => ({
                     label: option.label,
-                    onClick: () => setPeriod((current) => ({ ...current, year: option.year, month: option.month }))
+                    onClick: () => setPeriod({
+                      toDate: option.current,
+                      year: option.year,
+                      month: option.month
+                    })
                   }))
                 ]}
               />
@@ -236,15 +240,6 @@ export default function HomePage({ user }) {
                   removeLabel={`Clear ${focus.label}`}
                 />
               ) : null}
-              <Button
-                label="Open In Directory"
-                variant="ghost"
-                size="sm"
-                leadingIcon={false}
-                trailingIcon
-                trailingIconName="arrow_forward"
-                onClick={() => openDirectory()}
-              />
             </div>
             <OverviewTabs
               id="home-currency"
@@ -258,31 +253,26 @@ export default function HomePage({ user }) {
             <OverviewKpi
               icon="payments"
               label="Total Annualised Cost"
-              value={`${formatCompactUsd(model.annual)}/yo`}
+              value={`${formatCompactMoney(model.annual, local)}/yo`}
               delta={model.kpis.costDelta}
-              onClick={() => openDirectory()}
             />
             <OverviewKpi
               icon="group"
               label="Active Headcount"
               value={formatCount(model.headcount)}
               delta={model.kpis.headDelta}
-              onClick={() => openDirectory()}
             />
             <OverviewKpi
               icon="equalizer"
               label="Median Compensation"
-              value={`${formatMonthlyUsd(model.median)}/mo`}
+              value={`${formatMonthlyMoney(model.median, local)}/mo`}
               delta={model.kpis.medianDelta}
-              onClick={() => openDirectory()}
             />
             <OverviewKpi
               icon="work"
               label="Contingent Ratio"
               value={formatPct(model.contingentRatio)}
               delta={model.kpis.ratioDelta}
-              selected={focus?.label === CONTINGENT_FOCUS.label}
-              onClick={() => applyFocus(CONTINGENT_FOCUS)}
             />
           </div>
 
@@ -290,20 +280,15 @@ export default function HomePage({ user }) {
             <section className="acme-overview__card" aria-labelledby="type-mix-title">
               <div>
                 <h2 id="type-mix-title" className="april-text-style april-text-style--text-lg-semibold">
-                  Headcount by employment type
+                  Employment Type
                 </h2>
-                <p className="acme-overview__muted">Active at the snapshot date — who works here</p>
+                <p className="acme-overview__muted">Headcount by type</p>
               </div>
               {model.slices.length === 0 ? (
                 <p className="april-text-style april-text-style--text-md-regular">No active employees.</p>
               ) : (
                 <div className="acme-overview__donut-row">
-                  <div className="acme-overview__donut" style={{ background: conicGradient(model.slices, model.headcount) }} aria-hidden="true">
-                    <div className="acme-overview__donut-hole">
-                      <strong>{formatCount(model.headcount)}</strong>
-                      <span>people</span>
-                    </div>
-                  </div>
+                  <OverviewDonut slices={model.slices} total={model.headcount} />
                   <ul className="acme-overview__legend">
                     {model.slices.map((slice) => (
                       <li key={slice.key}>
@@ -327,9 +312,9 @@ export default function HomePage({ user }) {
             <section className="acme-overview__card" aria-labelledby="level-mix-title">
               <div>
                 <h2 id="level-mix-title" className="april-text-style april-text-style--text-lg-semibold">
-                  Median comp by level
+                  Comp By Level
                 </h2>
-                <p className="acme-overview__muted">Median monthly run-rate in USD · L5+ includes L6–L7</p>
+                <p className="acme-overview__muted">Median monthly compensation</p>
               </div>
               {model.levels.length === 0 ? (
                 <p className="april-text-style april-text-style--text-md-regular">No level bands yet.</p>
@@ -342,7 +327,10 @@ export default function HomePage({ user }) {
                       className={[ "acme-overview__bar-col", focus?.value === row.id ? "is-selected" : "" ].filter(Boolean).join(" ")}
                       onClick={() => applyFocus({ key: "level", value: row.id, label: row.label })}
                     >
-                      <span className="acme-overview__bar-value">{formatCompactUsd(row.median / 12)}</span>
+                      <span className="acme-overview__chart-tip" role="tooltip">
+                        {row.label} · {formatMonthlyMoney(row.median, local)}/mo · {formatCount(row.headcount)} people
+                      </span>
+                      <span className="acme-overview__bar-value">{formatMonthlyMoney(row.median, local)}</span>
                       <span
                         className="acme-overview__bar"
                         style={{ height: `${Math.max(8, (row.median / maxLevelMedian) * 140)}px`, background: row.color }}
@@ -359,11 +347,9 @@ export default function HomePage({ user }) {
             <div className="acme-overview__card-head">
               <div>
                 <h2 id="money-title" className="april-text-style april-text-style--text-lg-semibold">
-                  Where the money goes
+                  Spend
                 </h2>
-                <p className="acme-overview__muted">
-                  Monthly run-rate by {moneyMeta.label.toLowerCase()} · {local ? "local" : "USD"}
-                </p>
+                <p className="acme-overview__muted">Payroll by {moneyMeta.label.toLowerCase()}</p>
               </div>
               <OverviewTabs
                 id="home-money-tabs"
@@ -377,11 +363,15 @@ export default function HomePage({ user }) {
               />
             </div>
             <Table
-              className="acme-overview__table"
+              className="acme-overview__table acme-overview__table--spend"
               columns={applySortToColumns(moneyTableColumns(moneyMeta), moneySort)}
               rows={moneyTableRows}
               extensions={moneyExtensions}
               onSort={(columnId) => setMoneySort((current) => nextSortState(current, columnId))}
+              onRowClick={(row) => {
+                if (row.isTotal) return
+                applyFocus({ key: moneyMeta.rowKey, value: row.id, label: row.label })
+              }}
               animateColumnChanges={false}
             />
           </section>
@@ -389,8 +379,10 @@ export default function HomePage({ user }) {
           <section className="acme-overview__card" aria-labelledby="actions-title">
             <div className="acme-overview__card-head">
               <div>
-                <h2 id="actions-title" className="april-text-style april-text-style--text-lg-semibold">Action center</h2>
-                <p className="acme-overview__muted">Work the queue for this snapshot — open a person or take the next step</p>
+                <h2 id="actions-title" className="april-text-style april-text-style--text-lg-semibold">
+                  Onboarding/Offboarding Tracker
+                </h2>
+                <p className="acme-overview__muted">Hires, exits, and contracts</p>
               </div>
               {actionMeta.action === "onboard" ? (
                 <Button
@@ -402,17 +394,7 @@ export default function HomePage({ user }) {
                   icon="person_add"
                   onClick={() => setOnboardOpen(true)}
                 />
-              ) : (
-                <Button
-                  label={`Open ${actionMeta.label} In Directory`}
-                  variant="outlined"
-                  size="sm"
-                  trailingIcon
-                  trailingIconName="arrow_forward"
-                  leadingIcon={false}
-                  onClick={() => openDirectory(actionMeta.path)}
-                />
-              )}
+              ) : null}
             </div>
             <OverviewTabs
               id="home-action-tabs"
@@ -440,10 +422,11 @@ export default function HomePage({ user }) {
               />
             ) : (
               <Table
-                className="acme-overview__table"
+                className="acme-overview__table acme-overview__table--actions"
                 columns={ACTION_TABLE_COLUMNS}
                 rows={actionRows}
                 extensions={actionExtensions}
+                onRowClick={(row) => navigate(`/employees/${row.employee.id}`)}
                 animateColumnChanges={false}
               />
             )}
@@ -451,6 +434,14 @@ export default function HomePage({ user }) {
               <p className="acme-overview__muted">
                 Showing {actionGroup.employees.length} of {formatCount(actionGroup.count)}
               </p>
+              <Button
+                label="View All"
+                variant="ghost"
+                size="sm"
+                leadingIcon={false}
+                trailingIcon={false}
+                onClick={() => openDirectory(actionMeta.path)}
+              />
             </div>
           </section>
         </div>

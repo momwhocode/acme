@@ -160,8 +160,7 @@ class AnalyticsQuery
               .where(left_on: upcoming)
               .order(:left_on),
         :left_on
-      ),
-      recent: recent_changes(window, people)
+      )
     }
   end
 
@@ -169,17 +168,6 @@ class AnalyticsQuery
     {
       count: scope.unscope(:order).count,
       employees: scope.limit(7).map { |employee| action_employee(employee, employee.public_send(date_key)) }
-    }
-  end
-
-  def recent_changes(window, people)
-    records = CompensationRecord.includes(:employee).where(employee_id: people.select(:id))
-                                .where(effective_date: window).order(effective_date: :desc, id: :desc)
-    {
-      count: records.unscope(:order).count,
-      employees: records.limit(7).map do |record|
-        action_employee(record.employee, record.effective_date)
-      end
     }
   end
 

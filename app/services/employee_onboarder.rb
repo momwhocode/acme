@@ -4,7 +4,7 @@ class EmployeeOnboarder
   class Error < AppError; end
 
   EMPLOYEE_KEYS = %i[
-    first_name last_name email country department employment_type level started_on
+    first_name last_name email country department job_title employment_type level started_on manager_id
   ].freeze
 
   def self.call(...)

@@ -102,7 +102,7 @@ export default function CompensationChangeModal({ employee, currentCompensation,
             dismissible={false}
           />
         ) : null}
-        <FormSection title="Compensation">
+        <FormSection title="Compensation Details">
           <FormFieldRow label="Level">
             <TextInput
               id="comp-change-level"

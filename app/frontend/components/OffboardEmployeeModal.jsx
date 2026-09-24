@@ -35,13 +35,13 @@ export default function OffboardEmployeeModal({ employee, onCancel, onSuccess })
       backdrop
       size="md"
       icon="person_off"
-      title="Mark as left"
+      title="Start Offboarding"
       description="Removes this person from active payroll. Compensation history stays on the timeline."
       showConfirmInput={false}
       showReset={false}
       showDescription
       cancel="Cancel"
-      confirm="Mark as left"
+      confirm="Start Offboarding"
       confirmLoading={submitting}
       onCancel={onCancel}
       onConfirm={save}

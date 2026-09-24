@@ -1,8 +1,7 @@
-/** Persist Employees columns, filters, and named views across sessions. */
+/** Persist Employees columns and the current filter session. */
 
 const COLUMNS_KEY = "acme.directory.columns"
 const SESSION_KEY = "acme.directory.session"
-const VIEWS_KEY = "acme.directory.views"
 
 function readJson(key, fallback) {
   try {
@@ -48,27 +47,4 @@ export function writeStoredDirectorySession(session) {
     q: session.q || "",
     sort: session.sort || { columnId: null, direction: "desc" }
   })
-}
-
-export function listSavedViews() {
-  const views = readJson(VIEWS_KEY, [])
-  return Array.isArray(views) ? views : []
-}
-
-export function saveDirectoryView(view) {
-  const name = String(view?.name || "").trim()
-  if (!name) return listSavedViews()
-
-  const next = [
-    {
-      name,
-      filterValues: view.filterValues || {},
-      q: view.q || "",
-      columns: view.columns || [],
-      sort: view.sort || { columnId: null, direction: "desc" }
-    },
-    ...listSavedViews().filter((entry) => entry.name !== name)
-  ]
-  writeJson(VIEWS_KEY, next)
-  return next
 }

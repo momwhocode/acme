@@ -76,13 +76,20 @@ describe("EmployeesPage", () => {
   it("renders a server-paginated directory page", async () => {
     renderDirectory()
 
-    expect(await screen.findByRole("heading", { name: "Employees" })).toBeTruthy()
+    expect(await screen.findByRole("heading", { name: "Employee Directory" })).toBeTruthy()
+    expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Home" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: "Employee Directory" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "Saved views" })).toBeNull()
     await waitFor(() => {
       expect(listEmployees).toHaveBeenCalled()
     })
     expect(await screen.findByText("Ada Lovelace")).toBeTruthy()
     expect(screen.getAllByRole("button", { name: "Country" }).length).toBeGreaterThan(0)
-    expect(screen.getByRole("button", { name: "Start date" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Start Date" })).toBeTruthy()
+    expect(screen.getByText("Job Title")).toBeTruthy()
+    expect(screen.getByText("End Date")).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Annual Salary" })).toBeTruthy()
     expect(screen.getByText("United Kingdom")).toBeTruthy()
     expect(screen.getByText("1 Jan-2024")).toBeTruthy()
     expect(screen.getByText("Showing 1–25 of 60")).toBeTruthy()
@@ -109,24 +116,43 @@ describe("EmployeesPage", () => {
   it("opens the onboard modal from the page header", async () => {
     const user = userEvent.setup()
     renderDirectory()
-    await screen.findByRole("heading", { name: "Employees" })
+    await screen.findByRole("heading", { name: "Employee Directory" })
 
     await user.click(screen.getByRole("button", { name: "Onboard Employee" }))
 
-    expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Onboard Employee" })).toBeTruthy()
   })
 
   it("opens onboard from the landing query", async () => {
     renderDirectory("/employees?onboard=1")
-    await screen.findByRole("heading", { name: "Employees" })
+    await screen.findByRole("heading", { name: "Employee Directory" })
 
-    expect(screen.getByRole("heading", { name: "Onboard employee" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Onboard Employee" })).toBeTruthy()
+  })
+
+  it("replaces the profile modal when onboard opens", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees" element={<EmployeesPage />}>
+            <Route path=":id" element={<h2>Ada Lovelace</h2>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    )
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+
+    await user.click(screen.getByRole("button", { name: "Onboard Employee" }))
+
+    expect(screen.getByRole("heading", { name: "Onboard Employee" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Ada Lovelace" })).toBeNull()
   })
 
   it("opens the import modal from the page header", async () => {
     const user = userEvent.setup()
     renderDirectory()
-    await screen.findByRole("heading", { name: "Employees" })
+    await screen.findByRole("heading", { name: "Employee Directory" })
 
     await user.click(screen.getByRole("button", { name: "Import" }))
 
@@ -153,6 +179,20 @@ describe("EmployeesPage", () => {
     await user.click(screen.getByRole("menuitem", { name: "View profile" }))
 
     expect(screen.getByText("Profile /employees/emp-1?status=active")).toBeTruthy()
+  })
+
+  it("closes onboard when a profile opens", async () => {
+    const user = userEvent.setup()
+    renderDirectory()
+    await screen.findByText("Ada Lovelace")
+    await user.click(screen.getByRole("button", { name: "Onboard Employee" }))
+    expect(screen.getByRole("heading", { name: "Onboard Employee" })).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "Actions for Ada Lovelace" }))
+    await user.click(screen.getByRole("menuitem", { name: "View profile" }))
+
+    expect(screen.queryByRole("heading", { name: "Onboard Employee" })).toBeNull()
+    expect(screen.getByText("Profile /employees/emp-1")).toBeTruthy()
   })
 
   it("exports the filtered view", async () => {

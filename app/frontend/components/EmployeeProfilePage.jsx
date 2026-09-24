@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useOutletContext, useParams } from "react-rou
 import { Button } from "../april/components/Button"
 import { IconMenuDropdown } from "../april/components/IconMenuDropdown"
 import { Modal } from "../april/components/Modal"
+import { UserAvatar } from "../april/components/UserAvatar"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageToast } from "../april/components/PageToast"
 import { Tag } from "../april/components/Tag"
@@ -12,40 +13,80 @@ import CompensationChangeModal from "./CompensationChangeModal"
 import ConfirmModal from "./ConfirmModal"
 import EditEmployeeModal from "./EditEmployeeModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
-import { deleteCompensation, destroyEmployee, getEmployee, rehireEmployee } from "../lib/employees"
+import { deleteCompensation, destroyEmployee, getEmployee } from "../lib/employees"
 import { apiData } from "../lib/http"
 import { t } from "../lib/messages"
-import { formatAprilShortDate } from "../april/renderers/date-time"
-import { formatMoney, formatUsd, titleCase } from "../lib/employeesTable"
+import { formatAprilDateTime, formatAprilShortDate } from "../april/renderers/date-time"
+import { employeeAvatar } from "../lib/employeeAvatar"
+import { EMPLOYEE_FIELD_LABELS, EMPLOYEE_FORM_SECTIONS } from "../lib/employeeFormSections"
+import { annualisedLocal, displayLevel, formatMoney, titleCase } from "../lib/employeesTable"
 import { renderCountryCell } from "../lib/tableCellRenderers"
 
 function Field({ label, value }) {
   return (
     <div className="acme-profile__field">
       <dt className="april-text-style april-text-style--text-sm-regular">{label}</dt>
-      <dd className="april-text-style april-text-style--text-md-semibold">{value || "—"}</dd>
+      <dd className="april-fieldset-label__title">{value || "—"}</dd>
     </div>
   )
 }
 
+function ProfileSection({ id, title, children }) {
+  return (
+    <section className="acme-profile__section" aria-labelledby={id}>
+      <h2 id={id} className="april-text-style april-text-style--text-md-semibold">
+        {title}
+      </h2>
+      {children}
+    </section>
+  )
+}
+
 function compensationCopy(record) {
-  if (!record) return "No compensation on file."
-  const hours = record.hours_per_week ? ` · ${record.hours_per_week} hrs/week` : ""
-  return `${formatMoney(record.base_amount, record.currency)} ${record.pay_period}${hours}`
+  if (!record) return "No Pay On File."
+  const hours = record.hours_per_week ? ` · ${record.hours_per_week} Hrs/Week` : ""
+  return `${formatMoney(record.base_amount, record.currency)} ${titleCase(record.pay_period)}${hours}`
 }
 
-function payBandCopy(band) {
-  if (!band) return null
-  const midpoint = formatMoney(band.midpoint, band.currency)
-  const compa = band.compa_ratio == null ? "—" : Number(band.compa_ratio).toFixed(2)
-  return `${band.level} band midpoint ${midpoint} · compa ${compa}`
+function statusLabel(status) {
+  return status === "left" ? "Left" : "Active"
 }
 
-function auditCopy(event) {
-  const action = titleCase(event.action)
-  const actor = event.actor_name || "HR"
-  const when = formatAprilShortDate(event.created_at)
-  return `${actor} · ${action} · ${when}`
+function activityItems({ auditEvents, history, current }) {
+  const source = auditEvents.length
+    ? auditEvents.map((event) => ({
+        id: `audit-${event.id}`,
+        timestamp: event.created_at,
+        title: titleCase(event.action),
+        detail: event.actor_name || "Hr",
+        kind: "audit"
+      }))
+    : history.map((record) => ({
+        id: `pay-${record.id}`,
+        timestamp: record.effective_date,
+        title: titleCase(record.change_reason || "Pay Change"),
+        detail: compensationCopy(record),
+        kind: "pay",
+        record,
+        isCurrent: Boolean(current && record.id === current.id)
+      }))
+  return source.sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)))
+}
+
+function groupActivityByTimestamp(items) {
+  const groups = []
+  const indexByLabel = new Map()
+  items.forEach((item) => {
+    const label = item.timestamp?.includes?.("T")
+      ? formatAprilDateTime(item.timestamp)
+      : formatAprilShortDate(item.timestamp)
+    if (!indexByLabel.has(label)) {
+      indexByLabel.set(label, groups.length)
+      groups.push({ label, items: [] })
+    }
+    groups[indexByLabel.get(label)].items.push(item)
+  })
+  return groups
 }
 
 export default function EmployeeProfilePage() {
@@ -58,8 +99,8 @@ export default function EmployeeProfilePage() {
   const [errorCode, setErrorCode] = useState("")
   const [loading, setLoading] = useState(true)
   const [reloadToken, setReloadToken] = useState(0)
+  const [profileTab, setProfileTab] = useState("overview")
   const [editOpen, setEditOpen] = useState(false)
-  const [changeOpen, setChangeOpen] = useState(false)
   const [editRecord, setEditRecord] = useState(null)
   const [offboardOpen, setOffboardOpen] = useState(false)
   const [deleteHireOpen, setDeleteHireOpen] = useState(false)
@@ -72,6 +113,10 @@ export default function EmployeeProfilePage() {
     setReloadToken((token) => token + 1)
     onEmployeeChanged?.()
   }
+
+  useEffect(() => {
+    setProfileTab("overview")
+  }, [id])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -102,70 +147,91 @@ export default function EmployeeProfilePage() {
     : errorCode === "not_found"
       ? t("errors.employeeNotFound")
       : "Employee"
-  const moreItems = left
-    ? [
-        { label: "Rehire", onClick: async () => {
-          await rehireEmployee(employee.id)
-          setToast({ title: t("success.employeeRehired") })
-          refresh()
-        } },
-        { label: "Delete hire", onClick: () => setDeleteHireOpen(true) }
-      ]
-    : [
-        { label: "Mark as left", onClick: () => setOffboardOpen(true) },
-        { label: "Delete hire", onClick: () => setDeleteHireOpen(true) }
-      ]
+  const avatarUser = employee ? employeeAvatar(employee) : null
+  const openOverlay = (next) => {
+    setEditOpen(next === "edit")
+    setEditRecord(next?.record || null)
+    setOffboardOpen(next === "offboard")
+    setDeleteHireOpen(next === "deleteHire")
+    setDeleteRecord(next?.deleteRecord || null)
+  }
+  const overlayOpen = editOpen || Boolean(editRecord) || offboardOpen || deleteHireOpen || Boolean(deleteRecord)
+  const moreItems = [
+    ...(left ? [] : [{ label: "Start Offboarding", onClick: () => openOverlay("offboard") }]),
+    { label: "Delete", onClick: () => openOverlay("deleteHire") }
+  ]
+  const groupedActivity = groupActivityByTimestamp(activityItems({ auditEvents, history, current }))
+
+  const footer = employee ? (
+    <div className="acme-profile-modal__actions">
+      <Button
+        label="Edit Record"
+        variant="primary"
+        size="md"
+        icon="edit"
+        leadingIcon
+        trailingIcon={false}
+        onClick={() => openOverlay("edit")}
+      />
+      <IconMenuDropdown
+        id="employee-profile-more-menu"
+        ariaLabel="More Actions"
+        variant="ghost"
+        size="md"
+        items={moreItems}
+      />
+    </div>
+  ) : null
+
+  const subheader = employee ? (
+    <div className="april-modal__subheader acme-profile-modal__tabs" role="tablist" aria-label="Profile Views">
+      <div className={["april-tab-wrapper", profileTab === "overview" ? "april-tab-wrapper--active" : ""].filter(Boolean).join(" ")}>
+        <Button
+          label="Overview"
+          variant="ghost"
+          size="md"
+          leadingIcon={false}
+          trailingIcon={false}
+          state={profileTab === "overview" ? "active-pressed" : null}
+          role="tab"
+          aria-selected={profileTab === "overview"}
+          onClick={() => setProfileTab("overview")}
+        />
+      </div>
+      <div className={["april-tab-wrapper", profileTab === "activity" ? "april-tab-wrapper--active" : ""].filter(Boolean).join(" ")}>
+        <Button
+          label="Activity History"
+          variant="ghost"
+          size="md"
+          leadingIcon={false}
+          trailingIcon={false}
+          state={profileTab === "activity" ? "active-pressed" : null}
+          role="tab"
+          aria-selected={profileTab === "activity"}
+          onClick={() => setProfileTab("activity")}
+        />
+      </div>
+    </div>
+  ) : null
 
   return (
     <>
+      {overlayOpen ? null : (
       <Modal
         backdrop
         size="lg"
         icon="person"
+        leading={avatarUser ? <UserAvatar user={avatarUser} size="md" /> : null}
         title={title}
-        description={employee?.email || ""}
-        showDescription={Boolean(employee?.email)}
+        showDescription={false}
         showConfirmInput={false}
         showReset={false}
-        showFooter={false}
+        showFooter={Boolean(employee)}
+        subheader={subheader}
+        footer={footer}
         onCancel={close}
         className="acme-profile-modal"
       >
-        {employee ? (
-          <div className="acme-profile-modal__toolbar">
-            <Tag type={left ? "default" : "success"} label={left ? "Left" : "Active"} leadingIcon={false} trailingIcon={false} />
-            <div className="acme-profile-modal__actions">
-              <Button
-                label="Edit"
-                variant="outlined"
-                size="md"
-                icon="edit"
-                leadingIcon
-                trailingIcon={false}
-                onClick={() => setEditOpen(true)}
-              />
-              {employee.status === "active" ? (
-                <Button
-                  label="Record pay change"
-                  variant="primary"
-                  size="md"
-                  icon="payments"
-                  leadingIcon
-                  trailingIcon={false}
-                  onClick={() => setChangeOpen(true)}
-                />
-              ) : null}
-              <IconMenuDropdown
-                id="employee-profile-more-menu"
-                ariaLabel="More actions"
-                variant="outlined"
-                size="md"
-                items={moreItems}
-              />
-            </div>
-          </div>
-        ) : null}
-
         {loading ? <div className="page-loader" aria-busy="true" /> : null}
         {error && !employee && errorCode === "not_found" ? (
           <p className="april-text-style april-text-style--text-md-regular">This person is not in the directory.</p>
@@ -174,141 +240,131 @@ export default function EmployeeProfilePage() {
           <PageLoadError title="Couldn't load employee" onRetry={() => setReloadToken((current) => current + 1)} />
         ) : null}
 
-        {employee ? (
+        {employee && profileTab === "overview" ? (
           <div className="acme-profile__stack acme-profile-modal__stack">
-            <section className="acme-profile__card" aria-labelledby="profile-details-title">
-              <h2 id="profile-details-title" className="april-text-style april-text-style--text-lg-semibold">
-                Details
-              </h2>
+            <ProfileSection id="profile-details-title" title={EMPLOYEE_FORM_SECTIONS.details}>
               <dl className="acme-profile__grid">
-                <Field label="Email" value={employee.email} />
-                <Field label="Department" value={titleCase(employee.department)} />
-                <Field label="Manager" value={employee.manager_name} />
-                <Field label="Country" value={renderCountryCell(employee.country)} />
-                <Field label="Type" value={titleCase(employee.employment_type)} />
-                <Field label="Level" value={employee.level} />
-                <Field label="Started" value={formatAprilShortDate(employee.started_on)} />
-                <Field label="Left" value={formatAprilShortDate(employee.left_on)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.firstName} value={employee.first_name} />
+                <Field label={EMPLOYEE_FIELD_LABELS.lastName} value={employee.last_name} />
+                <Field label={EMPLOYEE_FIELD_LABELS.email} value={employee.email} />
+                <Field label={EMPLOYEE_FIELD_LABELS.country} value={renderCountryCell(employee.country)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.status} value={statusLabel(employee.status)} />
               </dl>
-            </section>
+            </ProfileSection>
 
-            <section className="acme-profile__card" aria-labelledby="current-comp-title">
-              <h2 id="current-comp-title" className="april-text-style april-text-style--text-lg-semibold">
-                Current compensation
-              </h2>
+            <ProfileSection id="profile-job-title" title={EMPLOYEE_FORM_SECTIONS.job}>
+              <dl className="acme-profile__grid">
+                <Field label={EMPLOYEE_FIELD_LABELS.jobTitle} value={employee.job_title} />
+                <Field label={EMPLOYEE_FIELD_LABELS.level} value={displayLevel(employee.level)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.department} value={titleCase(employee.department)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.type} value={titleCase(employee.employment_type)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.manager} value={employee.manager_name} />
+              </dl>
+            </ProfileSection>
+
+            <ProfileSection id="profile-comp-title" title={EMPLOYEE_FORM_SECTIONS.compensation}>
               {current ? (
-                <>
-                  <p className="april-text-style april-text-style--display-xs-semibold">
-                    {formatUsd(current.annualised_usd)}
-                    <span className="acme-profile__comp-meta april-text-style april-text-style--text-md-regular">
-                      {" "}annualised USD
-                    </span>
-                  </p>
-                  <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(current)}</p>
-                  {payload.pay_band ? (
-                    <p className="april-text-style april-text-style--text-sm-regular">{payBandCopy(payload.pay_band)}</p>
+                <dl className="acme-profile__grid">
+                  <Field label={EMPLOYEE_FIELD_LABELS.payType} value={titleCase(current.pay_period)} />
+                  {current.pay_period === "hourly" ? (
+                    <>
+                      <Field label={EMPLOYEE_FIELD_LABELS.rate} value={`${formatMoney(current.base_amount, current.currency)} / Hour`} />
+                      <Field
+                        label={EMPLOYEE_FIELD_LABELS.hours}
+                        value={current.hours_per_week ? `${current.hours_per_week} / Week` : "—"}
+                      />
+                    </>
+                  ) : current.pay_period !== "annual" ? (
+                    <Field
+                      label={EMPLOYEE_FIELD_LABELS.rate}
+                      value={`${formatMoney(current.base_amount, current.currency)} / ${titleCase(current.pay_period)}`}
+                    />
                   ) : null}
-                  <p className="april-text-style april-text-style--text-sm-regular">
-                    Effective {formatAprilShortDate(current.effective_date)}
-                    {current.change_reason ? ` · ${titleCase(current.change_reason)}` : ""}
-                  </p>
-                </>
+                  <Field
+                    label={EMPLOYEE_FIELD_LABELS.annualSalary}
+                    value={formatMoney(annualisedLocal(current), current.currency)}
+                  />
+                  <Field label={EMPLOYEE_FIELD_LABELS.effective} value={formatAprilShortDate(current.effective_date)} />
+                </dl>
               ) : (
-                <p className="april-text-style april-text-style--text-md-regular">No compensation on file.</p>
+                <p className="april-text-style april-text-style--text-md-regular">No Pay On File.</p>
               )}
-            </section>
+            </ProfileSection>
 
-            <section className="acme-profile__card" aria-labelledby="comp-history-title">
-              <h2 id="comp-history-title" className="april-text-style april-text-style--text-lg-semibold">
-                Compensation history
-              </h2>
-              {history.length === 0 ? (
-                <p className="april-text-style april-text-style--text-md-regular">No effective-dated changes yet.</p>
-              ) : (
-                <ol className="acme-profile__timeline">
-                  {history.map((record) => {
-                    const currentItem = current && record.id === current.id
-                    return (
-                      <li key={record.id} className="acme-profile__timeline-item">
-                        <div className="acme-profile__timeline-when">
-                          <p className="april-text-style april-text-style--text-sm-semibold">{formatAprilShortDate(record.effective_date)}</p>
-                          {currentItem ? <Tag type="success" label="Current" leadingIcon={false} trailingIcon={false} /> : null}
-                        </div>
-                        <div>
+            <ProfileSection id="profile-dates-title" title={EMPLOYEE_FORM_SECTIONS.dates}>
+              <dl className="acme-profile__grid">
+                <Field label={EMPLOYEE_FIELD_LABELS.startDate} value={formatAprilShortDate(employee.started_on)} />
+                <Field label={EMPLOYEE_FIELD_LABELS.endDate} value={formatAprilShortDate(employee.left_on)} />
+              </dl>
+            </ProfileSection>
+          </div>
+        ) : null}
+
+        {employee && profileTab === "activity" ? (
+          <div className="acme-profile__stack acme-profile-modal__stack">
+            {groupedActivity.length === 0 ? (
+              <p className="april-text-style april-text-style--text-md-regular">No Changes Yet.</p>
+            ) : (
+              <ol className="acme-profile__timeline">
+                {groupedActivity.map((group) => (
+                  <li key={group.label} className="acme-profile__timeline-item">
+                    <div className="acme-profile__timeline-when">
+                      <p className="april-text-style april-text-style--text-sm-semibold">{group.label}</p>
+                    </div>
+                    <div>
+                      {group.items.map((item) => (
+                        <div key={item.id}>
                           <p className="april-text-style april-text-style--text-md-semibold">
-                            {titleCase(record.change_reason || "Compensation change")}
+                            {item.title}
+                            {item.isCurrent ? (
+                              <>
+                                {" "}
+                                <Tag type="success" label="Current" leadingIcon={false} trailingIcon={false} />
+                              </>
+                            ) : null}
                           </p>
-                          <p className="april-text-style april-text-style--text-md-regular">{compensationCopy(record)}</p>
-                          <p className="april-text-style april-text-style--text-sm-regular">
-                            {formatUsd(record.annualised_usd)} annualised USD
-                          </p>
-                          <div>
-                            <Button
-                              label="Correct"
-                              variant="link-neutral"
-                              size="sm"
-                              leadingIcon={false}
-                              trailingIcon={false}
-                              onClick={() => setEditRecord(record)}
-                            />
-                            {history.length > 1 ? (
+                          <p className="april-text-style april-text-style--text-md-regular">{item.detail}</p>
+                          {item.kind === "pay" ? (
+                            <div>
                               <Button
-                                label="Delete row"
+                                label="Correct"
                                 variant="link-neutral"
                                 size="sm"
                                 leadingIcon={false}
                                 trailingIcon={false}
-                                onClick={() => setDeleteRecord(record)}
+                                onClick={() => openOverlay({ record: item.record })}
                               />
-                            ) : null}
-                          </div>
+                              {history.length > 1 ? (
+                                <Button
+                                  label="Delete Row"
+                                  variant="link-neutral"
+                                  size="sm"
+                                  leadingIcon={false}
+                                  trailingIcon={false}
+                                  onClick={() => openOverlay({ deleteRecord: item.record })}
+                                />
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
-                      </li>
-                    )
-                  })}
-                </ol>
-              )}
-            </section>
-
-            <section className="acme-profile__card" aria-labelledby="audit-trail-title">
-              <h2 id="audit-trail-title" className="april-text-style april-text-style--text-lg-semibold">
-                Audit trail
-              </h2>
-              {auditEvents.length === 0 ? (
-                <p className="april-text-style april-text-style--text-md-regular">No changes recorded yet.</p>
-              ) : (
-                <ol className="acme-profile__timeline">
-                  {auditEvents.map((event) => (
-                    <li key={event.id} className="acme-profile__timeline-item">
-                      <p className="april-text-style april-text-style--text-md-regular">{auditCopy(event)}</p>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
         ) : null}
       </Modal>
+      )}
 
       {editOpen && employee ? (
         <EditEmployeeModal
           employee={employee}
-          onCancel={() => setEditOpen(false)}
+          onCancel={() => openOverlay(null)}
           onSuccess={() => {
-            setEditOpen(false)
+            openOverlay(null)
             setToast({ title: t("success.employeeUpdated") })
-            refresh()
-          }}
-        />
-      ) : null}
-      {changeOpen && employee ? (
-        <CompensationChangeModal
-          employee={employee}
-          currentCompensation={current}
-          onCancel={() => setChangeOpen(false)}
-          onSuccess={() => {
-            setChangeOpen(false)
-            setToast({ title: t("success.compensationRecorded") })
             refresh()
           }}
         />
@@ -318,9 +374,9 @@ export default function EmployeeProfilePage() {
           employee={employee}
           currentCompensation={editRecord}
           record={editRecord}
-          onCancel={() => setEditRecord(null)}
+          onCancel={() => openOverlay(null)}
           onSuccess={() => {
-            setEditRecord(null)
+            openOverlay(null)
             setToast({ title: t("success.payRowCorrected") })
             refresh()
           }}
@@ -329,9 +385,9 @@ export default function EmployeeProfilePage() {
       {offboardOpen && employee ? (
         <OffboardEmployeeModal
           employee={employee}
-          onCancel={() => setOffboardOpen(false)}
+          onCancel={() => openOverlay(null)}
           onSuccess={() => {
-            setOffboardOpen(false)
+            openOverlay(null)
             setToast({ title: t("success.markedAsLeft") })
             refresh()
           }}
@@ -339,11 +395,11 @@ export default function EmployeeProfilePage() {
       ) : null}
       {deleteHireOpen && employee ? (
         <ConfirmModal
-          title="Delete hire"
+          title="Delete"
           description={`Removes ${employee.first_name} ${employee.last_name} and their pay history. This cannot be undone.`}
-          confirm="Delete hire"
+          confirm="Delete"
           confirmLoading={busy}
-          onCancel={() => setDeleteHireOpen(false)}
+          onCancel={() => openOverlay(null)}
           onConfirm={async () => {
             if (busy) return
             setBusy(true)
@@ -362,17 +418,17 @@ export default function EmployeeProfilePage() {
       ) : null}
       {deleteRecord && employee ? (
         <ConfirmModal
-          title="Delete pay row"
+          title="Delete Row"
           description="Removes this compensation row. Earlier and later records stay on the timeline."
-          confirm="Delete row"
+          confirm="Delete Row"
           confirmLoading={busy}
-          onCancel={() => setDeleteRecord(null)}
+          onCancel={() => openOverlay(null)}
           onConfirm={async () => {
             if (busy) return
             setBusy(true)
             try {
               await deleteCompensation(employee.id, deleteRecord.id)
-              setDeleteRecord(null)
+              openOverlay(null)
               setToast({ title: t("success.payRowDeleted") })
               refresh()
             } catch (caught) {

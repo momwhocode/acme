@@ -29,7 +29,7 @@ RSpec.describe "directory schema" do
 
   it "keeps the product tables" do
     expect(connection.tables).to include(
-      "users", "employees", "compensation_records", "exchange_rates", "pay_bands", "audit_events"
+      "users", "employees", "compensation_records", "exchange_rates", "audit_events"
     )
   end
 
@@ -47,17 +47,16 @@ RSpec.describe "directory schema" do
     expect(unique_index?(:exchange_rates, %w[from_currency to_currency effective_date])).to be(true)
   end
 
-  it "uniques one pay band per level and currency" do
-    expect(unique_index?(:pay_bands, %w[level currency])).to be(true)
-  end
-
   it "indexes directory search, filters, name sort, and employment dates" do
     expect(index_names(:employees)).to include(
       "index_employees_on_directory_search",
       "index_employees_on_directory_filters",
       "index_employees_on_directory_name",
       "index_employees_on_employment_dates",
-      "index_employees_on_manager_id"
+      "index_employees_on_manager_id",
+      "index_employees_on_level",
+      "index_employees_on_country",
+      "index_employees_on_status"
     )
   end
 
@@ -85,12 +84,16 @@ RSpec.describe "directory schema" do
     expect(key).to have_attributes(to_table: "users", on_delete: :nullify)
   end
 
-  it "checks employment, pay, FX, and band invariants" do
+  it "checks employment, pay, and FX invariants" do
     expect(check_names(:employees)).to include(
       "employees_employment_type_allowed",
       "employees_status_allowed",
       "employees_country_iso",
-      "employees_left_on_covers_start"
+      "employees_left_on_covers_start",
+      "employees_left_on_when_left",
+      "employees_manager_not_self",
+      "employees_job_title_length",
+      "employees_level_length"
     )
     expect(check_names(:compensation_records)).to include(
       "compensation_records_pay_period_allowed",
@@ -99,6 +102,23 @@ RSpec.describe "directory schema" do
       "compensation_records_hourly_hours"
     )
     expect(check_names(:exchange_rates)).to include("exchange_rates_rate_positive")
-    expect(check_names(:pay_bands)).to include("pay_bands_midpoint_positive")
+  end
+
+  it "keeps pay inside employment with database triggers" do
+    triggers = connection.select_values(<<~SQL.squish)
+      SELECT tgname FROM pg_trigger
+      JOIN pg_class ON pg_class.oid = tgrelid
+      WHERE relname IN ('employees', 'compensation_records') AND NOT tgisinternal
+    SQL
+
+    expect(triggers).to include("compensation_records_within_employment", "employees_cover_compensation")
+  end
+
+  it "keeps the audit log append-only" do
+    columns = connection.columns(:audit_events).map(&:name)
+
+    expect(columns).to include("created_at", "record_id")
+    expect(columns).not_to include("updated_at")
+    expect(connection.columns(:audit_events).find { |column| column.name == "record_id" }.null).to be(false)
   end
 end

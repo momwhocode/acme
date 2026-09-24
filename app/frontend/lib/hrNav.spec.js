@@ -6,7 +6,7 @@ describe("hrNav", () => {
     expect(hrSidebarMenu()).toEqual({
       topItems: [
         { id: "home", label: "Home", icon: "home", to: "/", disabled: false, tag: undefined, end: true },
-        { id: "employees", label: "Employees", icon: "group", to: "/employees", disabled: false, tag: undefined, end: false }
+        { id: "employees", label: "Employee Directory", icon: "group", to: "/employees", disabled: false, tag: undefined, end: false }
       ],
       groups: [],
       bottomItems: []

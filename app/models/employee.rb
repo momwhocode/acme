@@ -8,6 +8,7 @@
 #  email           :string           not null
 #  employment_type :string           not null
 #  first_name      :string           not null
+#  job_title       :string
 #  last_name       :string           not null
 #  left_on         :date
 #  level           :string
@@ -19,18 +20,20 @@
 #
 # Indexes
 #
+#  index_employees_on_country            (country)
 #  index_employees_on_directory_filters  (department,country,employment_type,status)
 #  index_employees_on_directory_name     (last_name,first_name,id)
 #  index_employees_on_directory_search   (((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops) USING gin
 #  index_employees_on_employment_dates   (started_on,left_on)
+#  index_employees_on_level              (level)
 #  index_employees_on_lower_email        (lower((email)::text)) UNIQUE
 #  index_employees_on_manager_id         (manager_id)
+#  index_employees_on_status             (status)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (manager_id => employees.id) ON DELETE => nullify
 #
-# Directory hire. Compensation is append-only; status changes go through offboard / rehire.
 
 class Employee < ApplicationRecord
   EMPLOYMENT_TYPES = %w[full-time part-time contractor freelancer intern].freeze
@@ -61,13 +64,14 @@ class Employee < ApplicationRecord
   validates :employment_type, presence: true, inclusion: { in: EMPLOYMENT_TYPES }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :level, length: { maximum: 50 }, allow_nil: true
+  validates :job_title, length: { maximum: 255 }, allow_nil: true
   validate :manager_is_not_self
   validate :left_on_not_before_started_on
   validate :left_on_present_for_leavers
   validate :employment_dates_cover_compensation
 
   DIRECTORY_JSON_KEYS = %i[
-    id first_name last_name email country department
+    id first_name last_name email country department job_title
     employment_type status level started_on left_on manager_id
   ].freeze
 
@@ -104,6 +108,7 @@ class Employee < ApplicationRecord
     self.employment_type = employment_type.to_s.strip.downcase.presence
     self.status = status.to_s.strip.downcase.presence
     self.level = level.to_s.strip.presence
+    self.job_title = job_title.to_s.strip.gsub(/\s+/, " ").presence
   end
 
   def manager_is_not_self

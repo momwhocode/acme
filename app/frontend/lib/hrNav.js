@@ -1,4 +1,4 @@
-/** Home / Employees sidebar items and active route for signed-in HR. */
+/** Home / Employee Directory sidebar items and active route for signed-in HR. */
 
 import { navItemToSidebar, resolveActiveNavItemId } from "./sidebarNav.js"
 
@@ -12,7 +12,7 @@ export const HR_NAV_HOME = {
 
 export const HR_NAV_EMPLOYEES = {
   id: "employees",
-  label: "Employees",
+  label: "Employee Directory",
   icon: "group",
   path: "/employees"
 }

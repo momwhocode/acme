@@ -21,7 +21,6 @@
 #
 #  fk_rails_...  (employee_id => employees.id) ON DELETE => cascade
 #
-# One effective-dated pay row. Unique per employee + effective_date.
 
 class CompensationRecord < ApplicationRecord
   PAY_PERIODS = %w[hourly daily monthly annual].freeze

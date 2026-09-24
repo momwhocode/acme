@@ -1,9 +1,11 @@
-/** Employees directory — filters, saved views, export, and profile modal outlet. */
+/** Employees directory — filters, export, and profile modal outlet. */
 
 import { useEffect, useMemo, useState } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { BreadcrumbHeader } from "../april/components/BreadcrumbHeader"
 import { Button } from "../april/components/Button"
 import { FloatingBar } from "../april/components/FloatingBar"
+import { IconButton } from "../april/components/IconButton"
 import { ListingTableCard } from "../april/components/ListingTableCard"
 import { PageLoadError } from "../april/components/PageLoadError"
 import { PageTitleNavHeader } from "../april/components/PageTitleNavHeader"
@@ -12,7 +14,6 @@ import ConfirmModal from "./ConfirmModal"
 import ImportEmployeesModal from "./ImportEmployeesModal"
 import OffboardEmployeeModal from "./OffboardEmployeeModal"
 import OnboardEmployeeModal from "./OnboardEmployeeModal"
-import SavedDirectoryViews from "./SavedDirectoryViews"
 import { destroyEmployee, exportEmployees, importToastTitle, rehireEmployee } from "../lib/employees"
 import { t } from "../lib/messages"
 import { createEmployeesTableExtensions } from "../lib/employeesTableExtensions"
@@ -31,7 +32,7 @@ export default function EmployeesPage() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const directory = useEmployeesDirectory()
-  const { retry, exportQuery, applySavedView, setVisibleColumnIds, handleSort, sort } = directory
+  const { retry, exportQuery, setVisibleColumnIds, handleSort, sort } = directory
   const [onboardOpen, setOnboardOpen] = useState(() => searchParams.get("onboard") === "1")
   const [importOpen, setImportOpen] = useState(false)
   const [offboardRow, setOffboardRow] = useState(null)
@@ -40,13 +41,32 @@ export default function EmployeesPage() {
   const [busy, setBusy] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const { selection, selectedCount } = useTableRowSelection(directory.rows, selectedIds, setSelectedIds)
+  const onDirectory = location.pathname === "/employees"
+
+  const closeDirectoryModals = () => {
+    setOnboardOpen(false)
+    setImportOpen(false)
+    setOffboardRow(null)
+    setDeleteRow(null)
+  }
+
+  const stayOnDirectory = () => {
+    if (onDirectory) return
+    navigate({ pathname: "/employees", search: location.search })
+  }
 
   useEffect(() => {
     if (searchParams.get("onboard") !== "1") return
     const next = new URLSearchParams(searchParams)
     next.delete("onboard")
-    setSearchParams(next, { replace: true })
-  }, [searchParams, setSearchParams])
+    closeDirectoryModals()
+    setOnboardOpen(true)
+    if (location.pathname === "/employees") {
+      setSearchParams(next, { replace: true })
+    } else {
+      navigate({ pathname: "/employees", search: next.toString() }, { replace: true })
+    }
+  }, [location.pathname, navigate, searchParams, setSearchParams])
 
   const rowIdsKey = directory.rows.map((row) => row.id).join(",")
   useEffect(() => {
@@ -56,8 +76,15 @@ export default function EmployeesPage() {
   const extensions = useMemo(
     () =>
       createEmployeesTableExtensions({
-        onDetails: (row) => navigate({ pathname: `/employees/${row.id}`, search: location.search }),
-        onOffboard: setOffboardRow,
+        onDetails: (row) => {
+          closeDirectoryModals()
+          navigate({ pathname: `/employees/${row.id}`, search: location.search })
+        },
+        onOffboard: (row) => {
+          closeDirectoryModals()
+          stayOnDirectory()
+          setOffboardRow(row)
+        },
         onRehire: async (row) => {
           try {
             await rehireEmployee(row.id)
@@ -67,9 +94,13 @@ export default function EmployeesPage() {
             setToast({ title: caught.message || t("errors.rehireEmployee") })
           }
         },
-        onDelete: setDeleteRow
+        onDelete: (row) => {
+          closeDirectoryModals()
+          stayOnDirectory()
+          setDeleteRow(row)
+        }
       }),
-    [location.search, navigate, retry]
+    [location.pathname, location.search, navigate, retry]
   )
   const onColumnToggle = useMemo(
     () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, setVisibleColumnIds),
@@ -91,18 +122,44 @@ export default function EmployeesPage() {
 
   return (
     <section className="superadmin-page superadmin-page--listing acme-listing">
+      <BreadcrumbHeader
+        id="employees-breadcrumb"
+        links="1"
+        items={[ { label: "Home", onClick: () => navigate("/") } ]}
+      />
       <PageTitleNavHeader
-        pageTitle="Employees"
+        pageTitle="Employee Directory"
         id="employees-title"
-        showSecondaryButton
-        secondaryButtonLabel="Import"
-        secondaryIcon="upload"
-        onSecondary={() => setImportOpen(true)}
         showPrimaryButton
         primaryButtonLabel="Onboard Employee"
         primaryIcon="person_add"
-        onPrimary={() => setOnboardOpen(true)}
-      />
+        onPrimary={() => {
+          closeDirectoryModals()
+          stayOnDirectory()
+          setOnboardOpen(true)
+        }}
+      >
+        <Button
+          label="Import"
+          variant="outlined"
+          size="md"
+          icon="upload"
+          leadingIcon
+          trailingIcon={false}
+          onClick={() => {
+            closeDirectoryModals()
+            stayOnDirectory()
+            setImportOpen(true)
+          }}
+        />
+        <IconButton
+          variant="outlined"
+          size="md"
+          icon="download"
+          ariaLabel="Export"
+          onClick={exportView}
+        />
+      </PageTitleNavHeader>
       {importOpen ? (
         <ImportEmployeesModal
           onCancel={() => setImportOpen(false)}
@@ -195,31 +252,11 @@ export default function EmployeesPage() {
               perPage: directory.pagination.limit
             }}
             onPageChange={directory.handlePageChange}
-            endContent={
-              <>
-                <SavedDirectoryViews
-                  snapshot={{
-                    filterValues: directory.filterValues,
-                    q: directory.searchValue,
-                    columns: directory.visibleColumnIds,
-                    sort
-                  }}
-                  onApply={applySavedView}
-                />
-                <Button
-                  label="Export"
-                  variant="outlined"
-                  size="md"
-                  icon="download"
-                  leadingIcon
-                  trailingIcon={false}
-                  onClick={exportView}
-                />
-              </>
-            }
           />
         )}
-        <Outlet context={{ onEmployeeChanged: retry }} />
+        {onboardOpen || importOpen || offboardRow || deleteRow ? null : (
+          <Outlet context={{ onEmployeeChanged: retry }} />
+        )}
         {selectedCount > 0 ? (
           <div className="acme-listing__bulk-bar">
             <FloatingBar

@@ -13,7 +13,7 @@ export function TableColumnsDropdown({
   ariaLabel = "Show or hide columns",
   variant = "outlined",
   size = "md",
-  groupLabel = "Columns",
+  groupLabel = "Show/hide Columns",
   options = [],
   visibleColumnIds = [],
   onToggle,

@@ -55,16 +55,16 @@ describe("AppLayout", () => {
     expect(screen.getByLabelText("HR navigation")).toBeTruthy()
     expect(screen.getByRole("link", { name: "Acme" })).toBeTruthy()
     expect(screen.getByRole("link", { name: "Home" })).toBeTruthy()
-    expect(screen.getByRole("link", { name: "Employees" })).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Employee Directory" })).toBeTruthy()
     expect(screen.getByText("Home content")).toBeTruthy()
     expect(screen.getByRole("button", { name: /Account menu for Ada Lovelace/ })).toBeTruthy()
   })
 
-  it("marks Employees as the active route", () => {
+  it("marks Employee Directory as the active route", () => {
     renderShell("/employees")
 
     expect(screen.getByText("Employees content")).toBeTruthy()
-    expect(screen.getByRole("link", { name: "Employees" }).getAttribute("aria-current")).toBe("page")
+    expect(screen.getByRole("link", { name: "Employee Directory" }).getAttribute("aria-current")).toBe("page")
   })
 
   it("signs out from the profile menu and returns to sign in", async () => {

@@ -31,7 +31,7 @@ RSpec.describe "GET /api/v1/analytics" do
       "by_department" => [ include("department" => "engineering", "headcount" => 1, "currency" => "GBP") ],
       "by_country" => [ include("country" => "GB", "headcount" => 1, "currency" => "GBP", "payroll_local" => "80000.0") ],
       "by_level" => be_an(Array),
-      "actions" => include("onboarding", "offboarding", "contracts", "recent")
+      "actions" => include("onboarding", "offboarding", "contracts")
     )
     expect(api_data).not_to have_key("average_usd")
     expect(api_data).not_to have_key("fx_rates")

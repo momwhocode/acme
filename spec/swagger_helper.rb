@@ -146,6 +146,7 @@ RSpec.configure do |config|
               email: { type: :string, format: :email },
               country: { type: :string, minLength: 2, maxLength: 2, example: "GB" },
               department: { type: :string, example: "engineering" },
+              job_title: { type: :string, nullable: true },
               employment_type: { type: :string, enum: %w[full-time part-time contractor freelancer intern] },
               status: { type: :string, enum: %w[active left] },
               level: { type: :string, nullable: true },
@@ -195,16 +196,6 @@ RSpec.configure do |config|
                     allOf: [ { "$ref" => "#/components/schemas/CompensationRecord" } ]
                   },
                   compensation_records: { type: :array, items: { "$ref" => "#/components/schemas/CompensationRecord" } },
-                  pay_band: {
-                    nullable: true,
-                    type: :object,
-                    properties: {
-                      level: { type: :string },
-                      currency: { type: :string },
-                      midpoint: { "$ref" => "#/components/schemas/Decimal" },
-                      compa_ratio: { "$ref" => "#/components/schemas/Decimal", nullable: true }
-                    }
-                  },
                   audit_events: {
                     type: :array,
                     items: {
@@ -338,9 +329,11 @@ RSpec.configure do |config|
               email: { type: :string, format: :email, example: "ada@acme.test" },
               country: { type: :string, example: "GB" },
               department: { type: :string, example: "engineering" },
+              job_title: { type: :string, nullable: true },
               employment_type: { type: :string, enum: %w[full-time part-time contractor freelancer intern] },
-              level: { type: :string, example: "IC2" },
+              level: { type: :string, example: "L2" },
               started_on: { type: :string, format: :date, example: "2024-01-01" },
+              manager_id: { type: :string, format: :uuid, nullable: true },
               compensation: { "$ref" => "#/components/schemas/CompensationInput" }
             }
           },
@@ -365,8 +358,9 @@ RSpec.configure do |config|
               email: { type: :string, format: :email, example: "grace@acme.test" },
               country: { type: :string, example: "US" },
               department: { type: :string, example: "sales" },
+              job_title: { type: :string, nullable: true },
               employment_type: { type: :string, enum: %w[full-time part-time contractor freelancer intern] },
-              level: { type: :string, nullable: true, example: "IC3" },
+              level: { type: :string, nullable: true, example: "L3" },
               started_on: { type: :string, format: :date, example: "2024-01-01" },
               manager_id: { type: :string, format: :uuid, nullable: true }
             }

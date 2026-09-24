@@ -19,12 +19,14 @@ export function renderTableLink(label, onClick) {
 }
 
 export function renderTableLead({ name, user, onClick }) {
-  const link = renderTableLink(name, onClick)
-  if (!user) return link
+  const label = onClick ? renderTableLink(name, onClick) : (
+    <span className="april-table__cell-text">{name}</span>
+  )
+  if (!user) return label
   return (
     <div className="april-table__lead">
       <UserAvatar user={user} size="md" />
-      {link}
+      {label}
     </div>
   )
 }

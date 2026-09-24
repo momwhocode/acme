@@ -7,9 +7,8 @@
 #  payload     :jsonb            not null
 #  record_type :string           not null
 #  created_at  :datetime         not null
-#  updated_at  :datetime         not null
 #  actor_id    :uuid
-#  record_id   :uuid
+#  record_id   :uuid             not null
 #
 # Indexes
 #
@@ -22,7 +21,11 @@
 # Append-only HR log. Profile reads Employee plus that hire's compensation events.
 
 class AuditEvent < ApplicationRecord
+  self.record_timestamps = false
+
   belongs_to :actor, class_name: "User", optional: true
+
+  before_create { self.created_at ||= Time.current }
 
   def self.for_employee(employee)
     where(

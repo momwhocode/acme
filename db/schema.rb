@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_24_141000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -20,10 +20,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
     t.uuid "actor_id"
     t.string "action", null: false
     t.string "record_type", null: false
-    t.uuid "record_id"
+    t.uuid "record_id", null: false
     t.jsonb "payload", default: {}, null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "created_at"], name: "index_audit_events_on_record_type_and_record_id_and_created_at"
   end
 
@@ -59,15 +58,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
     t.date "started_on", null: false
     t.date "left_on"
     t.uuid "manager_id"
+    t.string "job_title"
     t.index "((((((first_name)::text || ' '::text) || (last_name)::text) || ' '::text) || (email)::text)) gin_trgm_ops", name: "index_employees_on_directory_search", using: :gin
     t.index "lower((email)::text)", name: "index_employees_on_lower_email", unique: true
+    t.index ["country"], name: "index_employees_on_country"
     t.index ["department", "country", "employment_type", "status"], name: "index_employees_on_directory_filters"
     t.index ["last_name", "first_name", "id"], name: "index_employees_on_directory_name"
+    t.index ["level"], name: "index_employees_on_level"
     t.index ["manager_id"], name: "index_employees_on_manager_id"
     t.index ["started_on", "left_on"], name: "index_employees_on_employment_dates"
+    t.index ["status"], name: "index_employees_on_status"
     t.check_constraint "country::text ~ '^[A-Z]{2}$'::text", name: "employees_country_iso"
     t.check_constraint "employment_type::text = ANY (ARRAY['full-time'::character varying, 'part-time'::character varying, 'contractor'::character varying, 'freelancer'::character varying, 'intern'::character varying]::text[])", name: "employees_employment_type_allowed"
+    t.check_constraint "job_title IS NULL OR char_length(job_title::text) <= 255", name: "employees_job_title_length"
     t.check_constraint "left_on IS NULL OR left_on >= started_on", name: "employees_left_on_covers_start"
+    t.check_constraint "level IS NULL OR char_length(level::text) <= 50", name: "employees_level_length"
+    t.check_constraint "manager_id IS NULL OR manager_id <> id", name: "employees_manager_not_self"
+    t.check_constraint "status::text <> 'left'::text OR left_on IS NOT NULL", name: "employees_left_on_when_left"
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'left'::character varying]::text[])", name: "employees_status_allowed"
   end
 
@@ -83,17 +90,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
     t.check_constraint "rate > 0::numeric", name: "exchange_rates_rate_positive"
   end
 
-  create_table "pay_bands", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "level", null: false
-    t.string "currency", limit: 3, null: false
-    t.decimal "midpoint", precision: 15, scale: 2, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["level", "currency"], name: "index_pay_bands_on_level_and_currency", unique: true
-    t.check_constraint "currency::text ~ '^[A-Z]{3}$'::text", name: "pay_bands_currency_iso"
-    t.check_constraint "midpoint > 0::numeric", name: "pay_bands_midpoint_positive"
-  end
-
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "first_name", null: false
     t.string "last_name", null: false
@@ -107,4 +103,51 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_23_163000) do
   add_foreign_key "audit_events", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "compensation_records", "employees", on_delete: :cascade
   add_foreign_key "employees", "employees", column: "manager_id", on_delete: :nullify
+
+  # Cross-table pay dates — kept in db/directory_triggers.sql.
+  execute <<~SQL
+    CREATE OR REPLACE FUNCTION compensation_within_employment() RETURNS trigger
+    LANGUAGE plpgsql AS $$
+    DECLARE
+      started date;
+      ended date;
+    BEGIN
+      SELECT started_on, left_on INTO started, ended FROM employees WHERE id = NEW.employee_id;
+      IF started IS NOT NULL AND NEW.effective_date < started THEN
+        RAISE EXCEPTION 'compensation_records_within_employment' USING ERRCODE = '23514';
+      END IF;
+      IF ended IS NOT NULL AND NEW.effective_date > ended THEN
+        RAISE EXCEPTION 'compensation_records_within_employment' USING ERRCODE = '23514';
+      END IF;
+      RETURN NEW;
+    END;
+    $$;
+
+    CREATE OR REPLACE FUNCTION employment_covers_compensation() RETURNS trigger
+    LANGUAGE plpgsql AS $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM compensation_records
+        WHERE employee_id = NEW.id
+          AND (
+            effective_date < NEW.started_on
+            OR (NEW.left_on IS NOT NULL AND effective_date > NEW.left_on)
+          )
+      ) THEN
+        RAISE EXCEPTION 'employees_cover_compensation' USING ERRCODE = '23514';
+      END IF;
+      RETURN NEW;
+    END;
+    $$;
+
+    DROP TRIGGER IF EXISTS compensation_records_within_employment ON compensation_records;
+    CREATE TRIGGER compensation_records_within_employment
+    BEFORE INSERT OR UPDATE OF employee_id, effective_date ON compensation_records
+    FOR EACH ROW EXECUTE PROCEDURE compensation_within_employment();
+
+    DROP TRIGGER IF EXISTS employees_cover_compensation ON employees;
+    CREATE TRIGGER employees_cover_compensation
+    BEFORE UPDATE OF started_on, left_on ON employees
+    FOR EACH ROW EXECUTE PROCEDURE employment_covers_compensation();
+  SQL
 end

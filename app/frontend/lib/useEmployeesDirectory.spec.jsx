@@ -24,17 +24,6 @@ function DirectoryProbe() {
       <button type="button" onClick={() => directory.handleSearchChange("ada")}>
         Search
       </button>
-      <button
-        type="button"
-        onClick={() => directory.applySavedView({
-          filterValues: { country: [ "GB" ] },
-          q: "uk",
-          columns: [ "email" ],
-          sort: { columnId: "pay", direction: "desc" }
-        })}
-      >
-        Apply view
-      </button>
     </div>
   )
 }
@@ -71,23 +60,6 @@ describe("useEmployeesDirectory", () => {
     await user.click(screen.getByRole("button", { name: "Search" }))
     await waitFor(() => {
       expect(screen.getByText(/path \/employees\?q=ada/)).toBeTruthy()
-    })
-  })
-
-  it("applies a saved view to filters and search", async () => {
-    const user = userEvent.setup()
-    render(
-      <MemoryRouter initialEntries={[ "/employees" ]}>
-        <Routes>
-          <Route path="/employees" element={<DirectoryProbe />} />
-        </Routes>
-      </MemoryRouter>
-    )
-
-    await user.click(screen.getByRole("button", { name: "Apply view" }))
-    await waitFor(() => {
-      expect(screen.getByText("q uk")).toBeTruthy()
-      expect(screen.getByText(/country=GB/)).toBeTruthy()
     })
   })
 })

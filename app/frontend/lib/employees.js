@@ -1,6 +1,6 @@
 /** Employees API client and form validation for onboard, pay, and lifecycle actions. */
 
-import { apiErrorMessage, apiFetch } from "./http.js"
+import { apiData, apiErrorMessage, apiFetch } from "./http.js"
 import { t } from "./messages.js"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -10,7 +10,24 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 export const EMPLOYMENT_TYPES = [ "full-time", "part-time", "contractor", "freelancer", "intern" ]
 export const STATUSES = [ "active", "left" ]
 export const PAY_PERIODS = [ "hourly", "daily", "monthly", "annual" ]
+export const FORM_PAY_PERIODS = [ "annual", "hourly" ]
 export const CURRENCIES = [ "USD", "EUR", "GBP", "INR" ]
+/** Seed countries; onboard/edit pick from this list instead of free-text ISO codes. */
+export const COUNTRIES = [ "US", "GB", "DE", "FR", "IE", "NL", "IN" ]
+export const DEPARTMENTS = [
+  "engineering",
+  "product",
+  "design",
+  "sales",
+  "marketing",
+  "finance",
+  "people",
+  "operations",
+  "legal",
+  "support"
+]
+/** Directory/home buckets — new hires pick L1–L5+, not seed IC/M codes. */
+export const FORM_LEVELS = [ "L1", "L2", "L3", "L4", "L5+" ]
 
 function present(value) {
   return String(value ?? "").trim()
@@ -176,6 +193,13 @@ export async function listEmployees(params = {}, options = {}) {
   if (Object.keys(errors).length) throw new Error(firstError(errors))
 
   return readJson(await apiFetch(`/api/v1/employees${queryString(params)}`, options), t("errors.loadEmployees"))
+}
+
+export async function lookupEmployeeByEmail(email) {
+  const query = present(email).toLowerCase()
+  if (!query) return null
+  const listed = await listEmployees({ q: query, per_page: 5 })
+  return (apiData(listed)?.employees || []).find((row) => row.email === query) || null
 }
 
 export async function getEmployee(id, options = {}) {

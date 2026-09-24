@@ -37,7 +37,7 @@ describe("NotFoundPage", () => {
       </MemoryRouter>
     )
 
-    await user.click(screen.getByRole("button", { name: "Employees" }))
+    await user.click(screen.getByRole("button", { name: "Employee Directory" }))
     expect(screen.getByText("Directory")).toBeTruthy()
   })
 })

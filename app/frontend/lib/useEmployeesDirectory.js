@@ -154,16 +154,6 @@ export function useEmployeesDirectory() {
 
   const retry = useCallback(() => setReloadToken((current) => current + 1), [])
 
-  const applySavedView = useCallback((view) => {
-    setFilterValues(view.filterValues || {})
-    setSearchValue(view.q || "")
-    setDebouncedSearch(view.q || "")
-    if (view.sort) setSort(view.sort)
-    if (view.columns?.length) setVisibleColumnIds(view.columns)
-    setPage(1)
-    setClearGeneration((current) => current + 1)
-  }, [])
-
   const hasActiveFilters = Boolean(debouncedSearch) || hasSelectedListingFilters(filterValues)
   const filterChips = useMemo(
     () => employeesFilterChips(facets),
@@ -199,7 +189,6 @@ export function useEmployeesDirectory() {
     handleClearAll,
     handleSort,
     handlePageChange: setPage,
-    applySavedView,
     retry
   }
 }

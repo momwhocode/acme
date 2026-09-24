@@ -4,8 +4,10 @@ import {
   buildOverviewModel,
   conicGradient,
   deltaTagProps,
+  formatCompactInr,
   formatCompactUsd,
   formatCount,
+  formatMonthlyMoney,
   formatMonthlyUsd,
   formatPct,
   formatSignedCount,
@@ -28,6 +30,8 @@ describe("homeOverview formatters", () => {
     expect(formatCompactUsd(0)).toBe("$0")
     expect(formatMonthlyUsd(58_260)).toBe("$4,855")
     expect(formatMonthlyUsd(null)).toBe("—")
+    expect(formatCompactInr(150_000)).toBe("₹1.25 Cr")
+    expect(formatMonthlyMoney(150_000, true)).toBe("₹10.4 L")
     expect(formatCount(10000)).toBe("10,000")
     expect(formatPct(22.64)).toBe("22.6%")
     expect(pctShare(25, 0)).toBe(0)
@@ -94,7 +98,7 @@ describe("homeOverview mix", () => {
     )
 
     expect(rows[0].label).toBe("United States")
-    expect(moneyCell(rows[1], true)).toContain("£")
+    expect(moneyCell(rows[1], true)).toBe("₹6,667")
     expect(moneyCell(rows[0], false)).toBe("$200")
     expect(sortMoneyRows(rows, { key: "label", direction: "asc" }).map((row) => row.label)).toEqual([
       "United Kingdom",
@@ -137,7 +141,7 @@ describe("homeOverview mix", () => {
   })
 
   it("names action roles from live employee fields", () => {
-    expect(actionRole({ level: "IC2", department: "engineering" })).toBe("IC2 · Engineering")
+    expect(actionRole({ level: "IC2", department: "engineering" })).toBe("L2 · Engineering")
     expect(actionRole({ department: "sales" })).toBe("Sales")
     expect(actionRole({})).toBe("—")
   })
@@ -145,7 +149,7 @@ describe("homeOverview mix", () => {
   it("falls back for unknown types, empty snapshots, and local money without a currency", () => {
     expect(typeSlices([ { employment_type: "seasonal", headcount: 1 } ])[0].color).toBe("var(--amber-amber-300)")
     expect(conicGradient([], 0)).toContain("var(--color-border-border-gray-light)")
-    expect(moneyCell({ payroll: 150000 }, true)).toBe("$150.0K")
+    expect(moneyCell({ payroll: 150000 }, true)).toBe("₹1.25 Cr")
     expect(moneyRows([ { employment_type: "intern", payroll_usd: 10 } ], "employment_type")[0].label).toBe("Intern")
     const empty = buildOverviewModel(null, null)
     expect(empty).toMatchObject({

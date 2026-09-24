@@ -11,12 +11,18 @@ vi.mock("../lib/employees", async () => {
 
 import { onboardEmployee } from "../lib/employees"
 
+async function chooseOption(user, fieldId, label) {
+  await user.click(document.getElementById(`${fieldId}-input-trigger`))
+  await user.click(screen.getByRole("menuitem", { name: label }))
+}
+
 async function fillHire(user) {
   await user.type(document.getElementById("onboard-first-name"), "Ada")
   await user.type(document.getElementById("onboard-last-name"), "Lovelace")
   await user.type(document.getElementById("onboard-email"), "ada@acme.test")
-  await user.type(document.getElementById("onboard-country"), "gb")
-  await user.type(document.getElementById("onboard-department"), "engineering")
+  await chooseOption(user, "onboard-country", "United Kingdom")
+  await chooseOption(user, "onboard-department", "Engineering")
+  await chooseOption(user, "onboard-level", "L2")
   await user.type(document.getElementById("onboard-amount"), "80000")
 }
 
@@ -55,6 +61,7 @@ describe("OnboardEmployeeModal", () => {
           email: "ada@acme.test",
           country: "GB",
           department: "engineering",
+          level: "L2",
           employment_type: "full-time",
           compensation: expect.objectContaining({
             base_amount: "80000",

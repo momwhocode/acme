@@ -1,6 +1,6 @@
 /** Home overview model: mix charts, money table, KPI deltas, and action queues. */
 
-import { countryLabel, formatMoney, formatUsd, titleCase } from "./employeesTable.js"
+import { countryLabel, displayLevel, formatUsd, titleCase } from "./employeesTable.js"
 
 const CONTINGENT_TYPES = [ "part-time", "contractor", "freelancer", "intern" ]
 const TYPE_ORDER = [ "full-time", "part-time", "contractor", "freelancer", "intern" ]
@@ -33,19 +33,19 @@ export const MONEY_SORT_KEYS = {
 
 export function moneyTableColumns(meta) {
   return [
-    { id: "label", label: meta.columnLabel, kind: "lead", sticky: "start", sortable: true },
-    { id: "headcount", label: "Headcount", kind: "header", scroll: true, sortable: true },
-    { id: "payroll", label: "Total Cost", kind: "header", scroll: true, sortable: true },
-    { id: "share", label: "% Of Total", kind: "header", scroll: true, sortable: true },
-    { id: "median", label: "Median", kind: "header", scroll: true, sortable: true }
+    { id: "label", label: meta.columnLabel, kind: "lead", sortable: true },
+    { id: "headcount", label: "Headcount", kind: "header", sortable: true },
+    { id: "payroll", label: "Total Cost", kind: "header", sortable: true },
+    { id: "share", label: "% Of Total", kind: "header", sortable: true },
+    { id: "median", label: "Median", kind: "header", sortable: true }
   ]
 }
 
 export const ACTION_TABLE_COLUMNS = [
-  { id: "lead", label: "Employee", kind: "lead", sticky: "start" },
-  { id: "role", label: "Role", kind: "header", scroll: true },
-  { id: "status", label: "Status", kind: "status", scroll: true },
-  { id: "event_on", label: "Date", kind: "date", scroll: true }
+  { id: "lead", label: "Employee", kind: "lead" },
+  { id: "role", label: "Role", kind: "header" },
+  { id: "status", label: "Status", kind: "status" },
+  { id: "event_on", label: "Date", kind: "date" }
 ]
 
 export const MONEY_TABS = [
@@ -59,41 +59,73 @@ export const MONEY_TAB_INDEX = Object.fromEntries(MONEY_TABS.map((tab, index) =>
 export const ACTION_TABS = [
   { id: "onboarding", label: "Onboarding", path: "/employees?status=active", action: "onboard" },
   { id: "offboarding", label: "Offboarding", path: "/employees?status=left" },
-  { id: "contracts", label: "Contracts Expiring", path: "/employees?status=active&type=contractor,freelancer,intern" },
-  { id: "recent", label: "Recent Changes", path: "/employees" }
+  { id: "contracts", label: "Contracts Expiring", path: "/employees?status=active&type=contractor,freelancer,intern" }
 ]
-
-export const CONTINGENT_FOCUS = {
-  key: "employment_type",
-  value: CONTINGENT_TYPES.join(","),
-  label: "Contingent"
-}
 
 export const ACTION_TAG = {
   onboarding: "Started",
   offboarding: "Left",
-  contracts: "Expiring",
-  recent: "Changed"
+  contracts: "Expiring"
 }
 
-export function formatCompactUsd(amount) {
+// Seed INR→USD is 0.012 (ExchangeRate::SEED_RATES). Local overview amounts convert from USD.
+export const INR_PER_USD = 1 / 0.012
+
+export function usdToInr(amountUsd) {
+  return (Number(amountUsd) || 0) / 0.012
+}
+
+function formatCompactUsdAmount(amount) {
   const value = Number(amount) || 0
   const abs = Math.abs(value)
   if (abs >= 1_000_000) {
     const millions = value / 1_000_000
-    const digits = Number.isInteger(millions) || millions >= 10 ? 0 : 1
+    const digits = Number.isInteger(millions) ? 0 : 1
     return `$${millions.toFixed(digits)}M`
   }
   if (abs >= 10_000) {
     return `$${(value / 1_000).toFixed(1)}K`
   }
-  return formatUsd(value)
+  return `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)}`
+}
+
+function formatCompactInrAmount(amountInr) {
+  const value = Number(amountInr) || 0
+  const abs = Math.abs(value)
+  if (abs >= 10_000_000) {
+    const crore = value / 10_000_000
+    const digits = Number.isInteger(crore) ? 0 : Math.abs(crore) >= 10 ? 1 : 2
+    return `₹${crore.toFixed(digits)} Cr`
+  }
+  if (abs >= 100_000) {
+    const lakh = value / 100_000
+    const digits = Number.isInteger(lakh) ? 0 : 1
+    return `₹${lakh.toFixed(digits)} L`
+  }
+  return `₹${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(value)}`
+}
+
+export function formatCompactUsd(amount) {
+  return formatCompactUsdAmount(amount)
+}
+
+export function formatCompactInr(amountUsd) {
+  return formatCompactInrAmount(usdToInr(amountUsd))
+}
+
+export function formatCompactMoney(amountUsd, local) {
+  return local ? formatCompactInr(amountUsd) : formatCompactUsd(amountUsd)
 }
 
 // Median KPI run-rate is annual / 12 on the client — analytics does not return monthly_usd.
 export function formatMonthlyUsd(annual) {
   if (annual == null || annual === "") return "—"
   return formatUsd(Number(annual) / 12)
+}
+
+export function formatMonthlyMoney(annual, local) {
+  if (annual == null || annual === "") return "—"
+  return formatCompactMoney(Number(annual) / 12, local)
 }
 
 export function formatCount(value) {
@@ -162,15 +194,8 @@ export function typeSlices(rows = []) {
 
 // Chart buckets: IC/L 1–4 stay distinct; L5+ and every manager (M*) share L5+.
 function levelBucket(level) {
-  const text = String(level || "").trim().toUpperCase()
-  const numbered = text.match(/^(?:IC|L)(\d+)\+?$/)
-  const n = numbered ? Number(numbered[1]) : null
-  if (n === 1) return "L1"
-  if (n === 2) return "L2"
-  if (n === 3) return "L3"
-  if (n === 4) return "L4"
-  if (n >= 5 || /^M\d+$/.test(text)) return "L5+"
-  return null
+  const label = displayLevel(level)
+  return LEVEL_BUCKETS.includes(label) ? label : null
 }
 
 export function levelBars(rows = []) {
@@ -241,8 +266,7 @@ function weightedMedian(rows = []) {
 }
 
 export function moneyCell(row, local) {
-  if (local && row.currency && row.payrollLocal) return formatMoney(row.payrollLocal, row.currency)
-  return formatCompactUsd(row.payroll)
+  return formatCompactMoney(row.payroll, local)
 }
 
 export function conicGradient(slices, total) {
@@ -257,7 +281,7 @@ export function conicGradient(slices, total) {
 }
 
 export function actionRole(employee = {}) {
-  const level = employee.level ? employee.level : ""
+  const level = displayLevel(employee.level)
   const department = titleCase(employee.department)
   return [ level, department ].filter(Boolean).join(" · ") || "—"
 }

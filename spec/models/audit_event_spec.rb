@@ -7,9 +7,8 @@
 #  payload     :jsonb            not null
 #  record_type :string           not null
 #  created_at  :datetime         not null
-#  updated_at  :datetime         not null
 #  actor_id    :uuid
-#  record_id   :uuid
+#  record_id   :uuid             not null
 #
 # Indexes
 #

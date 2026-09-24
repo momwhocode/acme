@@ -72,6 +72,12 @@
   line-height: 1;
 }
 
+.april-modal__leading {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
 .april-modal__title {
   color: var(--color-foreground-text-text-default);
 }
@@ -80,6 +86,11 @@
   display: flex;
   flex-shrink: 0;
   align-items: flex-start;
+}
+
+.april-modal__subheader {
+  flex-shrink: 0;
+  padding-inline: var(--spacing-spacing-lg);
 }
 
 .april-modal__body {

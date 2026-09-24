@@ -284,19 +284,6 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/CompensationRecord"
-            pay_band:
-              nullable: true
-              type: object
-              properties:
-                level:
-                  type: string
-                currency:
-                  type: string
-                midpoint:
-                  "$ref": "#/components/schemas/Decimal"
-                compa_ratio:
-                  "$ref": "#/components/schemas/Decimal"
-                  nullable: true
             audit_events:
               type: array
               items:

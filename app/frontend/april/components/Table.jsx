@@ -479,9 +479,23 @@ function TableDataRow({
   getColumnPhase,
   rowReorderEnabled = false,
   reorderDisabled = false,
+  onRowClick,
 }) {
   const isSelected = selection?.isSelected?.(rowId) ?? Boolean(row.selected);
-  const rowClass = `april-table__row${isSelected ? " april-table__row--selected" : ""}`;
+  const clickable = Boolean(onRowClick) && row.clickable !== false;
+  const rowClass = [
+    "april-table__row",
+    isSelected ? "april-table__row--selected" : "",
+    clickable ? "april-table__row--clickable" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const handleRowClick = clickable
+    ? (event) => {
+        if (event.target.closest("button, a, input, label")) return;
+        onRowClick(row);
+      }
+    : undefined;
 
   const renderCells = (dragHandleProps) =>
     columns.map((column) => (
@@ -499,7 +513,11 @@ function TableDataRow({
     ));
 
   if (!rowReorderEnabled) {
-    return <tr className={rowClass}>{renderCells(null)}</tr>;
+    return (
+      <tr className={rowClass} onClick={handleRowClick}>
+        {renderCells(null)}
+      </tr>
+    );
   }
 
   return (
@@ -527,6 +545,7 @@ function TableBody({
   getColumnPhase,
   rowReorderEnabled = false,
   reorderDisabled = false,
+  onRowClick,
 }) {
   if (type === "loading") {
     return Array.from({ length: skeletonRows }, (_, index) => (
@@ -554,6 +573,7 @@ function TableBody({
           getColumnPhase={getColumnPhase}
           rowReorderEnabled={rowReorderEnabled}
           reorderDisabled={reorderDisabled}
+          onRowClick={onRowClick}
         />
       ));
     const skeleton = Array.from({ length: Math.max(0, skeletonRows - resolvedLoadedRows) }, (_, index) => (
@@ -578,6 +598,7 @@ function TableBody({
       getColumnPhase={getColumnPhase}
       rowReorderEnabled={rowReorderEnabled}
       reorderDisabled={reorderDisabled}
+      onRowClick={onRowClick}
     />
   ));
 }
@@ -600,6 +621,7 @@ export function Table({
   className = "",
   /** `{ enabled, disabled, onReorder(orderedIds) }` — drag handle column + row sorting. */
   rowReorder = null,
+  onRowClick,
 }) {
   const isEmpty = type === "empty";
   const rowReorderEnabled = Boolean(rowReorder?.enabled) && type === "default" && rows.length > 1;
@@ -685,6 +707,7 @@ export function Table({
                   getColumnPhase={getColumnPhase}
                   rowReorderEnabled
                   reorderDisabled={reorderDisabled}
+                  onRowClick={onRowClick}
                 />
               </SortableContext>
             ) : (
@@ -698,6 +721,7 @@ export function Table({
                 selection={selection}
                 getRowId={getRowId}
                 getColumnPhase={getColumnPhase}
+                onRowClick={onRowClick}
               />
             )}
           </tbody>

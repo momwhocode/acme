@@ -17,6 +17,7 @@ export function FilterChipsHeader({
   searchPlaceholder = "Search",
   columnsButtonIcon = FILTER_CHIPS_HEADER_COLUMNS_ICON,
   columnsButtonLabel = "Show or hide columns",
+  columnsGroupLabel = "Show/hide Columns",
   id = "filter-chips-header",
   className = "",
   filterValues = {},
@@ -121,6 +122,7 @@ export function FilterChipsHeader({
             ariaLabel={columnsButtonLabel}
             variant="outlined"
             size="md"
+            groupLabel={columnsGroupLabel}
             options={columnOptions ?? []}
             visibleColumnIds={visibleColumnIds ?? []}
             onToggle={onColumnToggle}

@@ -10,7 +10,7 @@ export default {
     docs: {
       description: {
         component:
-          "Clickable Home metric. Deltas use April Tag: up = success, down = error, flat = default."
+          "Home metric tile. Deltas use April Tag: up = success, down = error, flat = default."
       }
     }
   }
@@ -21,17 +21,16 @@ export const Playground = {
     icon: "payments",
     label: "Annual Cost",
     value: "$8.1M",
-    delta: "+4.2%",
-    selected: false
+    delta: "+4.2%"
   },
   render: (args) => (
     <StoryFrame width="16rem">
-      <OverviewKpi {...args} onClick={() => {}} />
+      <OverviewKpi {...args} />
     </StoryFrame>
   )
 }
 
-export const SelectedDown = {
+export const Down = {
   render: () => (
     <StoryFrame width="16rem">
       <OverviewKpi
@@ -39,8 +38,6 @@ export const SelectedDown = {
         label="Headcount"
         value="128"
         delta="-3"
-        selected
-        onClick={() => {}}
       />
     </StoryFrame>
   )

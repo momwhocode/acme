@@ -62,7 +62,6 @@ describe("App routes", () => {
           onboarding: { count: 0, employees: [] },
           offboarding: { count: 0, employees: [] },
           contracts: { count: 0, employees: [] },
-          recent: { count: 0, employees: [] }
         }
       }
     })

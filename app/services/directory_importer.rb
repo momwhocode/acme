@@ -135,6 +135,7 @@ class DirectoryImporter
       employment_type: row.fetch("employment_type").to_s.strip.downcase.presence,
       status: row.fetch("status").to_s.strip.downcase.presence,
       level: row["level"].to_s.strip.presence,
+      job_title: row["job_title"].to_s.strip.gsub(/\s+/, " ").presence,
       started_on: parse_date(row.fetch("started_on"), "started_on", email),
       left_on: parse_optional_date(row["left_on"], "left_on", email),
       created_at: now,

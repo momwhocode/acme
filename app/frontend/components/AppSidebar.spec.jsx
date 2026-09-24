@@ -36,12 +36,12 @@ describe("AppSidebar", () => {
     vi.clearAllMocks()
   })
 
-  it("renders Home and Employees and marks the active item", () => {
+  it("renders Home and Employee Directory and marks the active item", () => {
     renderSidebar("/employees")
 
     expect(screen.getByLabelText("HR navigation")).toBeTruthy()
     expect(screen.getByRole("link", { name: "Home" })).toBeTruthy()
-    expect(screen.getByRole("link", { name: "Employees" }).getAttribute("aria-current")).toBe("page")
+    expect(screen.getByRole("link", { name: "Employee Directory" }).getAttribute("aria-current")).toBe("page")
   })
 
   it("signs out from the account menu", async () => {

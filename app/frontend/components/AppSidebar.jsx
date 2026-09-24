@@ -1,4 +1,4 @@
-/** Signed-in HR chrome — Home / Employees plus account sign-out. */
+/** Signed-in HR chrome — Home / Employee Directory plus account sign-out. */
 
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"

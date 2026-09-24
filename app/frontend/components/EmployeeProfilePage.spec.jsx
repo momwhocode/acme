@@ -44,7 +44,7 @@ describe("EmployeeProfilePage", () => {
           change_reason: "promotion",
           annualised_usd: "112500.0"
         },
-        compensation_records: [
+            compensation_records: [
           {
             id: "comp-2",
             base_amount: "90000.0",
@@ -62,6 +62,22 @@ describe("EmployeeProfilePage", () => {
             effective_date: "2024-01-01",
             change_reason: "hire",
             annualised_usd: "100000.0"
+          }
+        ],
+        audit_events: [
+          {
+            id: "aud-1",
+            action: "promotion",
+            record_type: "CompensationRecord",
+            actor_name: "Hr Lead",
+            created_at: "2025-04-01T12:00:00.000Z"
+          },
+          {
+            id: "aud-2",
+            action: "onboard",
+            record_type: "Employee",
+            actor_name: "Hr Lead",
+            created_at: "2024-01-01T09:00:00.000Z"
           }
         ]
       }
@@ -83,17 +99,42 @@ describe("EmployeeProfilePage", () => {
     )
 
     expect(await screen.findByRole("heading", { name: "Ada Lovelace" })).toBeTruthy()
+    expect(document.querySelector(".april-modal__title-group .april-avatar")).toBeTruthy()
+    expect(document.querySelector(".april-modal__description")).toBeNull()
+    expect(screen.getByText("Active")).toBeTruthy()
+    expect(screen.getByText("ada@acme.test")).toBeTruthy()
     expect(screen.getByText("United Kingdom")).toBeTruthy()
     expect(screen.getAllByText("1 Jan-2024").length).toBeGreaterThan(0)
-    expect(screen.getByRole("heading", { name: "Details" })).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Current compensation" })).toBeTruthy()
-    expect(screen.getByText("Current")).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Employee Details" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Job Details" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Compensation Details" })).toBeTruthy()
+    expect(screen.getByText("Annual")).toBeTruthy()
+    expect(screen.getByText("Annual Salary")).toBeTruthy()
+    expect(screen.queryByText("Band")).toBeNull()
+    expect(screen.getByRole("heading", { name: "Employment Dates" })).toBeTruthy()
+    expect(screen.getByRole("tab", { name: "Overview" }).getAttribute("aria-selected")).toBe("true")
+    expect(screen.getByRole("tab", { name: "Activity History" }).getAttribute("aria-selected")).toBe("false")
+    expect(screen.getByRole("button", { name: "Edit Record" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: "Record" })).toBeNull()
+    expect(screen.getByRole("button", { name: "More Actions" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Audit trail" })).toBeNull()
+  })
+
+  it("shows timestamped changes on Activity History", async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
+        <Routes>
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await screen.findByRole("heading", { name: "Ada Lovelace" })
+    await user.click(screen.getByRole("tab", { name: "Activity History" }))
     expect(screen.getByText("Promotion")).toBeTruthy()
-    expect(screen.getByText("Hire")).toBeTruthy()
-    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
-    expect(screen.getByRole("button", { name: "More actions" })).toBeTruthy()
-    expect(screen.getAllByRole("button", { name: "Correct" }).length).toBeGreaterThan(0)
-    expect(screen.getByRole("heading", { name: "Audit trail" })).toBeTruthy()
+    expect(screen.getByText("Onboard")).toBeTruthy()
+    expect(screen.getAllByText("Hr Lead").length).toBeGreaterThan(0)
   })
 
   it("opens the offboard modal from more actions", async () => {
@@ -107,10 +148,11 @@ describe("EmployeeProfilePage", () => {
     )
 
     await screen.findByRole("heading", { name: "Ada Lovelace" })
-    await user.click(screen.getByRole("button", { name: "More actions" }))
-    await user.click(screen.getByRole("menuitem", { name: "Mark as left" }))
+    await user.click(screen.getByRole("button", { name: "More Actions" }))
+    await user.click(screen.getByRole("menuitem", { name: "Start Offboarding" }))
 
-    expect(screen.getByRole("heading", { name: "Mark as left" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Start Offboarding" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Ada Lovelace" })).toBeNull()
   })
 
   it("opens the edit modal with the current profile", async () => {
@@ -124,29 +166,18 @@ describe("EmployeeProfilePage", () => {
     )
 
     await screen.findByRole("heading", { name: "Ada Lovelace" })
-    await user.click(screen.getByRole("button", { name: "Edit" }))
+    await user.click(screen.getByRole("button", { name: "Edit Record" }))
 
-    expect(screen.getByRole("heading", { name: "Edit employee" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Edit Employee" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Ada Lovelace" })).toBeNull()
     expect(document.getElementById("edit-first-name").value).toBe("Ada")
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }))
+    expect(screen.getByRole("heading", { name: "Ada Lovelace" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Edit Employee" })).toBeNull()
   })
 
-  it("opens the pay-change modal for an active employee", async () => {
-    const user = userEvent.setup()
-    render(
-      <MemoryRouter initialEntries={[ "/employees/emp-1" ]}>
-        <Routes>
-          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
-        </Routes>
-      </MemoryRouter>
-    )
-
-    await screen.findByRole("heading", { name: "Ada Lovelace" })
-    await user.click(screen.getByRole("button", { name: "Record pay change" }))
-
-    expect(screen.getByRole("heading", { name: "Record pay change" })).toBeTruthy()
-  })
-
-  it("hides pay-change for a leaver", async () => {
+  it("hides offboarding for a leaver", async () => {
     getEmployee.mockResolvedValue({
       data: {
         employee: {
@@ -176,13 +207,13 @@ describe("EmployeeProfilePage", () => {
     )
 
     await screen.findByRole("heading", { name: "Ada Lovelace" })
-    expect(screen.queryByRole("button", { name: "Record pay change" })).toBeNull()
-    expect(screen.getByRole("button", { name: "More actions" })).toBeTruthy()
-    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy()
+    expect(screen.getByRole("tab", { name: "Overview" }).getAttribute("aria-selected")).toBe("true")
+    expect(screen.getByRole("button", { name: "More Actions" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Edit Record" })).toBeTruthy()
     const user = userEvent.setup()
-    await user.click(screen.getByRole("button", { name: "More actions" }))
-    expect(screen.getByRole("menuitem", { name: "Rehire" })).toBeTruthy()
-    expect(screen.getByRole("menuitem", { name: "Delete hire" })).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "More Actions" }))
+    expect(screen.queryByRole("menuitem", { name: "Start Offboarding" })).toBeNull()
+    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeTruthy()
   })
 
   it("shows a styled missing-employee state", async () => {

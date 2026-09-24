@@ -4,6 +4,7 @@ import {
   formatLongSnapshotDate,
   homeMonthOptions,
   homePeriodControlLabel,
+  homePeriodPresets,
   homeTimeframeAsOf,
   homeTimeframeCompareAsOf
 } from "./homeTimeframe.js"
@@ -41,17 +42,28 @@ describe("homeTimeframeCompareAsOf", () => {
 })
 
 describe("home period labels", () => {
-  it("names the selected month", () => {
-    expect(homePeriodControlLabel({ toDate: true, year: 2026, month: 8 }, ref)).toBe("September 2026 · To Date")
-    expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 8 }, ref)).toBe("September 2026 · Full Period")
+  it("names closed periods by preset and the live month by name", () => {
+    expect(homePeriodControlLabel({ toDate: true, year: 2026, month: 8 }, ref)).toBe("September 2026")
+    expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 7 }, ref)).toBe("Last Month")
+    expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 5 }, ref)).toBe("Last Quarter")
+    expect(homePeriodControlLabel({ toDate: false, year: 2025, month: 11 }, ref)).toBe("Last Year")
+    expect(homePeriodControlLabel({ toDate: false, year: 2026, month: 4 }, ref)).toBe("May 2026")
     expect(formatLongSnapshotDate("2026-09-23")).toBe("23 September 2026")
   })
 
-  it("lists recent months for the picker", () => {
+  it("lists the snapshot presets used on Home", () => {
+    expect(homePeriodPresets(ref).map((preset) => [ preset.id, preset.label, preset.period ])).toEqual([
+      [ "last-month", "Last Month", { toDate: false, year: 2026, month: 7 } ],
+      [ "last-quarter", "Last Quarter", { toDate: false, year: 2026, month: 5 } ],
+      [ "last-year", "Last Year", { toDate: false, year: 2025, month: 11 } ]
+    ])
+  })
+
+  it("lists the current month and recent closed months", () => {
     expect(homeMonthOptions(ref, 3)).toEqual([
-      { year: 2026, month: 8, label: "September 2026" },
-      { year: 2026, month: 7, label: "August 2026" },
-      { year: 2026, month: 6, label: "July 2026" }
+      { year: 2026, month: 8, current: true, label: "September 2026" },
+      { year: 2026, month: 7, current: false, label: "August 2026" },
+      { year: 2026, month: 6, current: false, label: "July 2026" }
     ])
   })
 })

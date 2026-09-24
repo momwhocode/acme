@@ -1,6 +1,7 @@
 /** Directory columns, row mapping, chips, and query params for Employees. */
 
 import { employeeAvatar } from "./employeeAvatar.js"
+import { EMPLOYEE_FIELD_LABELS } from "./employeeFormSections.js"
 import { filterTableColumns, toggleableColumns } from "./tableColumns.js"
 import { EMPLOYMENT_TYPES, STATUSES } from "./employees.js"
 import { readFilterSelection } from "./filterValues.js"
@@ -8,15 +9,17 @@ import { readFilterSelection } from "./filterValues.js"
 export const EMPLOYEES_TABLE_COLUMNS = [
   { id: "select", kind: "select", sticky: "start" },
   { id: "lead", label: "Employee", kind: "lead", sticky: "start", showAvatar: true, sortable: true },
-  { id: "email", label: "Email", kind: "header", scroll: "start" },
-  { id: "department", label: "Department", kind: "header", scroll: true },
-  { id: "manager", label: "Manager", kind: "header", scroll: true },
-  { id: "country", label: "Country", kind: "header", scroll: true },
-  { id: "employment_type", label: "Type", kind: "header", scroll: true },
-  { id: "status", label: "Status", kind: "status", scroll: true },
-  { id: "level", label: "Level", kind: "header", scroll: true },
-  { id: "pay", label: "Annual USD", kind: "header", scroll: true, sortable: true },
-  { id: "started_on", label: "Start date", kind: "date", scroll: true, sortable: true },
+  { id: "email", label: EMPLOYEE_FIELD_LABELS.email, kind: "header", scroll: "start" },
+  { id: "country", label: EMPLOYEE_FIELD_LABELS.country, kind: "header", scroll: true },
+  { id: "status", label: EMPLOYEE_FIELD_LABELS.status, kind: "status", scroll: true },
+  { id: "job_title", label: EMPLOYEE_FIELD_LABELS.jobTitle, kind: "header", scroll: true },
+  { id: "level", label: EMPLOYEE_FIELD_LABELS.level, kind: "header", scroll: true },
+  { id: "department", label: EMPLOYEE_FIELD_LABELS.department, kind: "header", scroll: true },
+  { id: "employment_type", label: EMPLOYEE_FIELD_LABELS.type, kind: "header", scroll: true },
+  { id: "manager", label: EMPLOYEE_FIELD_LABELS.manager, kind: "header", scroll: true },
+  { id: "pay", label: EMPLOYEE_FIELD_LABELS.annualSalary, kind: "header", scroll: true, sortable: true },
+  { id: "started_on", label: EMPLOYEE_FIELD_LABELS.startDate, kind: "date", scroll: true, sortable: true },
+  { id: "left_on", label: EMPLOYEE_FIELD_LABELS.endDate, kind: "date", scroll: true },
   { id: "actions", kind: "actions", sticky: "end" }
 ]
 
@@ -27,7 +30,7 @@ const STATUS_FILTER_OPTIONS = STATUSES.map((value) => ({
 
 const TYPE_FILTER_OPTIONS = EMPLOYMENT_TYPES.map((value) => ({
   value,
-  label: value
+  label: titleCase(value)
 }))
 
 export function countryFlag(code) {
@@ -52,6 +55,21 @@ export function titleCase(value) {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
+}
+
+/** Directory + Home share L1–L5+ so IC2 and L2 read the same. */
+export function displayLevel(level) {
+  const text = String(level || "").trim()
+  if (!text) return ""
+  const upper = text.toUpperCase()
+  const numbered = upper.match(/^(?:IC|L)(\d+)\+?$/)
+  const n = numbered ? Number(numbered[1]) : null
+  if (n === 1) return "L1"
+  if (n === 2) return "L2"
+  if (n === 3) return "L3"
+  if (n === 4) return "L4"
+  if (n >= 5 || /^M\d+$/.test(upper)) return "L5+"
+  return text
 }
 
 export function facetOptions(values = []) {
@@ -94,6 +112,26 @@ export function formatUsd(amount) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value)
 }
 
+const WEEKS_PER_YEAR = 52
+const MONTHS_PER_YEAR = 12
+const WORKING_DAYS_PER_YEAR = 5 * WEEKS_PER_YEAR
+
+/** Gross annual pay in the record currency — same rules as CurrencyNormalizer. */
+export function annualisedLocal(record = {}) {
+  const amount = Number(record.base_amount)
+  if (Number.isNaN(amount)) return null
+  const period = String(record.pay_period || "").trim().toLowerCase()
+  if (period === "annual") return amount
+  if (period === "monthly") return amount * MONTHS_PER_YEAR
+  if (period === "daily") return amount * WORKING_DAYS_PER_YEAR
+  if (period === "hourly") {
+    const hours = Number(record.hours_per_week)
+    if (!hours) return null
+    return amount * hours * WEEKS_PER_YEAR
+  }
+  return null
+}
+
 export function formatMoney(amount, currency) {
   if (amount == null || amount === "") return "—"
   const value = Number(amount)
@@ -128,15 +166,17 @@ export function employeeTableRow(employee) {
     color: avatar.color,
     avatarUrl: avatar.avatarUrl,
     email: employee.email,
+    country: employee.country,
+    job_title: employee.job_title || "—",
     department: titleCase(employee.department),
     manager: employee.manager_name || "—",
-    country: employee.country,
     employment_type: titleCase(employee.employment_type),
     status: employee.status === "left" ? "Left" : "Active",
     statusType: employee.status === "left" ? "default" : "success",
-    level: employee.level || "—",
+    level: displayLevel(employee.level) || "—",
     pay: formatUsd(pay),
     started_on: employee.started_on,
+    left_on: employee.left_on,
     employee
   }
 }
