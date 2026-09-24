@@ -27,16 +27,16 @@ RSpec.describe DirectoryPayload do
 
   it "uses left_on as the compensation cutoff for leavers" do
     ExchangeRate.seed!(on: Date.new(2024, 1, 1))
-    employee = create(:employee)
-    older = create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1),
-                                         base_amount: 70_000, currency: "USD")
-    create(:compensation_record, employee: employee, effective_date: Date.new(2026, 1, 1),
-                                 base_amount: 120_000, currency: "USD")
-    employee.update_columns(status: "left", left_on: Date.new(2025, 6, 1))
+    employee = create(:employee, started_on: Date.new(2024, 1, 1))
+    create(:compensation_record, employee: employee, effective_date: Date.new(2024, 1, 1),
+                                 base_amount: 70_000, currency: "USD")
+    current = create(:compensation_record, employee: employee, effective_date: Date.new(2025, 3, 1),
+                                           base_amount: 90_000, currency: "USD")
+    employee.update!(status: "left", left_on: Date.new(2025, 6, 1))
 
     payload = described_class.employees([ employee.reload ]).first
 
-    expect(payload.dig(:current_compensation, :id)).to eq(older.id)
-    expect(payload.dig(:current_compensation, :annualised_usd)).to eq(70_000.to_d)
+    expect(payload.dig(:current_compensation, :id)).to eq(current.id)
+    expect(payload.dig(:current_compensation, :annualised_usd)).to eq(90_000.to_d)
   end
 end

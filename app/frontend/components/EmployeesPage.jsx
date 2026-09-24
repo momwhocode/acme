@@ -1,6 +1,6 @@
 /** Employees directory — filters, export, and profile modal outlet. */
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { BreadcrumbHeader } from "../april/components/BreadcrumbHeader"
 import { Button } from "../april/components/Button"
@@ -50,10 +50,10 @@ export default function EmployeesPage() {
     setDeleteRow(null)
   }
 
-  const stayOnDirectory = () => {
+  const stayOnDirectory = useCallback(() => {
     if (onDirectory) return
     navigate({ pathname: "/employees", search: location.search })
-  }
+  }, [ location.search, navigate, onDirectory ])
 
   useEffect(() => {
     if (searchParams.get("onboard") !== "1") return
@@ -100,7 +100,7 @@ export default function EmployeesPage() {
           setDeleteRow(row)
         }
       }),
-    [location.pathname, location.search, navigate, retry]
+    [ location.search, navigate, retry, stayOnDirectory ]
   )
   const onColumnToggle = useMemo(
     () => createColumnToggleHandler(EMPLOYEES_TABLE_COLUMNS, setVisibleColumnIds),

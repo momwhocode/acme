@@ -12,13 +12,14 @@ RSpec.describe DirectoryExporter do
     described_class.call(DirectoryQuery.new(country: "GB").relation)
   end
 
-  it "writes the directory headers and matching rows" do
-    csv = filtered_csv
+  it "writes the directory headers" do
+    expect(filtered_csv).to include(
+      "Name,Email,Department,Country,Type,Status,Level,Job Title,Pay,Started,End Date,Manager"
+    )
+  end
 
-    expect(csv).to include("Name,Email,Department,Country,Type,Status,Level,Job Title,Pay,Started,End Date,Manager")
-    expect(csv).to include("Ada Lovelace")
-    expect(csv).to include("Engineer")
-    expect(csv).to include("100000.0")
+  it "writes the matching hire job title and annualised USD" do
+    expect(filtered_csv).to include("Ada Lovelace").and include("Engineer").and include("100000.0")
   end
 
   it "exports end date for a leaver" do

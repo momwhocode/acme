@@ -8,7 +8,6 @@ import CompensationFields from "./CompensationFields"
 import { EmployeeDatesFields, EmployeeDetailsFields, EmployeeJobFields } from "./EmployeeFormFields"
 import { EMPLOYEE_FORM_SECTIONS } from "../lib/employeeFormSections"
 import {
-  fieldErrorText,
   firstApiFieldError,
   lookupEmployeeByEmail,
   onboardEmployee,

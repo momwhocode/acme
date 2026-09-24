@@ -45,11 +45,12 @@ RSpec.describe DirectoryImporter do
 
   it "normalises country and department" do
     import_fixture
-    ada = Employee.find_by!(email: "ada.lovelace@import.test")
 
-    expect(ada.country).to eq("GB")
-    expect(ada.department).to eq("engineering")
-    expect(ada.job_title).to eq("Engineer")
+    expect(Employee.find_by!(email: "ada.lovelace@import.test")).to have_attributes(
+      country: "GB",
+      department: "engineering",
+      job_title: "Engineer"
+    )
   end
 
   it "imports job_title from the required column" do

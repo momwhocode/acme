@@ -29,16 +29,20 @@ function donutSlicePath(cx, cy, outer, inner, start, end) {
   return `M ${x1} ${y1} A ${outer} ${outer} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${inner} ${inner} 0 ${large} 0 ${x4} ${y4} Z`
 }
 
-/** SVG employment-type donut so each slice can show a hover tooltip. */
-export function OverviewDonut({ slices, total }) {
-  const [ tip, setTip ] = useState("")
+function donutSectors(slices, total) {
   let cursor = 0
-  const sectors = slices.map((slice) => {
+  return slices.map((slice) => {
     const share = pctShare(slice.headcount, total)
     const start = (cursor / 100) * 360
     cursor += share
     return { ...slice, start, end: (cursor / 100) * 360, share }
   })
+}
+
+/** SVG employment-type donut so each slice can show a hover tooltip. */
+export function OverviewDonut({ slices, total }) {
+  const [ tip, setTip ] = useState("")
+  const sectors = donutSectors(slices, total)
 
   return (
     <div className="acme-overview__donut">
